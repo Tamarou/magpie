@@ -1,13 +1,14 @@
 package Magpie::Event;
 use Moose::Role;
-with qw( Magpie::Event::Symbol );
+with qw( Magpie::Event::Symbol Magpie::Types );
 
 use Magpie::Constants;
 use Magpie::SymbolTable;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
-
+use Carp;
+BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
 use Data::Dumper::Concise;
 
 has plack_request => (
@@ -34,6 +35,14 @@ has symbol_table => (
 has parent_handler => (
     is          => 'rw',
     predicate   => 'has_parent_handler',
+);
+
+has error => (
+    is          => 'rw',
+    isa         => 'SmartHTTPError',
+    coerce      => 1,
+    predicate   => 'has_error',
+    writer      => 'set_error',
 );
 
 has handlers => (
@@ -192,10 +201,25 @@ sub run_handler {
     my $ctxt = shift;
 
     my $handler = $self->current_handler;
-    if ( defined $self->fetch_handler( $handler ) ) {
+    if ( my $h = $self->fetch_handler( $handler ) ) {
         warn "Running handler $handler \n";
-        $self->fetch_handler( $handler )->run( $ctxt );
+        try {
+            $h->run( $ctxt );
+
+        }
+        catch {
+            my $error = $_;
+            warn "error running handler '$handler': $error";
+        };
+
+        # propagate errors up the handler stack
+        if ( $h->has_error ) {
+            my $wtf = $h->error;
+            $self->set_error( $wtf );
+        }
+
         $self->add_to_queue( "next_in_pipe" );
+
     }
     else {
         return QUEUE_ERROR;
@@ -248,7 +272,13 @@ sub handle_symbol {
     # and manipulate program flow if need be based on their
     # return values
     foreach my $h ( $self->get_symbol_handler( $symbol ) ) {
-        $return_code = $h->($self, $ctxt);
+        try {
+            $return_code = $h->($self, $ctxt);
+        }
+        catch {
+            my $error = $_;
+            warn "Error running symbol '$symbol': $error";
+        };
         return $self->control_done()     if $return_code == DONE;
         return $self->control_declined() if $return_code == DECLINED;
         return $self->control_output()   if $return_code == OUTPUT;

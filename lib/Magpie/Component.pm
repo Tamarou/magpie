@@ -1,6 +1,7 @@
 package Magpie::Component;
 use Moose;
-with 'Magpie::Event';
+with qw(Magpie::Event);
+
 use Data::Dumper::Concise;
 
 
