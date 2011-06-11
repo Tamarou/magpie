@@ -69,6 +69,7 @@ has event_queue => (
         pop_queue       => 'pop',
         shift_queue     => 'shift',
         unshift_queue   => 'unshift',
+        free_queue      => 'clear',
     },
 );
 
@@ -113,14 +114,29 @@ sub register_events {
 }
 
 sub registered_events {
-    my $self = shift;
-    my $pkg = $self->meta->name;
+    my $thing = shift;
+    my $pkg = ref( $thing ) ? $thing->meta->name : $thing;
 
     #warn "in $pkg REG'D: " . Dumper( \%registered_events );
     my $ref = $registered_events{$pkg} || [];
     return @{ $ref };
 }
 
+#-------------------------------------------------------------------------------
+# stop_application() stops everything dead in its tracks, potentially
+# calling itself for all parent handlers as well.
+# DO NOT confuse this with the harmless end_application() which only adds
+# a hook for doing clean-up, etc.
+#-------------------------------------------------------------------------------
+sub stop_application  {
+    my $self = shift;
+    my $ctxt = shift;
+
+    $self->free_queue;
+    if (defined $self->parent_handler) {
+        $self->parent_handler->stop_application;
+    }
+}
 
 #-------------------------------------------------------------------------------
 # next_in_pipe

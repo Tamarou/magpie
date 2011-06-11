@@ -1,6 +1,6 @@
 package Magpie::Machine;
 use Moose;
-with 'Magpie::Event';
+extends 'Magpie::Component';
 use Magpie::Constants;
 
 

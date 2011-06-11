@@ -6,6 +6,13 @@ use Magpie::Constants;
 
 __PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD ) );
 
+# XXX: Move to a real Dispactcher
+sub load_queue {
+    my $self = shift;
+    my $ctxt = shift;
+    return $self->plack_request->method;
+}
+
 sub GET {
     shift->set_error('NotImplemented');
     return DONE;
