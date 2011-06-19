@@ -1,4 +1,6 @@
 package Plack::Middleware::Magpie;
+use strict;
+use warnings;
 use parent qw( Plack::Middleware );
 use Plack::Util::Accessor qw(pipeline);
 
@@ -8,7 +10,7 @@ use Data::Dumper::Concise;
 
 sub call {
     my($self, $env) = @_;
-    my $res = $self->app( $env );
+    my $app = $self->app;
 
     my $m = Magpie::Machine->new;
 
@@ -16,6 +18,13 @@ sub call {
 
     $m->pipeline(@{ $pipeline });
     $m->plack_request( Plack::Request->new($env) );
+
+    # if we have upstream MW, pass it along
+    if ( ref($app) ) {
+        my $r = $app->($env);
+        $m->plack_response( Plack::Response->new(@$r) );
+    }
+
     $m->run({});
 
     if ( $m->has_error ) {
