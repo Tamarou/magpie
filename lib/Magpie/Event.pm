@@ -59,6 +59,19 @@ has handlers => (
 
 );
 
+has handler_args => (
+    traits      => ['Array'],
+    is          => 'rw',
+    isa         => 'ArrayRef[HashRef]',
+    default     => sub { [] },
+    handles     => {
+        push_handler_args       => 'push',
+        pop_handlers_args       => 'pop',
+        shift_handlers_args     => 'shift',
+        unshift_handlers_args   => 'unshift',
+    },
+);
+
 has event_queue => (
     traits  => ['Array'],
     is      => 'rw',
@@ -91,6 +104,11 @@ has current_handler => (
     handles   => {
         run_current_handler => 'run',
     },
+);
+
+has current_handler_args => (
+    is        => 'rw',
+    predicate => 'has_current_handler_args',
 );
 
 sub BUILD{
@@ -147,8 +165,10 @@ sub next_in_pipe {
     my $ctxt = shift;
 
     my $handler = $self->shift_handlers;
+    my $handler_args = $self->shift_handlers_args;
     if ( defined $handler ) {
         $self->current_handler( $handler );
+        $self->current_handler_args( $handler_args );
         $self->add_to_queue( 'load_handler' );
     }
 
@@ -169,6 +189,7 @@ sub load_handler {
     my $ctxt = shift;
 
     my $handler = $self->current_handler;
+    my $handler_args = $self->current_handler_args || {};
     #warn "load: current handler: $handler \n";
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
@@ -187,6 +208,7 @@ sub load_handler {
 
         try {
             $new_handler = $handler->new(
+                %{ $handler_args },
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
             ) || die "Error loading handler $!";
@@ -200,6 +222,7 @@ sub load_handler {
         $new_handler->parent_handler( $self );
         $self->register_handler( $handler => $new_handler );
     }
+
     if ( defined $self->fetch_handler( $handler ) ) {
         $self->add_to_queue( "run_handler" );
     }
@@ -242,11 +265,6 @@ sub run_handler {
     }
     return OK;
 }
-
-
-
-
-
 
 sub end_application {
     warn "implement end_application already, will you?\n";
