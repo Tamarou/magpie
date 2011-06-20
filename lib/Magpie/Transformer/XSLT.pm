@@ -53,7 +53,6 @@ sub get_content {
 
     # XXX make this work w/ dependency-aware Resource classes
     if (my $upstream = $self->plack_response->body ) {
-        warn "UPSTREAM: $upstream\n";
         $dom = XML::LibXML->load_xml( IO => $upstream );
     }
     else {
@@ -69,9 +68,31 @@ sub transform {
     my $self = shift;
     my $ctxt = shift;
 
-    my $style = $self->xslt_processor->parse_stylesheet_file( $self->stylesheet_file );
+    my $style = undef;
+    try {
+        $style = $self->xslt_processor->parse_stylesheet_file( $self->stylesheet_file );
+    }
+    catch {
+        warn "Error parsing stylesheet file: $_\n";
+        $self->set_error({ status_code => 500, reason => $_ });
+    };
 
-    my $result = $style->transform( $self->content_dom );
+    # remember that Try::Tiny won't return() the way you think it does
+    return OK if $self->has_error;
+
+    my $params = $self->request->parameters || {};
+
+    my $result = undef;
+
+    try {
+        $result = $style->transform( $self->content_dom, XML::LibXSLT::xpath_to_string(%{$params}) );
+    }
+    catch {
+        warn "Error applying stylesheet: $_\n";
+        $self->set_error({ status_code => 500, reason => $_ });
+    };
+
+    return OK if $self->has_error;
 
     my $new_body     = $style->output_string( $result );
     my $content_type = $style->media_type;
