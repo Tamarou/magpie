@@ -2,7 +2,7 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Plack::Middleware );
-use Plack::Util::Accessor qw(pipeline);
+use Plack::Util::Accessor qw(pipeline resource);
 
 use Magpie::Machine;
 use HTTP::Throwable::Factory;
@@ -13,6 +13,8 @@ sub call {
     my $app = $self->app;
 
     my $m = Magpie::Machine->new;
+
+    my $resource = $self->resource;
 
     my $pipeline = $self->pipeline;
 

@@ -52,3 +52,18 @@ sub code_lookup {
     my $numeric = shift;
     return defined( $http_lookup{$numeric} ) ? $http_lookup{$numeric} : $http_lookup{'500'};
 }
+
+subtype 'MagpieResourceObject' => as 'Maybe[Object]';
+
+coerce 'MagpieResourceObject'
+    => from 'HashRef'
+        => via {
+            my $args = $_;
+            my $class = delete $args->{class};
+            Class::MOP::load_class( $class );
+            $class->new( $args );
+        },
+    => from 'Str'
+        => via { HTTP::Throwable::Factory->new_exception($_ => {}) },
+;
+

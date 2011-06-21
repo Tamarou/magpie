@@ -37,6 +37,13 @@ has parent_handler => (
     predicate   => 'has_parent_handler',
 );
 
+has resource => (
+    is          => 'rw',
+    isa         => 'MagpieResourceObject',
+    coerce      => 1,
+    predicate   => 'has_resource',
+);
+
 has error => (
     is          => 'rw',
     isa         => 'SmartHTTPError',

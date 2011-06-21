@@ -1,0 +1,24 @@
+<?xml version="1.0"?>
+<xsp:page xmlns:xsp="http://www.apache.org/1999/XSP/Core">
+  <page title="Attribute Value Template Tests">
+    <xsp:logic>
+      my $number = 655321;
+      my $hashref = { foo => 'bar', baz => 'quux' };
+    </xsp:logic>
+    <p id="1" test="{$number}">
+        Simple Interpolation
+    </p>
+    <p id="2" test="droogie_{$number}">
+        Mixed Interpolation, appended
+    </p>
+    <p id="3" test="{$number}0">
+        Mixed Interpolation, prepended
+    </p>
+    <p id="4" test="{reverse($number)}-{$number}">
+        Built-in Function
+    </p>
+    <p id="5" test="{ $hashref->{{foo}} }">
+        Hashref simple.
+    </p>
+  </page>
+</xsp:page>

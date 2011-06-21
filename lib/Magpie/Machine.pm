@@ -18,7 +18,6 @@ sub pipeline {
     my @handler_args = ();
 
     my @pairs = ();
-##
     for (my $i = 0; $i < scalar @args; $i++ ) {
         next if ref( $args[$i] ) eq 'HASH';
         my $handler_args = {};
