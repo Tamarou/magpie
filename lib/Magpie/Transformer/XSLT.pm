@@ -1,6 +1,6 @@
 package Magpie::Transformer::XSLT;
 use Moose;
-extends 'Magpie::Component';
+extends 'Magpie::Transformer';
 use Magpie::Constants;
 use MooseX::Types::Path::Class;
 use XML::LibXML;

@@ -1,6 +1,6 @@
 package Magpie::Pipeline::Moe;
 use Moose;
-extends 'Magpie::Component';
+extends 'Magpie::Transformer';
 
 __PACKAGE__->register_events(
     'foo',

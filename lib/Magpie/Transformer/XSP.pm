@@ -1,6 +1,6 @@
 package Magpie::Transformer::XSP;
 use Moose;
-extends 'Magpie::Component';
+extends 'Magpie::Transformer';
 use Magpie::Constants;
 use MooseX::Types::Path::Class;
 use XML::XSP;
@@ -63,8 +63,6 @@ sub transform {
 
     my $generated_package = undef;
     my $xsp = $self->xsp_processor;
-
-    warn "FUCK " . $self->content_dom;
 
     try {
         $generated_package = $xsp->process( $self->content_dom );

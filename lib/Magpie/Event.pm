@@ -37,13 +37,6 @@ has parent_handler => (
     predicate   => 'has_parent_handler',
 );
 
-has resource => (
-    is          => 'rw',
-    isa         => 'MagpieResourceObject',
-    coerce      => 1,
-    predicate   => 'has_resource',
-);
-
 has error => (
     is          => 'rw',
     isa         => 'SmartHTTPError',
@@ -219,6 +212,8 @@ sub load_handler {
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
             ) || die "Error loading handler $!";
+
+            $new_handler->resource( $self->resource ) if $new_handler->can('resource');
         }
         catch {
             my $error = $_;
@@ -264,6 +259,8 @@ sub run_handler {
             $self->set_error( $wtf );
         }
 
+        # remember, nesting.
+        $self->plack_response( $h->plack_response );
         $self->add_to_queue( "next_in_pipe" );
 
     }

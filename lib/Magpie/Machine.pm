@@ -2,8 +2,14 @@ package Magpie::Machine;
 use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
+use Magpie::Resource::File;
 
-
+has resource => (
+    is          => 'rw',
+    isa         => 'MagpieResourceObject',
+    coerce      => 1,
+    default     => sub { Magpie::Resource::File->new }
+);
 
 #-------------------------------------------------------------------------------
 # pipline( @list_of_class_names )
