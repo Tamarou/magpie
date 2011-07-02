@@ -9,16 +9,15 @@ use Moose;
 use FindBin;
 use Bread::Board::Declare;
 use Data::Dumper::Concise;
-use lib "$FindBin::Bin/lib";
+use lib qw( $FindBin::Bin/lib $FindBin::Bin/../lib );
 use Module::Find ();
 
-has config => (
+has wev => (
     is => 'rw',
     isa => 'Bread::Board::Container',
-    #required => 1,
 );
 
-sub BUILD {
+sub build {
     my $self = shift;
     my $package = my $base = $self->meta->name;
     my $dir = "$FindBin::Bin/lib";
@@ -45,10 +44,6 @@ sub BUILD {
                 Bread::Board::ConstructorInjection->new(
                     class => $package,
                     name => $short_name,
-                    parameters => {
-                        simple_arg => { isa => 'Str' }
-                    },
-                    lifecycle => 'Singleton',
                 )
             );
         }
@@ -61,7 +56,7 @@ sub BUILD {
 #         warn Dumper( \@wev );
     }
 
-    $self->config( $app_container );
+    $self->wev( $app_container );
 }
 }
 
@@ -70,33 +65,20 @@ my $app = MyApp::Wibble->new;
 
 ok( $app );
 
-my $c = $app->config;
+$app->build();
+
+my $c = $app->wev;
 
 warn "res: " . Dumper( $c );
 
-#my $wtf = $c->resolve( service => 'Resource/One');
-
-my $wtf = $c->fetch('Resource/One')->get( simple_arg => 'Teh Awesome' );
+my $wtf = $c->resolve( service => 'Resource/One');
 
 ok( $wtf );
 
 warn Dumper( $wtf );
 
-$wtf->GET;
 
-my $other = $c->resolve( service => 'Resource/One');
 
-ok( $other );
-
-$wtf->simple_arg('Some Shit');
-
-$other->GET;
-
-my $third = $c->fetch('Resource/One')->get( simple_arg => 'Mixup' );
-
-ok( $third );
-
-$third->GET;
 done_testing;
 
 
