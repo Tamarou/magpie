@@ -13,6 +13,20 @@ sub load_queue {
     return $self->plack_request->method;
 }
 
+has produces => (
+    is          => 'ro',
+    isa         => 'Str',
+    required    => 1,
+    default     => 'text/plain',
+);
+
+has consumes => (
+    is          => 'ro',
+    isa         => 'Str',
+    required    => 1,
+    default     => 'text/plain',
+);
+
 sub GET {
     shift->set_error('NotImplemented');
     return DONE;
