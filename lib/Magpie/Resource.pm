@@ -4,7 +4,7 @@ extends 'Magpie::Component';
 use Magpie::Constants;
 # abstract base class for all resource types;
 
-__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD ) );
+__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS ) );
 
 # XXX: Move to a real Dispactcher
 sub load_queue {
@@ -48,6 +48,11 @@ sub DELETE {
 }
 
 sub HEAD {
+    shift->set_error('NotImplemented');
+    return DONE;
+}
+
+sub OPTIONS {
     shift->set_error('NotImplemented');
     return DONE;
 }
