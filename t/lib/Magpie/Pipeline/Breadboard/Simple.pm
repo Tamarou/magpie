@@ -4,20 +4,10 @@ extends 'Magpie::Transformer';
 use Data::Dumper::Concise;
 use Bread::Board;
 
-__PACKAGE__->register_events(
-    'foo',
-     bar => sub {
-        my ($self, $ctxt) = @_;
-        my $body = $self->response->body || '';
-        $body .= '_moebar_';
-        $self->response->body( $body );
-        return 100
-     },
-    'baz'
-);
+__PACKAGE__->register_events(qw( foo baz ));
 
 sub load_queue {
-    return qw( baz bar );
+    return qw( foo baz );
 }
 
 sub foo {

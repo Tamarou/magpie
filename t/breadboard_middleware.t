@@ -7,9 +7,14 @@ use lib "$FindBin::Bin/lib";
 use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
+use Bread::Board;
+
+my $assets = container '' => as {
+        service 'somevar' => 'some value';
+};
 
 my $handler = builder {
-    enable "Magpie", pipeline => [
+    enable "Magpie", assets => $assets, pipeline => [
         'Magpie::Pipeline::Moe',
         'Magpie::Pipeline::Breadboard::Simple',
         'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' }, 'Magpie::Pipeline::Larry',
@@ -22,7 +27,7 @@ test_psgi
         my $cb = shift;
         my $req = HTTP::Request->new(GET => "http://localhost/");
         my $res = $cb->($req);
-        like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_larryfoo__larrybar_/;
+        like $res->content, qr/_moebaz__moebar__simplefoo__some value__simplebaz__curlyfoo_RIGHT_larryfoo__larrybar_/;
     };
 
 done_testing;

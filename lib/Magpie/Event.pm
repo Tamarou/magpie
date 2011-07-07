@@ -7,7 +7,7 @@ use Magpie::SymbolTable;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
-use Carp;
+use Carp qw(cluck);
 BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
 use Data::Dumper::Concise;
 

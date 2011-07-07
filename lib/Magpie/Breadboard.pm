@@ -4,18 +4,17 @@ use Bread::Board;
 use Bread::Board::Dumper;
 use Data::Dumper::Concise;
 use Scalar::Util qw(blessed);
+#use Carp qw(cluck);
 extends 'Bread::Board::Container';
 
 has '+name' => ( default => 'Application' );
 
 sub BUILD {
     my $self = shift;
-    warn "BUILD by " . join ', ', caller(0);
     container $self => as {
         container 'Assets' => as {};
         container 'MagpieInternal' => as {};
     };
-    warn Dumper( $self );
 }
 
 sub assets {
@@ -34,7 +33,6 @@ sub add_asset {
 
     my $assets = $self->get_sub_container('Assets');
 
-    #warn "internal " . Bread::Board::Dumper->new->dump( $assets );
     if ( blessed $thing ) {
         if ( $thing->does('Bread::Board::Container') ) {
             $assets->add_sub_container( $thing );

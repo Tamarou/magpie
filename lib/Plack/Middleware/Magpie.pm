@@ -34,11 +34,6 @@ sub call {
         $m->assets( $assets );
     }
 
-    # assume if no resource is given that we want the File data source
-#     unless ( scalar @resource_handlers ) {
-#         push @resource_handlers, 'Magpie::Resource'
-#     }
-
     $m->pipeline( @resource_handlers, @{ $pipeline });
     $m->plack_request( Plack::Request->new($env) );
 
