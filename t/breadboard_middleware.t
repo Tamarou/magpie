@@ -11,6 +11,7 @@ use Plack::Middleware::Magpie;
 my $handler = builder {
     enable "Magpie", pipeline => [
         'Magpie::Pipeline::Moe',
+        'Magpie::Pipeline::Breadboard::Simple',
         'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' }, 'Magpie::Pipeline::Larry',
     ];
 };

@@ -2,9 +2,17 @@ package Magpie::Component;
 use Moose;
 with qw(Magpie::Event);
 use Magpie::Constants;
+use Magpie::Breadboard;
 
 use Data::Dumper::Concise;
 
+has breadboard => (
+    is          => 'rw',
+    isa         => 'Magpie::Breadboard',
+    default     => sub { Magpie::Breadboard->new; },
+    required    => 1,
+    handles     => [qw( add_asset assets resolve_asset )],
+);
 
 sub init_symbols {
     my ($self, $context) = @_;

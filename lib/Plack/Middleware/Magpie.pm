@@ -2,7 +2,7 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Plack::Middleware );
-use Plack::Util::Accessor qw(pipeline resource);
+use Plack::Util::Accessor qw(pipeline resource assets);
 
 use Magpie::Machine;
 use HTTP::Throwable::Factory;
@@ -28,6 +28,10 @@ sub call {
         else {
             push @resource_handlers, $resource;
         }
+    }
+
+    if ( my $assets = $self->assets ) {
+        $m->assets( $assets );
     }
 
     # assume if no resource is given that we want the File data source

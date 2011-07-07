@@ -3,21 +3,12 @@ use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
 use Magpie::Resource::File;
-use Magpie::Breadboard;
 
 has resource => (
     is          => 'rw',
     isa         => 'MagpieResourceObject',
     coerce      => 1,
     default     => sub { Magpie::Resource::File->new }
-);
-
-has breadboard => (
-    is          => 'ro',
-    isa         => 'Magpie::Breadboard',
-    default     => sub { Magpie::Breadboard->new; },
-    required    => 1,
-    handles     => [qw( resources )],
 );
 
 

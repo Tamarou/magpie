@@ -211,6 +211,7 @@ sub load_handler {
                 %{ $handler_args },
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
+                breadboard     => $self->breadboard,
             ) || die "Error loading handler $!";
 
             $new_handler->resource( $self->resource ) if $new_handler->can('resource');
@@ -261,6 +262,7 @@ sub run_handler {
 
         # remember, nesting.
         $self->plack_response( $h->plack_response );
+        $self->breadboard( $h->breadboard );
         $self->add_to_queue( "next_in_pipe" );
 
     }

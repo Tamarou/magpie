@@ -2,6 +2,7 @@ package Magpie::Pipeline::Breadboard::Simple;
 use Moose;
 extends 'Magpie::Transformer';
 use Data::Dumper::Concise;
+use Bread::Board;
 
 __PACKAGE__->register_events(
     'foo',
@@ -22,7 +23,7 @@ sub load_queue {
 sub foo {
     my ($self, $ctxt) = @_;
     my $body = $self->response->body || '';
-    $body .= '_moefoo_';
+    $body .= '_simplefoo_' . '_' . $self->resolve_asset( service => 'somevar' ) . '_';
     $self->response->body( $body );
     return 100;
 }
@@ -30,8 +31,8 @@ sub foo {
 sub baz {
     my ($self, $ctxt) = @_;
     my $body = $self->response->body || '';
-    $body .= '_moebaz_';
-    warn Dumper( $self->parent_handler->breadboard );
+    $body .= '_simplebaz_';
+    $self->add_asset( service 'othervar' => 'other value' );
     $self->response->body( $body );
     return 100;
 }
