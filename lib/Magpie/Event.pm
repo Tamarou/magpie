@@ -272,6 +272,23 @@ sub run_handler {
     return OK;
 }
 
+#-------------------------------------------------------------------------------
+# add_handler()
+# Add a handler into the end of the event queue.
+#-------------------------------------------------------------------------------
+sub add_handler {
+    my $self    = shift;
+    my $handler = shift;
+    my $objHandler = shift;
+
+    if ( defined $handler && length $handler ) {
+        $self->push_handlers( $handler );
+        if ( defined $objHandler && ref $objHandler ) {
+            $self->register_handler( $handler => $objHandler );
+        }
+    }
+}
+
 sub end_application {
     warn "implement end_application already, will you?\n";
 }
