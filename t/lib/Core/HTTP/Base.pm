@@ -17,14 +17,14 @@ sub load_queue {
 sub init {
     my $self    = shift;
     my $ctxt    = shift;
-    $ctxt->{content} = '<html><body><p>Howdy</p></body></html>';
+    $ctxt->{content} = '<p>Howdy</p>';
     return OK;
 }
 
-sub event_cookie {
+sub cookie {
     my $self = shift;
     my $ctxt = shift;
-    $self->cookie( -name =>'name',  -value => 'val' );
+    $self->response->cookie->{name} = 'value';
     return OK;
 }
 

@@ -9,12 +9,14 @@ use Plack::Builder;
 use Plack::Test;
 use HTTP::Request::Common;
 use Plack::Middleware::Magpie;
+use Data::Dumper::Concise;
 
 
 ##
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [
         'Core::HTTP::Base',
+        'Core::Basic::Output',
     ];
 };
 
@@ -24,7 +26,10 @@ test_psgi
         my $cb = shift;
         {
             my $res = $cb->(GET "http://localhost/");
-            like $res->content, qr/howdy/;
+            like $res->content, qr/Howdy/;
+
+            $res = $cb->(GET 'http://localhost/?appstate=cookie');
+            warn $res->content;
         }
     };
 
