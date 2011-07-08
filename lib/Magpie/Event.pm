@@ -289,6 +289,47 @@ sub add_handler {
     }
 }
 
+#-------------------------------------------------------------------------------
+# add_next_handler()
+# Add a handler into the front of the event queue.
+#-------------------------------------------------------------------------------
+sub add_next_handler {
+    my $self    = shift;
+    my $handler = shift;
+    my $objHandler = shift;
+
+    if ( defined $handler && length $handler ) {
+        $self->unshift_handlers($handler);
+        if ( defined $objHandler && ref $objHandler ) {
+            $self->register_handler( $handler => $objHandler );
+        }
+    }
+}
+
+#-------------------------------------------------------------------------------
+# add_handlers( @list )
+# Add a list of handlers to the event queue.
+#-------------------------------------------------------------------------------
+sub add_handlers {
+    my $self = shift;
+    my @handlers = @_;
+
+    foreach my $handler (@handlers) {
+        $self->add_handler($handler);
+    }
+}
+
+#-------------------------------------------------------------------------------
+# reset_handlers( @list )
+# Replaces the current list of handlers with @list .
+#-------------------------------------------------------------------------------
+sub reset_handlers {
+    my $self    = shift;
+    my @handlers = @_;
+    $self->handlers( [] );
+    return $self->add_handlers( @handlers );
+}
+
 sub end_application {
     warn "implement end_application already, will you?\n";
 }
