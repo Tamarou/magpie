@@ -27,79 +27,41 @@ test_psgi
         {
             my $res = $cb->(GET "http://localhost/");
             like $res->content, qr/Howdy/;
-
-            $res = $cb->(GET 'http://localhost/?appstate=cookie');
-            warn $res->content;
         }
+        {
+            my $res = $cb->(GET 'http://localhost/?appstate=cookie');
+            like $res->headers->as_string, qr/Set-Cookie/;
+        }
+        {
+            my $res = $cb->(GET 'http://localhost/?appstate=multicookie');
+            my $head = $res->headers->as_string;
+            like $head, qr/oreo/;
+            like $head, qr/peanutbutter/;
+        }
+        {
+            my $res = $cb->(GET 'http://localhost/?appstate=headers');
+            my $head = $res->headers->as_string;
+            like $head, qr/Content-Encoding:\s+UTF-8/;
+            like $head, qr|Content-Type:\s+text/xml|;
+            like $head, qr/Bogus:\s+arbitrary/;
+            like $head, qr|X-Wibble:\s+text/x-ubu|;
+        }
+        {
+            my $res = $cb->(GET 'http://localhost/?appstate=redirect');
+            is $res->code, 302;
+        }
+        {
+            my $res = $cb->(GET 'http://localhost/?appstate=redirect_cookie');
+            my $head = $res->headers->as_string;
+            is $res->code, 302;
+            like $head, qr/Set-Cookie/;
+        }
+
     };
 
 
 done_testing();
 =cut
-##
-sub test_get {
-    my $resp = GET '/http' ;
-    return 0 unless $resp->content =~ /howdy/i;
-    return 1;
-}
-
-sub test_cookie {
-    my $resp = GET '/http?appstate=cookie' ;
-    if ( $resp->isa('Apache::TestClientResponse')) {
-        my $headers = $resp->headers;
-        return 0 unless defined($headers->{'set-cookie'});
-    }
-    else {
-        return 0 unless $resp->headers->as_string =~ /Set-Cookie:/gi;
-    }
-    return 1;
-}
-
-
-sub test_multicookie {
-    my $resp = GET '/http?appstate=multicookie' ;
-    if ( $resp->isa('Apache::TestClientResponse')) {
-        my $headers = $resp->headers;
-        return 0 unless defined($headers->{'set-cookie'});
-    }
-    else {
-        my $head = $resp->headers->as_string;
-        return 0 unless $head =~ /oreo/;
-        return 0 unless $head =~ /peanutbutter/;
-    }
-    return 1;
-}
-
-sub test_headers {
-    my $resp = GET '/http?appstate=headers';
-    if ( $resp->isa('Apache::TestClientResponse')) {
-        my $headers = $resp->headers;
-        return 0 unless defined($headers->{'x-wibble'});
-        return 0 unless defined($headers->{'bogus'});
-        return 0 unless $headers->{'content-type'} =~ /text\/xml/i;
-    }
-    else {
-        my $head = $resp->headers->as_string;
-        #warn $head;
-        return 0 unless $head =~ /x-ubu/;
-        return 0 unless $head =~ /arbitrary/;
-        return 0 unless $head =~ /text\/xml/;
-        return 0 unless $head =~ /UTF-8/;
-    }
-    return 1;
-}
-
-sub test_redirect {
-    my $resp = GET '/http?appstate=redirect' ;
-    if ( $resp->isa('Apache::TestClientResponse')) {
-        return 0 unless $resp->code == 302;
-    }
-    else {
-        return 0 unless my $prev =  $resp->previous();
-        return 0 unless $prev->is_redirect;
-    }
-    return 1;
-}
 
 sub test_redirect_cookie {
     my $resp = GET '/http?appstate=redirect_cookie' ;

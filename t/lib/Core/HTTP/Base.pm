@@ -24,40 +24,40 @@ sub init {
 sub cookie {
     my $self = shift;
     my $ctxt = shift;
-    $self->response->cookie->{name} = 'value';
+    $self->response->cookies->{name} = 'value';
     return OK;
 }
 
-sub event_multicookie {
+sub multicookie {
     my $self = shift;
     my $ctxt = shift;
-    $self->cookie( -name =>'name1',  -value => 'oreo' );
-    $self->cookie( -name =>'name2',  -value => 'peanutbutter' );
+    $self->response->cookies->{name1} = 'oreo';
+    $self->response->cookies->{name2} = 'peanutbutter';
     return OK;
 }
 
-sub event_headers {
+sub headers {
     my $self = shift;
     my $ctxt = shift;
-    $self->mime_type('text/xml');
-    $self->charset('UTF-8');
-    $self->header( 'X-Wibble' => 'text/x-ubu' );
-    $self->header( Bogus => 'arbitrary' );
+    $self->response->content_type('text/xml');
+    $self->response->content_encoding('UTF-8');
+    $self->response->header( 'X-Wibble' => 'text/x-ubu' );
+    $self->response->header( Bogus => 'arbitrary' );
     return OK;
 }
 
-sub event_redirect {
+sub redirect {
     my $self = shift;
     my $ctxt = shift;
-    $self->redirect('/imnotthere');
+    $self->response->redirect('/imnotthere');
     return OK;
 }
 
-sub event_redirect_cookie {
+sub redirect_cookie {
     my $self = shift;
     my $ctxt = shift;
-    $self->cookie( -name =>'name',  -value => 'val' );
-    $self->redirect('/imnotthere');
+    $self->response->cookies->{name} = 'val';
+    $self->response->redirect('/imnotthere');
     return OK;
 }
 
