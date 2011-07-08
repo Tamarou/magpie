@@ -2,7 +2,7 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Plack::Middleware );
-use Plack::Util::Accessor qw(pipeline resource assets);
+use Plack::Util::Accessor qw(pipeline resource assets context);
 
 use Magpie::Machine;
 use HTTP::Throwable::Factory;
@@ -14,10 +14,11 @@ sub call {
 
     my @resource_handlers = ();
 
-    my $m = Magpie::Machine->new;
+    my $m = Magpie::Machine->new(
+        plack_request => Plack::Request->new($env),
+    );
 
     my $pipeline = $self->pipeline || [];
-
     my $resource = $self->resource;
 
     if ( $resource ) {
@@ -35,16 +36,14 @@ sub call {
     }
 
     $m->pipeline( @resource_handlers, @{ $pipeline });
-    $m->plack_request( Plack::Request->new($env) );
 
     # if we have upstream MW, pass it along
     if ( ref($app) ) {
-        warn "upstream";
         my $r = $app->($env);
         $m->plack_response( Plack::Response->new(@$r) );
     }
 
-    $m->run({});
+    $m->run( $self->context || {} );
 
     if ( $m->has_error ) {
         my $subref = $m->error;
