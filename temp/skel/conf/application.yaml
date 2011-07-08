@@ -1,0 +1,4 @@
+pipeline:
+    - My::App::Event
+    - SAWA::Output::Scalar
+url_token: tester2

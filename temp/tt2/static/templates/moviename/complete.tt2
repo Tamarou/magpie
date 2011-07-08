@@ -1,0 +1,32 @@
+<html>
+<head>
+<title>Movie Star Name Generator</title>
+</head>
+<body>
+<div class="pagehead">
+	Movie Star Name Generator (TT2 Edition)
+</div>
+<div class="Message">
+	<p>[% message %]</p>
+</div>
+
+<div>
+	<p>
+		Your New <i>nom d'cinema</i> is:
+		<b>[% first_name %] [% last_name %]</b>
+	</p>
+	<form name="prompt" action="tt2" method="post" >
+	<input name="last_hotel" type="hidden" value="[% last_hotel  %]"/>
+	<input name="last_street" type="hidden" value="[% last_street %]" />
+	<input name="last_maiden" type="hidden" value="[% last_maiden %]" />
+	<input name="first_middle_name" type="hidden" value="[% first_middle_name %]" />
+	
+	<input name="first_pet" type="hidden" value="[% first_pet %]" /> 
+	<input name="first_car" type="hidden" value="[% first_car %]" />
+	<input name="appstate"  type="hidden" value="complete" />
+	<div>
+		<input type="submit" value="Regenerate" />
+		<input type="button" value="Start Over"
+		onClick="location='tt2'" />
+	</div>
+	</form>

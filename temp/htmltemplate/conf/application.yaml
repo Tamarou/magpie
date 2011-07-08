@@ -1,0 +1,4 @@
+pipeline:
+    - htmltemplate::Base
+    - htmltemplate::Output
+url_token: htmltemplate

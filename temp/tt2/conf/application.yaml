@@ -1,0 +1,4 @@
+pipeline:
+    - tt2::Base
+    - tt2::Output
+url_token: tt2

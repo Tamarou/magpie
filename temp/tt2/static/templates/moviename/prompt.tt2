@@ -1,0 +1,52 @@
+<html>
+<head>
+<title>Movie Star Name Generator</title>
+</head>
+<body>
+<div class="pagehead">
+	Movie Star Name Generator (TT2 Edition)
+</div>
+  <div class="message">
+	<p>[% message %]</p>
+  </div>
+  <form name="prompt" action="tt2" method="post">
+	<div class="appmain">
+		<div>
+		Name of classy hotel:
+		<input name="last_hotel" type="text" value="[% last_hotel %]"/>
+		</div>
+		<div>
+		Name a street you lived on when you were a teenager:
+		<input name="last_street" type="text" value="[% last_street %]"/>
+		</div>
+		<div>
+		Your mother's maiden name:
+		<input name="last_maiden" type="text" value="[% last_maiden %]"/>
+		</div>
+		<div>
+		Your middle name:
+		<input name="first_middle_name" type="text" value="[% first_middle_name %]"/>
+		</div>
+		<div>
+		Name of your favorite pet:
+		<input name="first_pet" type="text" value="[% first_pet %]"/>
+		</div>
+		<div>
+		Name of your favorite model of car:
+		<input name="first_car" type="text" value="[% first_car %]"/>
+		</div>
+		<div>
+		<input name="appstate" type="hidden" value="complete"/>
+          	<input type="submit" value="Generate Name"/>
+          	<input type="reset" value="Start Over"/>
+        	</div>
+	</div>
+  </form>
+  <div class="pagefoot">
+    Copyright 1994-2003 WebCliche, Inc. All rights reserved.
+  </div>
+</body>
+</html>
+
+</div>
+<div 

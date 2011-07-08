@@ -1,0 +1,14 @@
+This directory contains the sources for the various applications 
+used in the test suite, as well as the 'skel' directory which
+offers a clean layout for creating new apps.
+
+To create a new app: 
+* copy (cp -R) the skel dir somewhere safe
+* add your Perl classes into the lib/ directory
+* add your static content to the static/ directory
+* edit conf/application.yaml give your app a unique URL token and set up the pipeline for your app.
+* cd into your copy of the skel directory and use zip to create the PAR archive
+* move the archive into a SAWAServer-aware directory and restart the server.
+
+note: if you are editing the test suite files, be sure to exclude the CVS/.svn dirs 
+when creating the zip. eg: zip -r MyApp.par . -x */CVS/*

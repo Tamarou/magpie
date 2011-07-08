@@ -1,0 +1,4 @@
+pipeline:
+    - http::Base
+    - basic::Output
+url_token: http

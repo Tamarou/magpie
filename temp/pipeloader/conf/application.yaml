@@ -1,0 +1,3 @@
+pipeline:
+    - pipeloader::Chooser
+url_token: pipeloader

@@ -1,0 +1,5 @@
+pipeline:
+    - output::StepOne
+    - output::StepTwo
+    - basic::Output
+url_token: output

@@ -1,0 +1,5 @@
+pipeline:
+    - redirect::StepOne
+    - redirect::StepTwo
+    - basic::Output
+url_token: redirect
