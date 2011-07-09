@@ -1,31 +1,37 @@
-package basic::Base;
-use SAWA::Constants;
-use SAWA::Event::Simple;
-use vars qw(@ISA);
-@ISA = qw( SAWA::Event::Simple );
+package Core::Basic::Base;
+use Moose;
+use Magpie::Constants;
+extends 'Magpie::Component';
 
-sub registerEvents {
-    return qw/ first last /;
+__PACKAGE__->register_events(qw(init first last));
+
+sub load_queue {
+    my ($self, $ctxt) = @_;
+    my @events = ('init');
+    if ( my $event = $self->request->param('appstate') ) {
+        push @events, $event;
+    }
+    return @events;
 }
 
-sub event_init {
+sub init {
     my $self    = shift;
     my $ctxt    = shift;
-    $ctxt->{content} = '<p>basic::Base::event_init</p>';
+    $ctxt->{content} = '<p>basic::base::event_init</p>';
     return OK;
 }
 
-sub event_first {
+sub first {
     my $self = shift;
     my $ctxt = shift;
-    $ctxt->{content} .= '<p>basic::Base::event_first</p>';
+    $ctxt->{content} .= '<p>basic::base::event_first</p>';
     return OK;
 }
 
-sub event_last {
+sub last {
     my $self = shift;
     my $ctxt = shift;
-    $ctxt->{content} .= '<p>basic::Base::event_last</p>';
+    $ctxt->{content} .= '<p>basic::base::event_last</p>';
     return OK;
 }
 
