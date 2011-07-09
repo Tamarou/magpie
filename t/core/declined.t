@@ -13,7 +13,8 @@ use Data::Dumper::Concise;
 
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [
-        'Core::Basic::Base',
+        'Core::Declined::StepOne',
+        'Core::Declined::StepTwo',
         'Core::Basic::Output',
     ];
 };
@@ -23,39 +24,17 @@ test_psgi
     client => sub {
         my $cb = shift;
         {
-            my $res = $cb->(GET "http://localhost/");
-            like $res->content, qr/basic::base::event_init/;
-            unlike $res->content, qr/basic::base::event_first/;
-            unlike $res->content, qr/basic::base::event_last/;
-        }
-        {
             my $res = $cb->(GET "http://localhost/?appstate=first");
-            like $res->content, qr/basic::base::event_init/;
-            like $res->content, qr/basic::base::event_first/;
-            unlike $res->content, qr/basic::base::event_last/;
+            like $res->content, qr/declined::StepOne::event_init/;
+            unlike $res->content, qr/declined::StepOne::event_first/;
+            like $res->content, qr/declined::StepTwo::event_init/;
+            like $res->content, qr/declined::StepTwo::event_first/;
         }
-        {
-            my $res = $cb->(GET "http://localhost/?appstate=last");
-            like $res->content, qr/basic::base::event_init/;
-            like $res->content, qr/basic::base::event_last/;
-            unlike $res->content, qr/basic::base::event_first/;
-        }
-#
     };
 
 done_testing();
 
 =cut
-
-sub test_done {
-    my $resp = GET '/done?appstate=first';
-    #warn "got code: " . $resp->as_string;
-    if ( $resp->isa('Apache::TestClientResponse') ) {
-        return 1;
-    }
-    return 0 unless $resp->code == 500 or $resp->content_length == 0;
-    return 1;
-}
 
 sub test_declined {
     my $resp = GET '/declined?appstate=first';

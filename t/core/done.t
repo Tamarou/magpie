@@ -25,7 +25,7 @@ test_psgi
         my $cb = shift;
         {
             my $res = $cb->(GET "http://localhost/");
-            warn Dumper( $res );
+            is $res->content, '', "DONE was called so the output handler shouldn't work.";
         }
     };
 
