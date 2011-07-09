@@ -55,6 +55,7 @@ has handlers => (
         pop_handlers       => 'pop',
         shift_handlers     => 'shift',
         unshift_handlers   => 'unshift',
+        clear_handlers     => 'clear',
     },
 
 );
@@ -149,11 +150,14 @@ sub registered_events {
 sub stop_application  {
     my $self = shift;
     my $ctxt = shift;
+    warn "stop called (before)" . Dumper( $self->event_queue );
 
-    $self->free_queue;
+    $self->free_queue();
+    $self->clear_handlers();
     if (defined $self->parent_handler) {
         $self->parent_handler->stop_application;
     }
+    warn "stop called" . Dumper( $self->event_queue );
 }
 
 #-------------------------------------------------------------------------------
@@ -211,6 +215,7 @@ sub load_handler {
                 %{ $handler_args },
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
+                #event_queue    => $self->event_queue,
                 breadboard     => $self->breadboard,
             ) || die "Error loading handler $!";
 
@@ -435,6 +440,52 @@ sub add_to_queue      {
     }
 }
 
+#-------------------------------------------------------------------------------
+# remove_from_queue( $symbol, $priority )
+#-------------------------------------------------------------------------------
+sub remove_from_queue {
+    my $self     = shift;
+    my $symbol   = shift;
+    my $priority = shift;
+
+    $symbol = $self->_qualify_symbol_name( $symbol );
+    unless ( $self->symbol_table->has_symbol($symbol) ) {
+        warn("warning: Unregistered event '$symbol' could not be removed from the queue because it does not exist.");
+        return;
+    }
+
+    my $f=0;
+    $priority ||= 0;
+
+    if ($priority == 0 ) {
+        my @new = grep { $_ ne $symbol } @{$self->event_queue};
+        $self->event_queue(\@new);
+    }
+
+    # remove the last occourence of $symbol
+    elsif ( $priority == -1 ) {
+        my @new = reverse grep { defined $_ } map {
+            $_ ne $symbol ?
+                $_ :
+                $f == 1 ?
+                    $_ : do{ $f=1; undef }
+              } reverse( @{$self->event_queue} );
+        $self->event_queue(\@new);
+    }
+
+    # otherwise, drop the first occourence of $symbol
+    else {
+        my @new = grep { defined $_ } map {
+            $_ ne $symbol ?
+                $_ :
+                $f == 1 ?
+                    $_ : do{ $f=1; undef }
+            } @{$self->event_queue};
+        $self->event_queue(\@new);
+    }
+}
+
+
 ################################################################################
 # Control handlers.
 ################################################################################
@@ -450,7 +501,7 @@ sub add_to_queue      {
 sub control_done {
     my $self = shift;
     $self->stop_application;
-    return OK;
+    return DONE;
 }
 
 #-------------------------------------------------------------------------------
@@ -498,9 +549,11 @@ sub run {
     # reinit per each run required for pipelining
     $self->init_queue($ctxt);
 
+    warn "run " . Dumper( $self->event_queue );
     while ( my $symbol = $self->shift_queue() ) {
         $state = $self->handle_symbol( $ctxt, $symbol );
         # if an error occours here we must stop!
+        warn "state is $state from $symbol";
         last unless $state == OK;
     }
     $self->end_application( $ctxt );
