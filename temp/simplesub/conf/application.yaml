@@ -1,5 +1,0 @@
-pipeline:
-    - addons::EventSimpleSub::EventSubsTester
-    - addons::EventSimpleSub::EventSubsTesterTwo
-    - basic::Output
-url_token: simplesub

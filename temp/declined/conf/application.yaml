@@ -1,5 +1,0 @@
-pipeline:
-    - declined::StepOne
-    - declined::StepTwo
-    - basic::Output
-url_token: declined

@@ -35,17 +35,6 @@ test_psgi
 done_testing();
 
 =cut
-
-sub test_declined {
-    my $resp = GET '/declined?appstate=first';
-    my $output = $resp->content;
-    return 0 unless $output =~ /declined::StepOne::event_init/ig;
-    return 0 if $output =~ /declined::StepOne::event_first/ig;
-    return 0 unless $output =~ /declined::StepTwo::event_init/ig;
-    return 0 unless $output =~ /declined::StepTwo::event_first/ig;
-    return 1;
-}
-
 sub test_output {
     my $resp = GET '/output?appstate=first';
     my $output = $resp->content;

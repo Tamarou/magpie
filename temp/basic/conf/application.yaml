@@ -1,4 +1,0 @@
-pipeline:
-    - basic::Base
-    - basic::Output
-url_token: basic

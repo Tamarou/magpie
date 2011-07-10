@@ -1,5 +1,0 @@
-pipeline:
-    - done::StepOne
-    - done::StepTwo
-    - basic::Output
-url_token: done

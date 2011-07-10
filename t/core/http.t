@@ -61,26 +61,3 @@ test_psgi
 
 
 done_testing();
-=cut
-
-sub test_redirect_cookie {
-    my $resp = GET '/http?appstate=redirect_cookie' ;
-    if ( $resp->isa('Apache::TestClientResponse')) {
-        my $headers = $resp->headers;
-        return 0 unless defined($headers->{'set-cookie'});
-        return 0 unless $resp->code == 302;
-    }
-    else {
-        return 0 unless my $prev =  $resp->previous();
-        return 0 unless $prev->is_redirect;
-        return 0 unless $prev->headers->as_string =~ /Set-Cookie:/gi;
-    }
-    return 1;
-}
-
-ok( test_get()              == 1, "Testing Simple Get" );
-ok( test_cookie()           == 1, "Testing Cookies Header" );
-ok( test_multicookie()      == 1, "Testing Multiple Cookies Header" );
-ok( test_headers()          == 1, "Testing outgoing headers" );
-ok( test_redirect()         == 1, "Testing redrection" );
-ok( test_redirect_cookie()  == 1, "Testing redirection /w cookie" );
