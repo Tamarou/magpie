@@ -1,6 +1,14 @@
 use strict;
 use warnings;
 use Test::More;
+
+BEGIN {
+    eval { require XML::XSP; };
+    if ( $@ ) {
+        plan skip_all => 'XML::XSP is not installed, cannot continue.'
+    }
+};
+
 use FindBin;
 use lib "$FindBin::Bin/lib";
 

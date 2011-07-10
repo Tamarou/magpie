@@ -1,9 +1,16 @@
 use strict;
 use warnings;
 use Test::More;
+
+BEGIN {
+    eval { require XML::LibXSLT; };
+    if ( $@ ) {
+        plan skip_all => 'XML::LibXSLT is not installed, cannot continue.'
+    }
+};
+
 use FindBin;
 use lib "$FindBin::Bin/lib";
-
 use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
