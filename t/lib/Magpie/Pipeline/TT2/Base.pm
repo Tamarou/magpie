@@ -1,16 +1,26 @@
-package tt2::Base;
-use SAWA::Constants;
-use SAWA::Event::Simple;
-use strict;
-our @ISA = qw( SAWA::Event::Simple );
+package Magpie::Pipeline::TT2::Base;
+use Moose;
+use Magpie::Constants;
+extends 'Magpie::Component';
+use Data::Dumper::Concise;
+
+__PACKAGE__->register_events(qw(default complete));
+
+sub load_queue {
+    my ($self, $ctxt) = @_;
+    my @events = ();
+    if ( my $event = $self->request->param('appstate') ) {
+        push @events, $event;
+    }
+    else {
+        push @events, 'default';
+    }
+    return @events;
+}
 
 BEGIN { srand(time() ^ ($$ + ($$ << 15))) }
 
-sub registerEvents {
-    return qw/ complete /;
-}
-
-sub event_default {
+sub default {
     my $self = shift;
     my $ctxt = shift;
     $ctxt->{template} = 'prompt.tt2';
@@ -18,14 +28,14 @@ sub event_default {
     return OK;
 }
 
-sub event_complete {
+sub complete {
     my $self    = shift;
     my $ctxt    = shift;
 
-    my @param_names = $self->query->param;
-   
-    my @first_names = map { $self->query->param("$_") } grep { $_ =~ /^first_/ } @param_names;
-    my @last_names  = map { $self->query->param("$_") } grep { $_ =~ /^last_/ }  @param_names;
+    my @param_names = $self->request->param;
+
+    my @first_names = map { $self->request->param("$_") } grep { $_ =~ /^first_/ } @param_names;
+    my @last_names  = map { $self->request->param("$_") } grep { $_ =~ /^last_/ }  @param_names;
 
     if ( ((scalar @first_names) + (scalar @last_names) != 6) || ( grep { length == 0 } @first_names, @last_names ) ) {
         $ctxt->{message} = 'All fields must be filled in. Please try again.';

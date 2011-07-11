@@ -75,7 +75,6 @@ sub transform {
     # remember that Try::Tiny won't return() the way you think it does
     return OK if $self->has_error;
 
-##
     try {
         eval "$generated_package";
     }
