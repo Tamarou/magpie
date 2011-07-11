@@ -203,27 +203,29 @@ sub load_handler {
             Class::MOP::load_class( $handler );
         }
         catch {
-            my $error = $_;
-            warn "Fatal error loading handler class '$handler': $error\n";
-            return HANDLER_ERROR;
+            my $error = "Fatal error loading handler class '$handler': $_ \n";
+            $self->set_error({ status_code => 500, reason => $error });
+
         };
+
+        return HANDLER_ERROR if $self->has_error;
 
         try {
             $new_handler = $handler->new(
                 %{ $handler_args },
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
-                #event_queue    => $self->event_queue,
                 breadboard     => $self->breadboard,
             ) || die "Error loading handler $!";
 
             $new_handler->resource( $self->resource ) if $new_handler->can('resource');
         }
         catch {
-            my $error = $_;
-            warn "Fatal error during build for class '$handler': $error\n";
-            return HANDLER_ERROR;
+            my $error = "Fatal error during build for class '$handler': $_\n";
+            $self->set_error({ status_code => 500, reason => $error });
         };
+
+        return HANDLER_ERROR if $self->has_error;
 
         $new_handler->parent_handler( $self );
         $self->register_handler( $handler => $new_handler );
@@ -247,14 +249,14 @@ sub run_handler {
 
     my $handler = $self->current_handler;
     if ( my $h = $self->fetch_handler( $handler ) ) {
-        warn "Running handler $handler \n";
+        # warn "Running handler $handler \n";
         try {
             $h->run( $ctxt );
 
         }
         catch {
-            my $error = $_;
-            warn "error running handler '$handler': $error";
+            my $error = "Fatal error running handler '$handler': $_";
+            $self->set_error({ status_code => 500, reason => $_ });
         };
 
         # propagate errors up the handler stack
@@ -333,7 +335,7 @@ sub reset_handlers {
 }
 
 sub end_application {
-    warn "implement end_application already, will you?\n";
+    #warn "implement end_application already, will you?\n";
 }
 
 has server_status => (
@@ -430,11 +432,14 @@ sub add_to_queue      {
 
     #warn "add to queue $symbol";
     $symbol = $self->_qualify_symbol_name( $symbol );
-    warn("warning: $symbol could not be added to the queue")
-        unless $self->symbol_table->has_symbol($symbol);
 
-    # add with hi priority first
-    #
+    unless ( $self->symbol_table->has_symbol($symbol) ) {
+        warn "Warning: '$symbol' could not be added to the queue. Are you sure you registered it via register_events?";
+        #XXX: should we die or set_error here instead?
+        return;
+    }
+
+    # add events with high priority to the beginning of the stack.
     if ( defined $priority and $priority == 1 ) {
         $self->unshift_queue( $symbol );
     }
@@ -450,16 +455,16 @@ sub add_to_queue      {
 sub remove_from_queue {
     my $self     = shift;
     my $symbol   = shift;
-    my $priority = shift;
+    my $priority = shift || 0;
 
     $symbol = $self->_qualify_symbol_name( $symbol );
+
     unless ( $self->symbol_table->has_symbol($symbol) ) {
-        warn("warning: Unregistered event '$symbol' could not be removed from the queue because it does not exist.");
+        warn "Warning: Unregistered event '$symbol' could not be removed from the queue because it does not exist. Are you sure you registered it via register_events?";
         return;
     }
 
-    my $f=0;
-    $priority ||= 0;
+    my $f = 0;
 
     if ($priority == 0 ) {
         my @new = grep { $_ ne $symbol } @{$self->event_queue};
@@ -553,11 +558,10 @@ sub run {
     # reinit per each run required for pipelining
     $self->init_queue($ctxt);
 
-    warn "run " . Dumper( $self->event_queue );
     while ( my $symbol = $self->shift_queue() ) {
         $state = $self->handle_symbol( $ctxt, $symbol );
         # if an error occours here we must stop!
-        warn "state is $state from $symbol";
+        # warn "state is $state from $symbol";
         last unless $state == OK;
     }
     $self->end_application( $ctxt );
