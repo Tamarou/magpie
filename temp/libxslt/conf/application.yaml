@@ -1,4 +1,0 @@
-pipeline:
-    - libxslt::Base
-    - libxslt::Output
-url_token: libxslt
