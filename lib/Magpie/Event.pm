@@ -150,14 +150,12 @@ sub registered_events {
 sub stop_application  {
     my $self = shift;
     my $ctxt = shift;
-    warn "stop called (before)" . Dumper( $self->event_queue );
 
     $self->free_queue();
     $self->clear_handlers();
     if (defined $self->parent_handler) {
         $self->parent_handler->stop_application;
     }
-    warn "stop called" . Dumper( $self->event_queue );
 }
 
 #-------------------------------------------------------------------------------
@@ -261,8 +259,7 @@ sub run_handler {
 
         # propagate errors up the handler stack
         if ( $h->has_error ) {
-            my $wtf = $h->error;
-            $self->set_error( $wtf );
+            $self->set_error( $h->error );
         }
 
         # remember, nesting.
@@ -368,9 +365,9 @@ sub handle_symbol {
     my $self        = shift;
     my $ctxt        = shift;
     my $symbol      = shift;
-    my $return_code;
+    my $return_code = undef;
 
-    warn "Handling symbol: $symbol \n";
+    # warn "Handling symbol: $symbol \n";
     # load each handler associated with $symbol, run them,
     # and manipulate program flow if need be based on their
     # return values
@@ -379,16 +376,23 @@ sub handle_symbol {
             $return_code = $h->($self, $ctxt);
         }
         catch {
-            my $error = $_;
-            warn "Error running symbol '$symbol': $error";
+            $self->set_error({ status_code => 500, reason => $_ });
+            #warn "Error running symbol '$symbol': $_";
         };
+
+        if ( (! defined $return_code) or ($return_code >= SERVER_ERROR) ) {
+            unless ( $self->has_error ) {
+                $self->set_error({
+                    status_code => 500,
+                    reason => "Internal error or unknown return code from symbol '$symbol'"
+                });
+                return $self->control_done;
+            }
+        }
+
         return $self->control_done()     if $return_code == DONE;
         return $self->control_declined() if $return_code == DECLINED;
         return $self->control_output()   if $return_code == OUTPUT;
-        if ($return_code >= SERVER_ERROR) {
-            warn("Internal error or unknown return code from symbol $symbol");
-            return $return_code;
-        }
     }
     return OK;
 }
