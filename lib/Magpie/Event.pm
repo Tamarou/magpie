@@ -61,19 +61,6 @@ has handlers => (
 
 );
 
-# has handler_args => (
-#     traits      => ['Array'],
-#     is          => 'rw',
-#     isa         => 'ArrayRef[HashRef]',
-#     default     => sub { [] },
-#     handles     => {
-#         push_handler_args       => 'push',
-#         pop_handlers_args       => 'pop',
-#         shift_handlers_args     => 'shift',
-#         unshift_handlers_args   => 'unshift',
-#     },
-# );
-
 has event_queue => (
     traits  => ['Array'],
     is      => 'rw',
@@ -136,8 +123,6 @@ sub register_events {
 sub registered_events {
     my $thing = shift;
     my $pkg = ref( $thing ) ? $thing->meta->name : $thing;
-
-    #warn "in $pkg REG'D: " . Dumper( \%registered_events );
     my $ref = $registered_events{$pkg} || [];
     return @{ $ref };
 }
@@ -154,7 +139,7 @@ sub stop_application  {
 
     $self->free_queue();
     $self->clear_handlers();
-    if (defined $self->parent_handler) {
+    if ($self->has_parent_handler) {
         $self->parent_handler->stop_application;
     }
 }
@@ -167,10 +152,10 @@ sub next_in_pipe {
     my $self = shift;
     my $ctxt = shift;
 
-    my ($handler, $args) = @{ $self->shift_handlers };
-    if ( defined $handler ) {
-        $self->current_handler( $handler );
-        $self->current_handler_args( $args );
+    my $tuple = $self->shift_handlers;
+    if ( defined $tuple ) {
+        $self->current_handler( $tuple->[0] );
+        $self->current_handler_args( $tuple->[1] );
         $self->add_to_queue( 'load_handler' );
     }
 
@@ -284,7 +269,6 @@ sub add_handler {
     my $self    = shift;
     my $handler = shift;
     my $args    = shift || {};
-
     if ( defined $handler && length $handler ) {
         $self->push_handlers([ $handler, $args ]);
     }
@@ -311,9 +295,8 @@ sub add_next_handler {
 sub add_handlers {
     my $self = shift;
     my @handlers = @_;
-
     @handlers = $self->_make_tuples( @handlers );
-    $self->push_handlers(\@handlers);
+    $self->push_handlers(@handlers);
 }
 
 #-------------------------------------------------------------------------------
@@ -323,7 +306,7 @@ sub add_handlers {
 sub reset_handlers {
     my $self    = shift;
     my @handlers = @_;
-    $self->handlers( [] );
+    $self->clear_handlers;
     return $self->add_handlers( @handlers );
 }
 
