@@ -7,6 +7,7 @@ use Magpie::SymbolTable;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
+use Scalar::Util qw( blessed );
 use Carp qw(cluck);
 BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
 use Data::Dumper::Concise;
@@ -48,7 +49,7 @@ has error => (
 has handlers => (
     traits      => ['Array'],
     is          => 'rw',
-    isa         => 'ArrayRef[Str]',
+    isa         => 'ArrayRef[ArrayRef]',
     default     => sub { [] },
     handles     => {
         push_handlers      => 'push',
@@ -60,18 +61,18 @@ has handlers => (
 
 );
 
-has handler_args => (
-    traits      => ['Array'],
-    is          => 'rw',
-    isa         => 'ArrayRef[HashRef]',
-    default     => sub { [] },
-    handles     => {
-        push_handler_args       => 'push',
-        pop_handlers_args       => 'pop',
-        shift_handlers_args     => 'shift',
-        unshift_handlers_args   => 'unshift',
-    },
-);
+# has handler_args => (
+#     traits      => ['Array'],
+#     is          => 'rw',
+#     isa         => 'ArrayRef[HashRef]',
+#     default     => sub { [] },
+#     handles     => {
+#         push_handler_args       => 'push',
+#         pop_handlers_args       => 'pop',
+#         shift_handlers_args     => 'shift',
+#         unshift_handlers_args   => 'unshift',
+#     },
+# );
 
 has event_queue => (
     traits  => ['Array'],
@@ -166,11 +167,10 @@ sub next_in_pipe {
     my $self = shift;
     my $ctxt = shift;
 
-    my $handler = $self->shift_handlers;
-    my $handler_args = $self->shift_handlers_args;
+    my ($handler, $args) = @{ $self->shift_handlers };
     if ( defined $handler ) {
         $self->current_handler( $handler );
-        $self->current_handler_args( $handler_args );
+        $self->current_handler_args( $args );
         $self->add_to_queue( 'load_handler' );
     }
 
@@ -283,13 +283,10 @@ sub run_handler {
 sub add_handler {
     my $self    = shift;
     my $handler = shift;
-    my $objHandler = shift;
+    my $args    = shift || {};
 
     if ( defined $handler && length $handler ) {
-        $self->push_handlers( $handler );
-        if ( defined $objHandler && ref $objHandler ) {
-            $self->register_handler( $handler => $objHandler );
-        }
+        $self->push_handlers([ $handler, $args ]);
     }
 }
 
@@ -300,13 +297,10 @@ sub add_handler {
 sub add_next_handler {
     my $self    = shift;
     my $handler = shift;
-    my $objHandler = shift;
+    my $args    = shift || {};
 
     if ( defined $handler && length $handler ) {
-        $self->unshift_handlers($handler);
-        if ( defined $objHandler && ref $objHandler ) {
-            $self->register_handler( $handler => $objHandler );
-        }
+        $self->unshift_handlers([$handler, $args]);
     }
 }
 
@@ -318,9 +312,8 @@ sub add_handlers {
     my $self = shift;
     my @handlers = @_;
 
-    foreach my $handler (@handlers) {
-        $self->add_handler($handler);
-    }
+    @handlers = $self->_make_tuples( @handlers );
+    $self->push_handlers(\@handlers);
 }
 
 #-------------------------------------------------------------------------------
@@ -332,6 +325,25 @@ sub reset_handlers {
     my @handlers = @_;
     $self->handlers( [] );
     return $self->add_handlers( @handlers );
+}
+
+#-------------------------------------------------------------------------------
+# internal convenience for regularizing potentially uneven lists of name/param
+# hash pairs
+#-------------------------------------------------------------------------------
+sub _make_tuples {
+    my $self = shift;
+    my @in = @_;
+    my @out = ();
+    for (my $i = 0; $i < scalar @in; $i++ ) {
+        next if ref( $in[$i] ) eq 'HASH';
+        my $args = {};
+        if ( ref( $in[$i + 1 ]) eq 'HASH' ) {
+            $args = $in[$i + 1 ];
+        }
+        push @out, [$in[$i], $args];
+    }
+    return @out;
 }
 
 sub end_application {
@@ -382,7 +394,7 @@ sub handle_symbol {
             #warn "Error running symbol '$symbol': $_";
         };
 
-        if ( (! defined $return_code) or ($return_code >= SERVER_ERROR) ) {
+        if ( (!length $return_code) or ($return_code >= SERVER_ERROR) ) {
             unless ( $self->has_error ) {
                 $self->set_error({
                     status_code => 500,

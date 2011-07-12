@@ -11,6 +11,7 @@ has resource => (
     default     => sub { Magpie::Resource::File->new }
 );
 
+use Data::Dumper::Concise;
 
 #-------------------------------------------------------------------------------
 # pipline( @list_of_class_names )
@@ -21,33 +22,32 @@ sub pipeline {
     my $self    = shift;
     my @args = @_;
 
-    my @handlers = ();
-    my @handler_args = ();
-
-    my @pairs = ();
-    for (my $i = 0; $i < scalar @args; $i++ ) {
-        next if ref( $args[$i] ) eq 'HASH';
-        my $handler_args = {};
-        if ( ref( $args[$i + 1 ]) eq 'HASH' ) {
-            $handler_args = $args[$i + 1 ];
-        }
-        #warn "UNE PIPE $handler \n";
-        # remember that this method can accept other pipelines
-        # as elements, not just classnames.
-        if ( my $ref = ref($args[$i]) ) {
-            my $handler_name =  $ref;
-            push @handlers, $handler_name;
-            $self->register_handler($handler_name => $args[$i]);
-        }
-        else {
-            push @handlers, $args[$i];
-        }
-
-        push @handler_args, $handler_args;
-    }
+    my @handlers = $self->_make_tuples( @args );
+    warn "handlers " . Dumper(\@handlers);
+#     my @handler_args = ();
+#
+#     for (my $i = 0; $i < scalar @args; $i++ ) {
+#         next if ref( $args[$i] ) eq 'HASH';
+#         my $handler_args = {};
+#         if ( ref( $args[$i + 1 ]) eq 'HASH' ) {
+#             $handler_args = $args[$i + 1 ];
+#         }
+#         #warn "UNE PIPE $handler \n";
+#         # remember that this method can accept other pipelines
+#         # as elements, not just classnames.
+#         if ( my $ref = ref($args[$i]) ) {
+#             my $handler_name =  $ref;
+#             push @handlers, $handler_name;
+#             $self->register_handler($handler_name => $args[$i]);
+#         }
+#         else {
+#             push @handlers, $args[$i];
+#         }
+#
+#         push @handler_args, $handler_args;
+#     }
 
     $self->handlers(\@handlers);
-    $self->handler_args(\@handler_args);
 }
 
 1;
