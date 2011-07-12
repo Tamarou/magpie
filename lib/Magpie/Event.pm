@@ -357,7 +357,7 @@ sub init_common_symbols {
 # Accepting the current context member and a symbol name as arguments, this
 # method fetches the list of handler subs associated with $symbol_name and
 # fires each of them in turn (passing in the $context). The return codes from
-# each sub is examined (see SAWA::Constants, and the handle_* subs below)
+# each sub is examined (see Magpie::Constants, and the handle_* subs below)
 # and the handler's program flow is controlled accordingly. If all subs
 # return OK (200) this method does not intervene-- each sub is fired and
 # we return OK to the main event loop (which will then move to the next symbol
