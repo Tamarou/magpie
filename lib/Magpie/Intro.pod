@@ -1,0 +1,5 @@
+package Magpie::Intro;
+
+# ABSTRACT: Introduction to the whys and wherefores fo Magpie
+
+=pod
