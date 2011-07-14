@@ -108,6 +108,7 @@ sub BUILD{
 
 # Class methods
 our %registered_events = ();
+
 __PACKAGE__->register_events(qw( next_in_pipe load_handler run_handler ) );
 
 sub register_events {

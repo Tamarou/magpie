@@ -5,14 +5,6 @@ use Moose;
 
 =cut
 
-=head1 Introduction to Magpie
-
-This document introduces Magpie, the Simple Architecture for Web Applications.
-
-=head1 What is Magpie?
-
-Inspired by the name SAX (Simple API for XML) from the XML processing World, Magpie stands for the Simple Architecture for Web Applications. Magpie provides a rapid application development environment for both browser-based Web applications and automated Web Services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. This frees developers to focus on the specific requirements of the application at hand. Magpie's design is heavily informed by the study of L<Finite State Machines|/References> and implements the L<Model-View-Controller|/References> development pattern.
-
 =head2 Altered States
 
 In general, an application can be seen as being in (or having) a series of I<application states>. Consider the typical online registration application. First, the user is presented with an HTML form into which they type their desired username, password, personal details and other information. We can think of this as the "prompt state" since the core action involves I<prompting> the user to sign up. Once the user has filled in the form, they hit the submit button to send the input to a URL on the server that implements an interface that is able to read that incoming data. Once the request if received, the data is often verified for fitness-- first by logic on the server side that verifies that the data is complete and appropriate; then by the user, who is given a read-only HTML page reflecting his or her input for review. Let's call this the "validation state". Presented with the information they have entered, the user may choose to return to the prompt state by clicking a "Make Changes" button, or to proceed with registration by clicking the "Register" button. (Note that the application itself often proactively returns to the prompt state if it finds the user's input to be unfit). When both the user and the system are satisfied with the input, the verified data is sent to the server by clicking the "Register" button presented during the validation state. The server receives the data, creates the new user account, and responds with an HTML document containing a polite message thanking them for registering. We'll call this the "complete state".

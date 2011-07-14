@@ -3,3 +3,13 @@ package Magpie::Intro;
 # ABSTRACT: Introduction to the whys and wherefores fo Magpie
 
 =pod
+
+=head1 Introduction to Magpie
+
+This document introduces Magpie, the Simple Architecture for Web Applications.
+
+=head1 What is Magpie?
+
+Inspired by the name SAX (Simple API for XML) from the XML processing World, Magpie stands for the Simple Architecture for Web Applications. Magpie provides a rapid application development environment for both browser-based Web applications and automated Web Services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. This frees developers to focus on the specific requirements of the application at hand. Magpie's design is heavily informed by the study of L<Finite State Machines|/References> and implements the L<Model-View-Controller|/References> development pattern.
+
+__END__
