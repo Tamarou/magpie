@@ -1,16 +1,48 @@
 package Plack::Middleware::Magpie;
 use strict;
 use warnings;
-use parent qw( Plack::Middleware );
+use parent qw( Plack::Middleware Exporter);
 use Plack::Util::Accessor qw(pipeline resource assets context);
-
+our @EXPORT = qw( machine match match_env );
+use Scalar::Util qw(reftype);
 use Magpie::Machine;
 use HTTP::Throwable::Factory;
 use Data::Dumper::Concise;
 
+my @STACK = ();
+
+my $_add_frame = sub {
+    push @STACK, shift;
+};
+
+sub machine (&) {
+    my $block = shift;
+    $block->();
+    return @STACK;
+}
+
+sub match {
+    my $to_match = shift;
+    my $input    = shift;
+    warn "IN " . Dumper($to_match, \@_ ) . "--------\n";
+    my $match_type   = reftype $to_match || 'STRING';
+    my $frame = [$match_type, $to_match, $input];
+    $_add_frame->($frame);
+}
+
+sub match_env {
+    my $to_match = shift;
+    my $input    = shift;
+    warn "ENVIN " . Dumper($to_match, \@_ ) . "--------\n";
+    my $match_type   = reftype $to_match || 'STRING';
+    my $frame = [$match_type, $to_match, $input];
+    $_add_frame->($frame);
+}
+
 sub call {
     my($self, $env) = @_;
     my $app = $self->app;
+    warn Dumper($env);
 
     my @resource_handlers = ();
 
