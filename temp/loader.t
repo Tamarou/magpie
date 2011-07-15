@@ -43,7 +43,7 @@ my $fake_env = {
 my @wev = machine {
     match '/'       =>  [qw(RootMatch)];
     match qr!/foo/! => [qw(That Regexp Matched)];
-    match_env { REQUEST_METHOD => 'GET', SERVER_NAME => qr(^local) } =>     ['EnvMatch'];
+    match_env { REQUEST_METHOD => 'GET', SERVER_NAME => qr/^local/ } =>     ['EnvMatch'];
     match_env sub {
         my $env = shift;
         warn Data::Dumper::Concise::Dumper( $env );

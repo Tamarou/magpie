@@ -43,7 +43,6 @@ sub build_machine {
     my $req = shift;
     my $env = $req->env;
     my $path = $req->path_info;
-    #warn Dumper( \@STACK );
     my @out = ();
     foreach my $frame (@STACK) {
         warn "frame " . Dumper($frame);
@@ -58,7 +57,24 @@ sub build_machine {
             my $temp = $frame->[1]->($env);
             push @out, @{$temp};
         }
-
+        elsif ($match_type eq 'HASH') {
+            my $rules = $frame->[1];
+            my $matched = 0;
+            foreach my $k (keys %{$rules} ) {
+                last unless defined $env->{$k};
+                my $val = $rules->{$k};
+                if (reftype $val eq 'REGEXP') {
+                    $matched++ if $env->{$k} =~ $val;
+                }
+                else {
+                    $matched++ if qq($env->{$k}) eq qq($val);
+                }
+            }
+            push @out, @{$frame->[2]} if $matched == scalar keys %{$rules};
+        }
+        else {
+            warn "I don't know how to match '$match_type', skipping.\n"
+        }
     }
     return \@out;
 }
