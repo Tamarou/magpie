@@ -2,7 +2,7 @@ package Loader;
 use strict;
 use warnings;
 use parent qw( Exporter );
-our @EXPORT = qw( machine match match_env);
+our @EXPORT = qw( machine match );
 use Scalar::Util qw(reftype blessed);
 
 use Data::Dumper::Concise;
@@ -19,9 +19,9 @@ sub add_to_pipe {
 
 sub machine (&) {
     my $block = shift;
-    $block->();
-    #return ();
-    return @stack;
+    my @ass = $block->();
+    warn "ASSS " . Dumper(\@ass);
+    return ();
 
 #     push @pipeline, $current;
 #     return @pipeline;
@@ -33,51 +33,28 @@ my $depth = 0;
 
 sub match {
     my $to_match = shift;
-    my $input    = shift;
-    warn "IN " . Dumper($to_match, \@_ ) . "--------\n";
-    my $match_type   = reftype $to_match || 'STRING';
-    my $frame = [$match_type, $to_match, $input];
-    push @stack, $frame;
-}
-
-sub match_env {
-    my $to_match = shift;
-    my $input    = shift;
-    warn "ENVIN " . Dumper($to_match, \@_ ) . "--------\n";
-    my $match_type   = reftype $to_match || 'STRING';
-    my $frame = [$match_type, $to_match, $input];
-    push @stack, $frame;
-}
-
-1;
-=cut
-
-sub match {
-    my $to_match = shift;
-    my $input    = shift;
-    my @extra = @_;
-    warn "IN " . Dumper($to_match, $input, \@extra) . "--------\n";
+    my @to_add = @_;
+    warn "IN " . Dumper($to_match, \@to_add, $depth) . "--------\n";
     my $match_type   = reftype $to_match || 'STRING';
     #my $add_type     = undef;
     #my $handler_list = undef;
-    my $add_type = reftype $input;
-    my $frame = [$match_type, $to_match, $input, \@extra];
-    push @stack, $frame unless scalar @extra;
-    return $frame;
+    my $handler_list = $to_add[0];
+    my $add_type = reftype $handler_list;
+    #return $to_match;
 
 my @children = ();
-#     if ( scalar @to_add > 1 ) {
+     if ( scalar @to_add > 1 ) {
 #         warn "LIST " . Dumper($to_match, \@to_add ) . "******\n";
 #         my $handler_list = $to_add[0];
 #         my $add_type = reftype $handler_list;
-#         @children = splice(@to_add, 1,-1 );
-#         warn "yeah? " . Dumper(\@children);
-#      }
-#
-#      my $frame = [ $match_type, $to_match, $handler_list, \@children ];
-#      $current = $frame;
-#      return @$frame;
-#
+        @children = splice(@to_add, 1,-1 );
+        warn "yeah? " . Dumper(\@children);
+     }
+
+     my $frame = [ $match_type, $to_match, $handler_list, \@children ];
+     $current = $frame;
+     return @$frame;
+
 #     if ( ! defined $add_type ) {
 #         #warn "MAGIC $to_match\n";
 #         my $t = shift @stack;
