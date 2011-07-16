@@ -18,16 +18,15 @@ use Plack::Middleware::Magpie;
 my $style_path = 't/htdocs/stylesheets';
 
 my $handler = builder {
-    mount '/blog' => enable "Magpie",
-        pipeline => [
+    enable "Magpie", pipeline => [ machine {
+        match qr|^/blog/| => [
             'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/blog.xsl" },
         ];
-#     mount '/shop' => enable "Magpie",
-#         pipeline => [
-#             'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/shop.xsl" },
-#         ];
-
-    mount => '/' => enable "Static", path => qr!\.xml$!, root => './t/htdocs';
+        match qr|^/shop/| => [
+            'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/shop.xsl" },
+        ];
+    }];
+    enable "Static", path => qr!\.xml$!, root => './t/htdocs/alternates';
 };
 
 test_psgi
@@ -35,12 +34,18 @@ test_psgi
     client => sub {
         my $cb = shift;
         {
-            my $req = HTTP::Request->new(GET => "http://localhost/blog/hello.xml?testparam=wooo");
+            my $req = HTTP::Request->new(GET => "http://localhost/shop/index.xml?testparam=wooo");
             my $res = $cb->($req);
-            warn $res->content;
-            like( $res->content, qr(Hello Magpie!) );
+            like( $res->content, qr(Hello Shopper!) );
             like( $res->content, qr(wooo) );
         }
+        {
+            my $req = HTTP::Request->new(GET => "http://localhost/blog/index.xml?testparam=wooo");
+            my $res = $cb->($req);
+            like( $res->content, qr(Hello DFH!) );
+            like( $res->content, qr(wooo) );
+        }
+
     };
 
 done_testing;

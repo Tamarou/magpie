@@ -4,10 +4,10 @@
 
 <xsl:param name="testparam"/>
 
-<xsl:template match="/blog">
+<xsl:template match="/hello">
     <html>
         <body>
-            <h1>Hello DFH!</h1>
+            <h1>Goodbye Magpie!</h1>
             <p><xsl:value-of select="$testparam"/></p>
         </body>
     </html>

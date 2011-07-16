@@ -39,9 +39,11 @@ sub match_env {
 
 sub build_machine {
     my $req = shift;
+
     my $env = $req->env;
     my $path = $req->path_info;
     my @out = ();
+
     foreach my $frame (@STACK) {
         #warn "frame " . Dumper($frame);
         my $match_type = $frame->[0];
@@ -49,7 +51,7 @@ sub build_machine {
             push @out, @{$frame->[2]} if $frame->[1] eq $path;
         }
         elsif ($match_type eq 'REGEXP') {
-            push @out, @{$frame->[2]} if $frame->[1] =~ $path;
+            push @out, @{$frame->[2]} if  $path =~ /$frame->[1]/;
         }
         elsif ($match_type eq 'CODE') {
             my $temp = $frame->[1]->($env);
@@ -62,7 +64,7 @@ sub build_machine {
                 last unless defined $env->{$k};
                 my $val = $rules->{$k};
                 if (reftype $val eq 'REGEXP') {
-                    $matched++ if $env->{$k} =~ $val;
+                    $matched++ if $env->{$k} =~ m/$val/;
                 }
                 else {
                     $matched++ if qq($env->{$k}) eq qq($val);
