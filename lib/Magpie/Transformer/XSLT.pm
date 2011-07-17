@@ -6,6 +6,7 @@ use MooseX::Types::Path::Class;
 use XML::LibXML;
 use XML::LibXSLT;
 use Try::Tiny;
+use Scalar::Util ();
 use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( qw(get_content transform));
@@ -53,7 +54,15 @@ sub get_content {
 
     # XXX make this work w/ dependency-aware Resource classes
     if (my $upstream = $self->plack_response->body ) {
-        $dom = XML::LibXML->load_xml( IO => $upstream );
+        if (ref $upstream) {
+            $dom = XML::LibXML->load_xml( IO => $upstream );
+        }
+        else {
+            #$upstream = '<?xml version="1.0"?>' . "\n" . $upstream;
+            warn "STR $upstream";
+            $dom = XML::LibXML->load_xml( string => $upstream );
+            warn "WTF???" . $dom->documentElement->nodeName . "\n";
+        }
     }
     else {
         warn "Nothing UPSTREAM\n";
@@ -98,7 +107,7 @@ sub transform {
     my $content_type = $style->media_type;
     my $encoding     = $style->output_encoding;
     $self->response->content_type("$content_type; $encoding");
-    $self->response->content_length( length($new_body) );
+    $self->response->content_length( Plack::Util::content_length($new_body) );
     $self->response->body( $new_body );
 
     return OK;

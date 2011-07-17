@@ -25,6 +25,9 @@ my $handler = builder {
         match qr|^/shop/| => [
             'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/shop.xsl" },
         ];
+        match qr|^/| => [
+            'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/wrapper.xsl" },
+        ];
     }];
     enable "Static", path => qr!\.xml$!, root => './t/htdocs/alternates';
 };
@@ -36,6 +39,7 @@ test_psgi
         {
             my $req = HTTP::Request->new(GET => "http://localhost/shop/index.xml?testparam=wooo");
             my $res = $cb->($req);
+            warn $res->content;
             like( $res->content, qr(Hello Shopper!) );
             like( $res->content, qr(wooo) );
         }
