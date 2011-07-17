@@ -10,22 +10,27 @@ use HTTP::Throwable::Factory;
 use Data::Dumper::Concise;
 
 my @STACK = ();
-
+my $MTOKEN = undef;
 my $_add_frame = sub {
     push @STACK, shift;
 };
 
+sub make_token {
+    return '__MTOKEN__' . int(rand(100000));
+}
+
 sub machine (&) {
     my $block = shift;
+    $MTOKEN = make_token();
     $block->();
-    return '__PLACEHOLDER__';
+    return $MTOKEN;
 }
 
 sub match {
     my $to_match = shift;
     my $input    = shift;
     my $match_type   = reftype $to_match || 'STRING';
-    my $frame = [$match_type, $to_match, $input];
+    my $frame = [$match_type, $to_match, $input, $MTOKEN];
     $_add_frame->($frame);
 }
 
@@ -33,7 +38,7 @@ sub match_env {
     my $to_match = shift;
     my $input    = shift;
     my $match_type   = reftype $to_match || 'STRING';
-    my $frame = [$match_type, $to_match, $input];
+    my $frame = [$match_type, $to_match, $input, $MTOKEN];
     $_add_frame->($frame);
 }
 
@@ -42,20 +47,22 @@ sub build_machine {
 
     my $env = $req->env;
     my $path = $req->path_info;
-    my @out = ();
+    my $out = {};
 
     foreach my $frame (@STACK) {
         #warn "frame " . Dumper($frame);
         my $match_type = $frame->[0];
+        my $token = $frame->[3];
+        $out->{$token} ||= [];
         if ($match_type eq 'STRING') {
-            push @out, @{$frame->[2]} if $frame->[1] eq $path;
+            push @{$out->{$token}}, @{$frame->[2]} if $frame->[1] eq $path;
         }
         elsif ($match_type eq 'REGEXP') {
-            push @out, @{$frame->[2]} if  $path =~ /$frame->[1]/;
+            push @{$out->{$token}}, @{$frame->[2]} if  $path =~ /$frame->[1]/;
         }
         elsif ($match_type eq 'CODE') {
             my $temp = $frame->[1]->($env);
-            push @out, @{$temp};
+            push @{$out->{$token}}, @{$temp};
         }
         elsif ($match_type eq 'HASH') {
             my $rules = $frame->[1];
@@ -70,13 +77,13 @@ sub build_machine {
                     $matched++ if qq($env->{$k}) eq qq($val);
                 }
             }
-            push @out, @{$frame->[2]} if $matched == scalar keys %{$rules};
+            push @{$out->{$token}}, @{$frame->[2]} if $matched == scalar keys %{$rules};
         }
         else {
             warn "I don't know how to match '$match_type', skipping.\n"
         }
     }
-    return \@out;
+    return $out;
 }
 
 sub call {
@@ -84,19 +91,19 @@ sub call {
     my $app = $self->app;
 
     my @resource_handlers = ();
-    my $req = Plack::Request->new($env);
-    my $dynamic = build_machine($req) || [];
-    my $pipeline = $self->pipeline    || [];
+    my $req         = Plack::Request->new($env);
+    my $machine_map = build_machine($req) || {};
+    my $pipeline    = $self->pipeline     || [];
+    my @tokens      = keys( %{$machine_map} );
 
-    # XXX HACK ALERT: this going to have to get much smarter.
-    if ( grep { /__PLACEHOLDER__/ } @$pipeline ) {
+    if ( scalar @tokens ) {
         my @temp = ();
-        foreach ( @{$pipeline} ) {
-            if ($_ eq '__PLACEHOLDER__') {
-                push @temp, @{$dynamic};
+        foreach my $step ( @{$pipeline} ) {
+            if ( grep { $_ eq $step } @tokens ) {
+                push @temp, @{$machine_map->{$step}};
             }
             else {
-                push @temp, $_;
+                push @temp, $step;
             }
         }
         $pipeline = \@temp;
