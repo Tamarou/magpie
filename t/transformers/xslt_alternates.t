@@ -39,15 +39,18 @@ test_psgi
         {
             my $req = HTTP::Request->new(GET => "http://localhost/shop/index.xml?testparam=wooo");
             my $res = $cb->($req);
-            warn $res->content;
-            like( $res->content, qr(Hello Shopper!) );
-            like( $res->content, qr(wooo) );
+            like $res->content, qr/Hello Shopper!/;
+            like $res->content, qr/wooo/;
+            like $res->content, qr/Header/;
+            like $res->content, qr/Footer/;
         }
         {
             my $req = HTTP::Request->new(GET => "http://localhost/blog/index.xml?testparam=wooo");
             my $res = $cb->($req);
-            like( $res->content, qr(Hello DFH!) );
-            like( $res->content, qr(wooo) );
+            like $res->content, qr/Hello DFH!/;
+            like $res->content, qr/wooo/;
+            like $res->content, qr/Header/;
+            like $res->content, qr/Footer/;
         }
 
     };

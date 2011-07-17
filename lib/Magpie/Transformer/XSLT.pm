@@ -14,9 +14,10 @@ __PACKAGE__->register_events( qw(get_content transform));
 sub load_queue { return qw( get_content transform ) }
 
 has stylesheet_file => (
-    is          => 'ro',
+    is          => 'rw',
     isa         => 'Path::Class::File',
     init_arg    => 'stylesheet',
+    writer      => 'stylesheet',
     coerce      => 1,
     required    => 1,
 );
@@ -58,10 +59,7 @@ sub get_content {
             $dom = XML::LibXML->load_xml( IO => $upstream );
         }
         else {
-            #$upstream = '<?xml version="1.0"?>' . "\n" . $upstream;
-            warn "STR $upstream";
             $dom = XML::LibXML->load_xml( string => $upstream );
-            warn "WTF???" . $dom->documentElement->nodeName . "\n";
         }
     }
     else {
@@ -79,7 +77,7 @@ sub transform {
 
     my $style = undef;
     try {
-        $style = $self->xslt_processor->parse_stylesheet_file( $self->stylesheet_file );
+        $style = XML::LibXSLT->new->parse_stylesheet_file( $self->stylesheet_file );
     }
     catch {
         warn "Error parsing stylesheet file: $_\n";
@@ -103,7 +101,7 @@ sub transform {
 
     return OK if $self->has_error;
 
-    my $new_body     = $style->output_string( $result );
+    my $new_body     = $style->output_as_chars( $result );
     my $content_type = $style->media_type;
     my $encoding     = $style->output_encoding;
     $self->response->content_type("$content_type; $encoding");
