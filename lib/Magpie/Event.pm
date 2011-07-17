@@ -397,8 +397,8 @@ sub handle_symbol {
                     status_code => 500,
                     reason => "Internal error or unknown return code from symbol '$symbol'"
                 });
-                return $self->control_done;
             }
+            $return_code = DONE;
         }
 
         return $self->control_done()     if $return_code == DONE;
