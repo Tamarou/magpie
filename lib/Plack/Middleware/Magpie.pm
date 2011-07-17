@@ -109,7 +109,7 @@ sub call {
         $pipeline = \@temp;
     }
 
-    warn "pipe " . Dumper( $pipeline );
+    #warn "pipe " . Dumper( $pipeline );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,

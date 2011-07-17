@@ -217,9 +217,10 @@ sub load_handler {
         $self->register_handler( $handler => $new_handler );
     }
 
-    if ( defined $self->fetch_handler( $handler ) ) {
+    if ($self->fetch_handler( $handler )) {
         $self->add_to_queue( "run_handler" );
     }
+
     return OK;
 }
 
@@ -232,9 +233,21 @@ sub load_handler {
 sub run_handler {
     my $self = shift;
     my $ctxt = shift;
-
     my $handler = $self->current_handler;
+    my $handler_args = $self->current_handler_args || {};
+    #warn "run handler: $handler\n";
+
     if ( my $h = $self->fetch_handler( $handler ) ) {
+        # class may be loaded but params may be different
+        my @attributes = $h->meta->get_all_attributes;
+        foreach my $param (keys( %{$handler_args})) {
+            foreach my $attr (@attributes) {
+                my $writer_name = $attr->get_write_method;
+                if ($writer_name and $writer_name eq $param) {
+                    $h->$param( $handler_args->{$param} );
+                }
+            }
+        }
         # warn "Running handler $handler \n";
         try {
             $h->run( $ctxt );
