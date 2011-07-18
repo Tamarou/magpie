@@ -58,6 +58,9 @@ sub OPTIONS {
     return DONE;
 }
 
-# SEEALSO: Magpie
-
 1;
+
+__END__
+=pod
+
+# SEEALSO: Magpie

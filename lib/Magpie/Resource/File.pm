@@ -1,4 +1,6 @@
 package Magpie::Resource::File;
+# ABSTRACT: INCOMPLETE - Basic file Resource implementation.
+
 use Moose;
 extends 'Magpie::Resource';
 use Magpie::Constants;
@@ -23,5 +25,9 @@ sub GET {
     return OK;
 }
 
-
 1;
+
+__END__
+=pod
+
+# SEALSO: Magpie, Magpie::Resource

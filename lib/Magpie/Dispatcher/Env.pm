@@ -1,4 +1,6 @@
 package Magpie::Dispatcher::Env;
+#ABSTRACT: INCOMPLETE - Placeholder for future Dispatcher Role
+
 use Moose::Role;
 
 requires 'map_events';
@@ -18,9 +20,14 @@ sub load_queue {
     my $env = $self->plack_request->env;
 
     foreach my $event ( keys( %{$mapping} )) {
-        my $val = $mapping{$event};
+        my $val = $mapping->{$event};
 
     }
 }
 
 1;
+
+__END__
+=pod
+
+#SEEALSO: Magpie
