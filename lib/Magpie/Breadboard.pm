@@ -1,10 +1,10 @@
 package Magpie::Breadboard;
+# ABSTRACT: Bread::Board Container For Pipeline Assets
 use Moose;
 use Bread::Board;
 use Bread::Board::Dumper;
 use Data::Dumper::Concise;
 use Scalar::Util qw(blessed);
-#use Carp qw(cluck);
 extends 'Bread::Board::Container';
 
 has '+name' => ( default => 'Application' );
@@ -55,5 +55,7 @@ sub add_asset {
 sub resolve_asset {
     return shift->assets->resolve( @_ );
 }
+
+# SEEALSO: Magpie, Bread::Board
 
 1;

@@ -1,4 +1,5 @@
 package Plack::Middleware::Magpie;
+# ABSTRACT: Plack Middleware Interface For Pipelined Magpie Applications
 use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
@@ -148,5 +149,8 @@ sub call {
 
     return $m->plack_response->finalize;
 };
+
+# SEEALSO: Magpie, Plack, Plack::Middleware
+
 
 1;

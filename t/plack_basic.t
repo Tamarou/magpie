@@ -1,7 +1,7 @@
 use Test::More;
 use Plack::Test;
 use Plack::Request;
-use Data::Dumper::Concise;
+use HTTP::Request::Common;
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use_ok('Magpie::Machine');
@@ -18,8 +18,7 @@ test_psgi
     },
     client => sub {
         my $cb = shift;
-        my $req = HTTP::Request->new(GET => "http://localhost/");
-        my $res = $cb->($req);
+        my $res = $cb->(GET "http://localhost/");
         like $res->content, qr/_moebaz__moebar__larryfoo__larrybar__curlyfoo_/;
     };
 

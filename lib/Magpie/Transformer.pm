@@ -1,4 +1,6 @@
 package Magpie::Transformer;
+# ABSTRACT: Magpie Pipeline Transformer Base Class
+
 use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
@@ -13,6 +15,8 @@ has resource => (
     default     => sub { Magpie::Resource::File->new },
     predicate   => 'has_resource',
 );
+
+# SEEALSO: Magpie
 
 1;
 __END__

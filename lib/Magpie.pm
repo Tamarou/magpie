@@ -3,6 +3,8 @@ use Moose;
 
 # ABSTRACT: Pipelined State Machine Plack Middleware Framework
 
+1;
+
 =cut
 
 =head2 Altered States

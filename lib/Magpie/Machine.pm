@@ -4,6 +4,8 @@ extends 'Magpie::Component';
 use Magpie::Constants;
 use Magpie::Resource::File;
 
+#ABSTRACT: Event Class For Creating Magpie Pipelines
+
 has resource => (
     is          => 'rw',
     isa         => 'MagpieResourceObject',
@@ -22,5 +24,7 @@ sub pipeline {
     my @handlers = $self->_make_tuples( @args );
     $self->handlers(\@handlers);
 }
+
+# SEEALSO: Magpie
 
 1;

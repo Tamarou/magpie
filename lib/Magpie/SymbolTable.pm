@@ -1,4 +1,5 @@
 package Magpie::SymbolTable;
+#ABSTRACT: Core Magpie Event Symbol Table Object
 use strict;
 use warnings;
 
@@ -57,5 +58,7 @@ sub symbol_index {
     }
     return undef;
 }
+
+# SEEALSO: Magpie
 
 1;

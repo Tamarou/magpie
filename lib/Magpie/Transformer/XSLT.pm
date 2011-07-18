@@ -1,4 +1,6 @@
 package Magpie::Transformer::XSLT;
+# ABSTRACT: XSLT Pipeline Transformer
+
 use Moose;
 extends 'Magpie::Transformer';
 use Magpie::Constants;
@@ -7,7 +9,7 @@ use XML::LibXML;
 use XML::LibXSLT;
 use Try::Tiny;
 use Scalar::Util ();
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( qw(get_content transform));
 
@@ -110,5 +112,7 @@ sub transform {
 
     return OK;
 }
+
+# SEEALSO: Magpie, XML::LibXSLT
 
 1;

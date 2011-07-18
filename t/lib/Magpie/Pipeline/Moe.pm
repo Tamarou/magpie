@@ -1,6 +1,7 @@
 package Magpie::Pipeline::Moe;
 use Moose;
 extends 'Magpie::Transformer';
+use Magpie::Constants;
 
 __PACKAGE__->register_events(
     'foo',
@@ -9,7 +10,7 @@ __PACKAGE__->register_events(
         my $body = $self->response->body || '';
         $body .= '_moebar_';
         $self->response->body( $body );
-        return 100
+        return OK
      },
     'baz'
 );
@@ -23,7 +24,7 @@ sub foo {
     my $body = $self->response->body || '';
     $body .= '_moefoo_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub baz {
@@ -31,7 +32,7 @@ sub baz {
     my $body = $self->response->body || '';
     $body .= '_moebaz_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 1;

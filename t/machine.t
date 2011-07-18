@@ -9,6 +9,9 @@ ok( $m );
 
 $m->pipeline(qw( Magpie::Pipeline::Moe ));
 
+
 $m->run( {} );
+
+ok(1);
 
 done_testing();

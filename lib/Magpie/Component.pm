@@ -1,4 +1,5 @@
 package Magpie::Component;
+# ABSTRACT: Base Class For All Magpie Pipeline Components
 use Moose;
 with qw(Magpie::Event);
 use Magpie::Constants;
@@ -48,6 +49,7 @@ sub init_symbols {
     }
 }
 
-no Moose;
+# SEEALSO: Magpie, Magpie::Resource, Magpie::Transformer
+
 1;
 __END__

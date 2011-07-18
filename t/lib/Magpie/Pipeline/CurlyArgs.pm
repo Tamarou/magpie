@@ -1,6 +1,7 @@
 package Magpie::Pipeline::CurlyArgs;
 use Moose;
 extends 'Magpie::Component';
+use Magpie::Constants;
 
 __PACKAGE__->register_events(
     'foo',
@@ -22,7 +23,7 @@ sub foo {
     my $body = $self->response->body || '';
     $body .= '_curlyfoo_' . $self->simple_argument;
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub baz {
@@ -30,6 +31,6 @@ sub baz {
     my $body = $self->response->body || '';
     $body .= '_curlybaz_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 1;

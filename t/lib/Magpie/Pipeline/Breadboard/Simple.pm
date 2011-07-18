@@ -1,7 +1,7 @@
 package Magpie::Pipeline::Breadboard::Simple;
 use Moose;
 extends 'Magpie::Transformer';
-use Data::Dumper::Concise;
+use Magpie::Constants;
 use Bread::Board;
 
 __PACKAGE__->register_events(qw( foo baz ));
@@ -15,7 +15,7 @@ sub foo {
     my $body = $self->response->body || '';
     $body .= '_simplefoo_' . '_' . $self->resolve_asset( service => 'somevar' ) . '_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub baz {
@@ -24,7 +24,7 @@ sub baz {
     $body .= '_simplebaz_';
     $self->add_asset( service 'othervar' => 'other value' );
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 1;

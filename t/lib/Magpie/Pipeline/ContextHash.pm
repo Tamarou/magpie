@@ -1,6 +1,7 @@
 package Magpie::Pipeline::ContextHash;
 use Moose;
 extends 'Magpie::Component';
+use Magpie::Constants;
 
 __PACKAGE__->register_events(qw(is actually is_frequently));
 
@@ -15,7 +16,7 @@ sub is {
     my $body = $self->response->body || '';
     $body .= '_is_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub actually {
@@ -23,7 +24,7 @@ sub actually {
     my $body = $self->response->body || '';
     $body .= '_actually_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub is_frequently {
@@ -31,7 +32,7 @@ sub is_frequently {
     my $body = $self->response->body || '';
     $body .= '_is_frequently_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 1;

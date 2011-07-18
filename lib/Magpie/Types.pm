@@ -1,4 +1,5 @@
 package Magpie::Types;
+# ABSTRACT: Common Magpie Type Constraints
 use Moose::Role;
 use HTTP::Throwable::Factory;
 use Moose::Util::TypeConstraints;
@@ -67,3 +68,6 @@ coerce 'MagpieResourceObject'
         => via { HTTP::Throwable::Factory->new_exception($_ => {}) },
 ;
 
+# SEEALSO: Magpie
+
+1;

@@ -1,8 +1,9 @@
 package Magpie::Resource;
+# ABSTRACT: Abstract base class for all resource types;
+
 use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
-# abstract base class for all resource types;
 
 __PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS ) );
 
@@ -56,5 +57,7 @@ sub OPTIONS {
     shift->set_error('NotImplemented');
     return DONE;
 }
+
+# SEEALSO: Magpie
 
 1;

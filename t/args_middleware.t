@@ -7,6 +7,7 @@ use lib "$FindBin::Bin/lib";
 use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
+use HTTP::Request::Common;
 
 my $handler = builder {
     enable "Magpie", pipeline => [
@@ -19,8 +20,7 @@ test_psgi
     app    => $handler,
     client => sub {
         my $cb = shift;
-        my $req = HTTP::Request->new(GET => "http://localhost/");
-        my $res = $cb->($req);
+        my $res = $cb->(GET "http://localhost/");
         like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_larryfoo__larrybar_/;
     };
 

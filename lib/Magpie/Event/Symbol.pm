@@ -1,4 +1,5 @@
 package Magpie::Event::Symbol;
+# ABSTRACT: Role implementing the common symbol table interface.
 use Moose::Role;
 
 #-------------------------------------------------------------------------------
@@ -71,5 +72,7 @@ sub _qualify_symbol_name {
     my $pkg = $self->meta->name;
     return $pkg . '.' . $symbol;
 }
+
+# SEEALSO: Magpie, Magpie::SymbolTable
 
 1;

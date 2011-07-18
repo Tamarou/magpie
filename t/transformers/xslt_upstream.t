@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 use Test::More;
+use HTTP::Request::Common;
 
 BEGIN {
     eval { require XML::LibXSLT; };
@@ -27,9 +28,7 @@ test_psgi
     app    => $handler,
     client => sub {
         my $cb = shift;
-        my $req = HTTP::Request->new(GET => "http://localhost/hello.xml?testparam=wooo");
-        my $res = $cb->($req);
-        warn $res->content;
+        my $res = $cb->(GET "http://localhost/hello.xml?testparam=wooo");
         like( $res->content, qr(Hello Magpie!) );
         like( $res->content, qr(wooo) );
     };

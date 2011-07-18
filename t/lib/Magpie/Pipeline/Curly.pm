@@ -1,6 +1,7 @@
 package Magpie::Pipeline::Curly;
 use Moose;
 extends 'Magpie::Component';
+use Magpie::Constants;
 
 __PACKAGE__->register_events(
     'foo',
@@ -9,7 +10,7 @@ __PACKAGE__->register_events(
         my $body = $self->response->body || '';
         $body .= '_curlybar_';
         $self->response->body( $body );
-        return 100
+        return OK;
      },
     'baz'
 );
@@ -21,10 +22,9 @@ sub load_queue {
 sub foo {
     my ($self, $ctxt) = @_;
     my $body = $self->response->body || '';
-    warn "CURLY FOO\n";
     $body .= '_curlyfoo_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 
 sub baz {
@@ -32,6 +32,6 @@ sub baz {
     my $body = $self->response->body || '';
     $body .= '_curlybaz_';
     $self->response->body( $body );
-    return 100;
+    return OK;
 }
 1;

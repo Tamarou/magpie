@@ -15,7 +15,7 @@ use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
 use HTTP::Request::Common;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 my @params = my %params = (
     last_hotel  => 'Marriot',
@@ -39,8 +39,7 @@ test_psgi
     client => sub {
         my $cb = shift;
         {
-            my $req = HTTP::Request->new(GET => "http://localhost/");
-            my $res = $cb->($req);
+            my $res = $cb->(GET "http://localhost/");
             like $res->content, qr/fabulous/;
             like $res->content, qr/input/;
             like $res->content, qr/submit/;
@@ -56,6 +55,5 @@ test_psgi
         }
 
     };
-
 
 done_testing;

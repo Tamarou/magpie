@@ -1,11 +1,13 @@
 package Magpie::Transformer::TT2;
+# ABSTRACT: Template Toolkit Transformer Component
+
 use Moose;
 extends 'Magpie::Transformer';
 use Magpie::Constants;
 use Template;
 use MooseX::Types::Path::Class;
 use Try::Tiny;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( qw( get_tt_conf get_tt_vars get_template get_transformer transform));
 
@@ -84,5 +86,7 @@ sub transform {
 
     return OK;
 }
+
+# SEEALSO: Magpie
 
 1;

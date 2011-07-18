@@ -1,4 +1,6 @@
 package Magpie::Transformer::XSP;
+# ABSTRACT: eXtensible Server Pages Transformer
+
 use Moose;
 extends 'Magpie::Transformer';
 use Magpie::Constants;
@@ -6,7 +8,7 @@ use MooseX::Types::Path::Class;
 use XML::XSP;
 use XML::LibXML;
 use Try::Tiny;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 #BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
 
 __PACKAGE__->register_events( qw( get_content transform));
@@ -108,4 +110,5 @@ sub transform {
     return OK;
 }
 
+# SEEALSO: Magpie, XML::XSP
 1;

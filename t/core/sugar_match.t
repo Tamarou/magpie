@@ -6,10 +6,8 @@ use lib "$FindBin::Bin/../lib";
 
 use Plack::Test;
 use Plack::Builder;
-use Plack::Test;
 use HTTP::Request::Common;
 use Plack::Middleware::Magpie;
-use Data::Dumper::Concise;
 
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [
@@ -47,23 +45,7 @@ test_psgi
             like $res->content, qr/basic::base::event_last/;
             unlike $res->content, qr/basic::base::event_first/;
         }
-#
+
     };
 
 done_testing();
-
-=cut
-machine {
-    match '/'       =>  [qw(RootMatch)];
-    match qr!/foo/! => [qw(That Regexp Matched)];
-    match_env { REQUEST_METHOD => 'GET', SERVER_NAME => qr/^local/ } =>     ['EnvMatch'];
-    match_env sub {
-        my $env = shift;
-        warn Data::Dumper::Concise::Dumper( $env );
-        return [qw(From Inside The House)]
-    };
-    match qr!/stooges! => [
-        'Magpie::Pipeline::Moe',
-        'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' }, 'Magpie::Pipeline::Larry',
-    ];
-};

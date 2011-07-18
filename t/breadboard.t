@@ -1,8 +1,8 @@
 use Test::More;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use Data::Dumper::Concise;
 use Bread::Board;
+#use Data::Dumper::Concise;
 
 use_ok('Magpie::Machine');
 

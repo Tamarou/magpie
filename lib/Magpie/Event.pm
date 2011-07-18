@@ -1,4 +1,5 @@
 package Magpie::Event;
+# ABSTRACT: Core Event Role Shared By All Magpie Classes
 use Moose::Role;
 with qw( Magpie::Event::Symbol Magpie::Types );
 
@@ -576,5 +577,7 @@ sub run {
     $self->end_application( $ctxt );
     return $self->server_status;
 }
+
+# SEEALSO: Magpie
 
 1;

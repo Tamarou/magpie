@@ -1,8 +1,8 @@
 use Test::More;
 use strict;
 use warnings;
-use Magpie::Constants qw(:all);
-use Data::Dumper::Concise;
+use Magpie::Constants;
+#use Data::Dumper::Concise;
 
 use_ok('Magpie::Resource');
 use_ok('Magpie::Constants');

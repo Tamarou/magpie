@@ -6,10 +6,9 @@ use lib "$FindBin::Bin/../lib";
 
 use Plack::Test;
 use Plack::Builder;
-use Plack::Test;
 use HTTP::Request::Common;
 use Plack::Middleware::Magpie;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [
@@ -40,7 +39,6 @@ test_psgi
             like $res->content, qr/basic::base::event_last/;
             unlike $res->content, qr/basic::base::event_first/;
         }
-#
     };
 
 done_testing();

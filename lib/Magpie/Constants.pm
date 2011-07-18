@@ -1,4 +1,6 @@
 package Magpie::Constants;
+# ABSTRACT: Common Handler Control Constants;
+
 use Moose;
 
 sub import {
@@ -23,6 +25,7 @@ sub import {
     }
 }
 
-no Moose;
+# SEEALSO: Magpie, Magpie::Component, Magpie::Event
+
 1;
 __END__
