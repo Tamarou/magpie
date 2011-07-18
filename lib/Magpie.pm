@@ -9,9 +9,31 @@ use Moose;
 
 =head2 Altered States
 
-In general, an application can be seen as being in (or having) a series of I<application states>. Consider the typical online registration application. First, the user is presented with an HTML form into which they type their desired username, password, personal details and other information. We can think of this as the "prompt state" since the core action involves I<prompting> the user to sign up. Once the user has filled in the form, they hit the submit button to send the input to a URL on the server that implements an interface that is able to read that incoming data. Once the request if received, the data is often verified for fitness-- first by logic on the server side that verifies that the data is complete and appropriate; then by the user, who is given a read-only HTML page reflecting his or her input for review. Let's call this the "validation state". Presented with the information they have entered, the user may choose to return to the prompt state by clicking a "Make Changes" button, or to proceed with registration by clicking the "Register" button. (Note that the application itself often proactively returns to the prompt state if it finds the user's input to be unfit). When both the user and the system are satisfied with the input, the verified data is sent to the server by clicking the "Register" button presented during the validation state. The server receives the data, creates the new user account, and responds with an HTML document containing a polite message thanking them for registering. We'll call this the "complete state".
+In general, an application can be seen as being in (or having) a series of
+I<application states>. Consider the typical online registration application.
+First, the user is presented with an HTML form into which they type their
+desired username, password, personal details and other information. We can
+think of this as the "prompt state" since the core action involves
+I<prompting> the user to sign up. Once the user has filled in the form, they
+hit the submit button to send the input to a URL on the server that implements
+an interface that is able to read that incoming data. Once the request if
+received, the data is often verified for fitness-- first by logic on the
+server side that verifies that the data is complete and appropriate; then by
+the user, who is given a read-only HTML page reflecting his or her input for
+review. Let's call this the "validation state". Presented with the information
+they have entered, the user may choose to return to the prompt state by
+clicking a "Make Changes" button, or to proceed with registration by clicking
+the "Register" button. (Note that the application itself often proactively
+returns to the prompt state if it finds the user's input to be unfit). When
+both the user and the system are satisfied with the input, the verified data
+is sent to the server by clicking the "Register" button presented during the
+validation state. The server receives the data, creates the new user account,
+and responds with an HTML document containing a polite message thanking them
+for registering. We'll call this the "complete state".
 
-In short, we can say that the typical user registration application is a single entity that can be in one or another of three distinct states (prompt, validation, and complete).
+In short, we can say that the typical user registration application is a
+single entity that can be in one or another of three distinct states (prompt,
+validation, and complete).
 
   ----------               --------------                   ------------
   | Prompt |               | Validation |                   | Complete |
@@ -23,11 +45,33 @@ In short, we can say that the typical user registration application is a single 
 
 
 
-Despite the fact that this principle of state-based development and design is understood (if only intuitively) by most experienced Web developers, much of the code running on the Web today remains a mix of blocks of real application-level programming wrapped by largely redundant application state detection logic. We have learned through experience the benefits of separating an application's logic from its presentation, yet we persist in mixing application state detection with code that reacts to those states. Magpie exists because its developers and users have found that separating application state detection from behavioral logic offers similar benefits to those that come from drawing a clear line between application logic and presentation-- namely, the logical division of labor/time, and the ability to create uncluttered more maintainable code faster, and the freedom to reuse resources by decoupling distinct aspects of the application implementation.
+Despite the fact that this principle of state-based development and design is
+understood (if only intuitively) by most experienced Web developers, much of
+the code running on the Web today remains a mix of blocks of real
+application-level programming wrapped by largely redundant application state
+detection logic. We have learned through experience the benefits of separating
+an application's logic from its presentation, yet we persist in mixing
+application state detection with code that reacts to those states. Magpie
+exists because its developers and users have found that separating application
+state detection from behavioral logic offers similar benefits to those that
+come from drawing a clear line between application logic and presentation--
+namely, the logical division of labor/time, and the ability to create
+uncluttered more maintainable code faster, and the freedom to reuse resources
+by decoupling distinct aspects of the application implementation.
 
-Magpie works by mapping I<application states>, determined by user input and other factors, to I<event handler methods>, that implement the behavior associated with that state. In Magpie, developers need only register and implement the specific bits of code that react to a given application state, Magpie makes sure that correct event (or events) are fired.
+Magpie works by mapping I<application states>, determined by user input and
+other factors, to I<event handler methods>, that implement the behavior
+associated with that state. In Magpie, developers need only register and
+implement the specific bits of code that react to a given application state,
+Magpie makes sure that correct event (or events) are fired.
 
-Magpie's core distribution provides a simple Web application infrastructure along with a few commonly useful state-to-event mapping mechanisms that have proven themselves useful over time, but makes no other presumptions or proscriptions about the design or implementation of a given application. The point is to reduce brittleness and redundancies while ensuring that developers are free to implement their application in the way that makes most sense to them.
+Magpie's core distribution provides a simple Web application infrastructure
+along with a few commonly useful state-to-event mapping mechanisms that have
+proven themselves useful over time, but makes no other presumptions or
+proscriptions about the design or implementation of a given application. The
+point is to reduce brittleness and redundancies while ensuring that developers
+are free to implement their application in the way that makes most sense to
+them.
 
 Magpie's basic goals and design principles can be summed up as follows:
 
@@ -35,32 +79,53 @@ Magpie's basic goals and design principles can be summed up as follows:
 
 =item *
 
-Magpie must provide a basic infrastructure that offers predictable, easy access to the common components used in creating Web applications and Web Services (creating cookies, client redirection, access to request data, etc.). This saves us from re-implementing interfaces for helper components for each application we write.
+Magpie must provide a basic infrastructure that offers predictable, easy
+access to the common components used in creating Web applications and Web
+Services (creating cookies, client redirection, access to request data, etc.).
+This saves us from re-implementing interfaces for helper components for each
+application we write.
 
 =item *
 
-Magpie should provide a clear, well-defined interface for separating application state-detection from the event hander methods that are executed in response to a given state. This promotes fast, focussed, incremental development.
+Magpie should provide a clear, well-defined interface for separating
+application state-detection from the event hander methods that are executed in
+response to a given state. This promotes fast, focussed, incremental
+development.
 
 =item *
 
-In any given Magpie application, event hander methods may be divided across one or more of a series of Application Classes, each of which may have its own state/event mapping logic that determines which events will be fired. This encourages modularity and code reuse.
+In any given Magpie application, event hander methods may be divided across
+one or more of a series of Application Classes, each of which may have its own
+state/event mapping logic that determines which events will be fired. This
+encourages modularity and code reuse.
 
 =item *
 
-In addition to the Application Class(es), a Magpie application pipeline will also contain one Output Class that generates the content for the requesting client. This encourages reusability by letting us expose the same application logic to different types of Web clients.
+In addition to the Application Class(es), a Magpie application pipeline will
+also contain one Output Class that generates the content for the requesting
+client. This encourages reusability by letting us expose the same application
+logic to different types of Web clients.
 
 
 =item *
 
-All Magpie's base component and helper classes must be easily replaceable with user-defined classes; This promotes invention, user contribution and project longevity.
+All Magpie's base component and helper classes must be easily replaceable with
+user-defined classes; This promotes invention, user contribution and project
+longevity.
 
 =item *
 
-Magpie's core code must be environment-agnostic, allowing developers to deploy applications under Mod_per1/Apache versions 1 and 2, as well as any Web server offering the Common Gateway Interface (CGI). User-defined application classes and custom components are free to favor one environment over another but Magpie's core must remain neutral.
+Magpie's core code must be environment-agnostic, allowing developers to deploy
+applications under Mod_per1/Apache versions 1 and 2, as well as any Web server
+offering the Common Gateway Interface (CGI). User-defined application classes
+and custom components are free to favor one environment over another but
+Magpie's core must remain neutral.
 
 =item *
 
-Magpie must be judiciously magical-- providing just enough Perlish wizardry to make writing applications easy, while not presuming or enforcing a One True Way(tm) that limits developers' freedom.
+Magpie must be judiciously magical-- providing just enough Perlish wizardry to
+make writing applications easy, while not presuming or enforcing a One True
+Way(tm) that limits developers' freedom.
 
 =back
 
@@ -78,19 +143,24 @@ A typical Magpie application has three parts:
 
 =item 1
 
-One or more L<Application Classes|/Application Classes> that contain the event handler methods that are fired during the application's run.
+One or more L<Application Classes|/Application Classes> that contain the event
+handler methods that are fired during the application's run.
 
 =item 2
 
-One L<Output Class|/Output Classes> that controls how to serialize the application state into data that the requesting client can consume.
+One L<Output Class|/Output Classes> that controls how to serialize the
+application state into data that the requesting client can consume.
 
 =item 3
 
-An L<interface script/module|/interface script/module> that constructs the Magpie::Machine application pipeline and connects it to the wider world, usually via an HTTP server like Apache.
+An L<interface script/module|/interface script/module> that constructs the
+Magpie::Machine application pipeline and connects it to the wider world,
+usually via an HTTP server like Apache.
 
 =back
 
-Note that these three elements correspond, in order, to the Model, Viewport, and Controller elements of the MVC design pattern.
+Note that these three elements correspond, in order, to the Model, Viewport,
+and Controller elements of the MVC design pattern.
 
 =head2 External Interfaces
 
@@ -123,15 +193,50 @@ First, the I<interface> component:
 
   1;
 
-Like all ModPerl content handlers, this simple module implements a C<handler()> method that is called whenever the URI associated with this module is requested. Here, that method creates a new Magpie application by calling the C<new()> constructor of the C<Magpie::Machine> class-- all Magpie applications are an instance of that class.
+Like all ModPerl content handlers, this simple module implements a
+C<handler()> method that is called whenever the URI associated with this
+module is requested. Here, that method creates a new Magpie application by
+calling the C<new()> constructor of the C<Magpie::Machine> class-- all Magpie
+applications are an instance of that class.
 
-By itself, this instance of the Machine class does nothing useful; we must load the L<Application Class|/Application Classes> (or classes) that will perform required operations and the L<Output Class|/Output Classes> that will generate the appropriate response. We do this by calling the Machine instance's C<pipeline()> method and passing in a list containing a mix of either the I<Perl package names> of the classes we want to load or I<blessed instances> of those classes. In the example above, we loaded two classes into the Machine's application pipeline: C<My::Greetings> and C<Magpie::Output::Scalar> by simply passing in the class names.
+By itself, this instance of the Machine class does nothing useful; we must
+load the L<Application Class|/Application Classes> (or classes) that will
+perform required operations and the L<Output Class|/Output Classes> that will
+generate the appropriate response. We do this by calling the Machine
+instance's C<pipeline()> method and passing in a list containing a mix of
+either the I<Perl package names> of the classes we want to load or I<blessed
+instances> of those classes. In the example above, we loaded two classes into
+the Machine's application pipeline: C<My::Greetings> and
+C<Magpie::Output::Scalar> by simply passing in the class names.
 
-Finally, we set the application in motion by calling the Machine instance's C<run()> method. This method takes a single argument that may contain any sort of Perl reference (hash reference, array reference, blessed object). and, whatever data structure or object that is passed as that argument is made available to all methods in the Application and Output classes that are called as the application runs (more about how this works in the L<next section|/Application Classes>). When the C<run()> method is called, each class that was passed in via the C<pipeline()> method is loaded in the order they we passed and all I<event handler> methods implemented in those classes that match the current application state are called. When the event handlers from one application class are completed the Machine loads the next class and calls its methods-- and so on, until the last method in the Output class is called, at which point the response has been sent and the application pipeline terminates.
+Finally, we set the application in motion by calling the Machine instance's
+C<run()> method. This method takes a single argument that may contain any sort
+of Perl reference (hash reference, array reference, blessed object). and,
+whatever data structure or object that is passed as that argument is made
+available to all methods in the Application and Output classes that are called
+as the application runs (more about how this works in the L<next
+section|/Application Classes>). When the C<run()> method is called, each class
+that was passed in via the C<pipeline()> method is loaded in the order they we
+passed and all I<event handler> methods implemented in those classes that
+match the current application state are called. When the event handlers from
+one application class are completed the Machine loads the next class and calls
+its methods-- and so on, until the last method in the Output class is called,
+at which point the response has been sent and the application pipeline
+terminates.
 
 =head1 Application Classes
 
-In Magpie, application classes are implemented as subclasses of an event model. This underlying Event class is responsible for registering event handlers with Magpie'S internal queue and for determining which of those registered handlers will be fired in response to the current state. In short, the Event class determines which state the application is in, and which of the registered event handler methods will be fired in response to that state. Usually, the details of mapping states to events are never visible to the developer beyond the initial choice of which Event model to use as a base class (different Event classes use different conditions to determine application state). In daily practice, you simply implement and register the events that you application needs and let Magpie do the rest.
+In Magpie, application classes are implemented as subclasses of an event
+model. This underlying Event class is responsible for registering event
+handlers with Magpie'S internal queue and for determining which of those
+registered handlers will be fired in response to the current state. In short,
+the Event class determines which state the application is in, and which of the
+registered event handler methods will be fired in response to that state.
+Usually, the details of mapping states to events are never visible to the
+developer beyond the initial choice of which Event model to use as a base
+class (different Event classes use different conditions to determine
+application state). In daily practice, you simply implement and register the
+events that you application needs and let Magpie do the rest.
 
   # Greetings.pm -- A Magpie Application class that greets the
   #                 user based on application state
@@ -191,29 +296,65 @@ In Magpie, application classes are implemented as subclasses of an event model. 
 
   1;
 
-First, notice that the application class is a subclass of the C<Magpie::Event::Simple> Event model. In C<Magpie::Event::Simple> you register a list of state events via the required registerEvents() function. The event model then determines which event handler method to fire by examining the value of a specific querystring or POSTed form parameter. (The default param is named "appstate" but that can be overridden by implementing the C<state_param()> method and returning some other value). If the underlying Event model finds a registered event whose name matches the value returned by the C<state_param()> method, the event handler method named C<event_B<<eventname>>> is called. So, for example, a request to the URI that exposes the class above like the following:
+First, notice that the application class is a subclass of the
+C<Magpie::Event::Simple> Event model. In C<Magpie::Event::Simple> you register
+a list of state events via the required registerEvents() function. The event
+model then determines which event handler method to fire by examining the
+value of a specific querystring or POSTed form parameter. (The default param
+is named "appstate" but that can be overridden by implementing the
+C<state_param()> method and returning some other value). If the underlying
+Event model finds a registered event whose name matches the value returned by
+the C<state_param()> method, the event handler method named
+C<event_B<<eventname>>> is called. So, for example, a request to the URI that
+exposes the class above like the following:
 
   http://example.org/apps/greet?appstate=morning
 
-would cause the C<event_morning()> method to be called. If no matching state is found, the C<event_default()> event handler method is called as a fallback. In addition, most Magpie Event model classes also implement an C<event_init()> handler and an C<event_exit()> handler. These methods are optional and, if implemented, C<event_init()> will be called after the event queue is initialized but before the first state-determined event handler is fired while C<event_exit()> is called just before the application exits.
+would cause the C<event_morning()> method to be called. If no matching state
+is found, the C<event_default()> event handler method is called as a fallback.
+In addition, most Magpie Event model classes also implement an C<event_init()>
+handler and an C<event_exit()> handler. These methods are optional and, if
+implemented, C<event_init()> will be called after the event queue is
+initialized but before the first state-determined event handler is fired while
+C<event_exit()> is called just before the application exits.
 
-Note that C<Magpie::Event::Simple> (that determines application state based on a single form param) is only one possible event model and you are free to choose another and/or write your own-- even mixing application classes based on different models within the same application pipeline. This flexibility is one of Magpie's key strengths.
+Note that C<Magpie::Event::Simple> (that determines application state based on
+a single form param) is only one possible event model and you are free to
+choose another and/or write your own-- even mixing application classes based
+on different models within the same application pipeline. This flexibility is
+one of Magpie's key strengths.
 
 =head2 Event Handler Methods
 
-Every Magpie Application class will implement one or more I<event handler methods> that will be called conditionally based on the state that is determined by the underlying event model. It is within these methods that the real business of the application takes place. In the above example, these methods merely set a key in the application-wide C<$ctxt> hash reference, but there is no limit to what you can do. Remember, part of the point of Magpie is to separate state detection from application code-- this is achieved by having the event model parent class determine the state then call the event handler methods that implement the code that should be run for that state.
+Every Magpie Application class will implement one or more I<event handler
+methods> that will be called conditionally based on the state that is
+determined by the underlying event model. It is within these methods that the
+real business of the application takes place. In the above example, these
+methods merely set a key in the application-wide C<$ctxt> hash reference, but
+there is no limit to what you can do. Remember, part of the point of Magpie is
+to separate state detection from application code-- this is achieved by having
+the event model parent class determine the state then call the event handler
+methods that implement the code that should be run for that state.
 
-Each event handler method is passed two arguments: the C<$self> class instance member, and a special I<application context> member (named C<$ctxt> in the examples above).
+Each event handler method is passed two arguments: the C<$self> class instance
+member, and a special I<application context> member (named C<$ctxt> in the
+examples above).
 
 =head3 Know Thy $self
 
-In Magpie Application classes the C<$self> class instance member is special: not only does it offer access to the methods in the Event model superclass and any custom methods implemented in the user-visible parts of the application class, it also offers access to a small set of application-wide convenience methods:
+In Magpie Application classes the C<$self> class instance member is special:
+not only does it offer access to the methods in the Event model superclass and
+any custom methods implemented in the user-visible parts of the application
+class, it also offers access to a small set of application-wide convenience
+methods:
 
 =over
 
 =item C<< B<< $self->query >> >>
 
-This offers access to the C<CGI.pm> or C<Apache::Request> object that can be used from any Application or Output class. All methods available to those classes can be accessed via the C<< $self->query >> method.
+This offers access to the C<CGI.pm> or C<Apache::Request> object that can be
+used from any Application or Output class. All methods available to those
+classes can be accessed via the C<< $self->query >> method.
 
 Example:
 
@@ -223,11 +364,22 @@ Example:
 
 =item C<< B<< $self->uri >> >>
 
-This is a factory methods for C<URI.pm> objects. It accepts a single URI as string as its sole argument and returns the C<URI> object. If called without an argument the current application URL (including querystring and path info) is used during object creation. See the documentation for C<URI.pm> for detailed info about the object this method returns.
+This is a factory methods for C<URI.pm> objects. It accepts a single URI as
+string as its sole argument and returns the C<URI> object. If called without
+an argument the current application URL (including querystring and path info)
+is used during object creation. See the documentation for C<URI.pm> for
+detailed info about the object this method returns.
 
 =item C<< B<< $self->redirect >> >>
 
-This method accepts a single URL string as its sole argument. If set, this method will cause the the Output class to send a redirect response to the client rather than performing any content transformations, template processing or other Output class methods. Note, though that setting a value for this method will B<not> immediately stop the current event handler. If you want to stop the application pipeline you can do that by returning C<DONE> from your even handler method (see the section on L<Event Handler Return Codes|Event Handler Return Codes> below).
+This method accepts a single URL string as its sole argument. If set, this
+method will cause the the Output class to send a redirect response to the
+client rather than performing any content transformations, template processing
+or other Output class methods. Note, though that setting a value for this
+method will B<not> immediately stop the current event handler. If you want to
+stop the application pipeline you can do that by returning C<DONE> from your
+even handler method (see the section on L<Event Handler Return Codes|Event
+Handler Return Codes> below).
 
 Example:
 
@@ -240,7 +392,11 @@ Example:
 
 =item C<< B<< $self->header >> >>
 
-Accepting a single key => value pair, this method sets an outgoing HTTP header on the outgoing response. Multiple calls add multiple headers. Direct access to the list of outgoing header key => value pairs is available via the C<< $self->headers >> method. Incoming request headers are available via the $self->query (C<CGI> or C<Apache::Request>) object.
+Accepting a single key => value pair, this method sets an outgoing HTTP header
+on the outgoing response. Multiple calls add multiple headers. Direct access
+to the list of outgoing header key => value pairs is available via the C<<
+$self->headers >> method. Incoming request headers are available via the
+$self->query (C<CGI> or C<Apache::Request>) object.
 
 Example:
 
@@ -252,7 +408,12 @@ Example:
 
 =item C<< B<< $self->cookie >> >>
 
-The methods accepts a Perl hash of key => value pairs that will be used to add an HTTP Cookie to the outgoing response (Magpie's base Output class figures out whether you are using C<CGI.pm> or C<Apache::Request> and does the Right Thing for you-- all you have to do is pass in a hash). Multiple calls to the method add multiple cookies. Access to the list of outgoing cookies is available through the C<< $self->cookies >> method.
+The methods accepts a Perl hash of key => value pairs that will be used to add
+an HTTP Cookie to the outgoing response (Magpie's base Output class figures
+out whether you are using C<CGI.pm> or C<Apache::Request> and does the Right
+Thing for you-- all you have to do is pass in a hash). Multiple calls to the
+method add multiple cookies. Access to the list of outgoing cookies is
+available through the C<< $self->cookies >> method.
 
 Example:
 
@@ -264,7 +425,8 @@ Example:
 
 =item C<< B<< $self->charset >> >>
 
-The string passed to this method will set the outgoing character set header for the current response.
+The string passed to this method will set the outgoing character set header
+for the current response.
 
 Example:
 
@@ -273,7 +435,8 @@ Example:
 
 =item C<< B<< $self->mime_type >> >>
 
-The string passed to this method will set the outgoing MIME type header for the current response.
+The string passed to this method will set the outgoing MIME type header for
+the current response.
 
 Example:
 
@@ -282,7 +445,12 @@ Example:
 
 =item C<< B<< $self->server_status >> >>
 
-The numeric string passed to this method can be used to set the HTTP response code for the current request. The value returned by this method will be the status returned to interface module's call to $app_pipeline->run (where $app_pipeline is an instance of Magpie::Machine). If you do not set this value explicitly the default is C<200> which indicates that the process ran normally.
+The numeric string passed to this method can be used to set the HTTP response
+code for the current request. The value returned by this method will be the
+status returned to interface module's call to $app_pipeline->run (where
+$app_pipeline is an instance of Magpie::Machine). If you do not set this value
+explicitly the default is C<200> which indicates that the process ran
+normally.
 
 Example:
 
@@ -294,9 +462,17 @@ Example:
 
 =back
 
-In addition to the above built-in methods, Magpie Event classes provide a bit of special convenience magic that allows you to create pipeline-wide accessor methods merely by calling those methods on the $self class instance object.
+In addition to the above built-in methods, Magpie Event classes provide a bit
+of special convenience magic that allows you to create pipeline-wide accessor
+methods merely by calling those methods on the $self class instance object.
 
-Let's say for example that various event methods in the classes implemented in your application pipeline depend upon having access to data in the same database table. It would be wildly inefficient (not to mention silly) for each of those classes to create an new connection to the database. To solve this-- and make sure that each class has access to the same data--  we can simply store the database handle in the instance class of the first class that makes the database connection:
+Let's say for example that various event methods in the classes implemented in
+your application pipeline depend upon having access to data in the same
+database table. It would be wildly inefficient (not to mention silly) for each
+of those classes to create an new connection to the database. To solve this--
+and make sure that each class has access to the same data-- we can simply
+store the database handle in the instance class of the first class that makes
+the database connection:
 
   package MyClass::One;
   use DBI;
@@ -309,7 +485,9 @@ Let's say for example that various event methods in the classes implemented in y
       return OK;
   }
 
-Now, any subsequent event handlers in that class B< or any class later in the application pipeline > can access the database handle by simply calling $self->db_handle
+Now, any subsequent event handlers in that class B< or any class later in the
+application pipeline > can access the database handle by simply calling
+$self->db_handle
 
   package MyClass::Two; # runs in the pipeline after MyClass::One, above
 
@@ -324,7 +502,13 @@ Now, any subsequent event handlers in that class B< or any class later in the ap
       return OK;
   }
 
-While this bit of magic is quite useful, the implementation shown here depends on the fact that MyClass::One will run before MyClass::Two and for more complex application pipelines this assumption might create problems. If you wanted to make absolutely sure that every class in the application pipeline has access to the database handle, irrespective of what any of the application classes might (or might not) do, you can simply set the method on the application pipeline instance.
+While this bit of magic is quite useful, the implementation shown here depends
+on the fact that MyClass::One will run before MyClass::Two and for more
+complex application pipelines this assumption might create problems. If you
+wanted to make absolutely sure that every class in the application pipeline
+has access to the database handle, irrespective of what any of the application
+classes might (or might not) do, you can simply set the method on the
+application pipeline instance.
 
   # sample2.pm -- A Typical Magpie application that sets a pipeline-wide
   # database accessor
@@ -362,11 +546,15 @@ While this bit of magic is quite useful, the implementation shown here depends o
 
   1;
 
-This done, the database handle is now predictably available to all event methods in both MyClass::One and MyClass::Two via $self->db_handle .
+This done, the database handle is now predictably available to all event
+methods in both MyClass::One and MyClass::Two via $self->db_handle .
 
 =head3 Keeping Things In $ctxt
 
-The second argument passed to each event handler method is the I<context member> (named $ctxt in these examples). The context member-- which can be any kind of Perl object or reference to another data structure-- is passed as the sole argument to the application pipeline's run() method.
+The second argument passed to each event handler method is the I<context
+member> (named $ctxt in these examples). The context member-- which can be any
+kind of Perl object or reference to another data structure-- is passed as the
+sole argument to the application pipeline's run() method.
 
   # in your interface module/script:
   return $app->run( $application_context );
@@ -379,7 +567,12 @@ The second argument passed to each event handler method is the I<context member>
       my $ctxt = shift; # same object/data as $application_context above
   }
 
-In keeping with Magpie's general goal of letting developers do what makes the most sense to them, Magpie does not enforce many rules about what the $ctxt can be, or how it can be used. The only constraint is that the context member I<must> be a scalar or reference. Typically, the context member is a reference to a Perl hash, an anonymous hash reference, or a blessed object. Again, some examples that might appear in your in your interface module/script:
+In keeping with Magpie's general goal of letting developers do what makes the
+most sense to them, Magpie does not enforce many rules about what the $ctxt
+can be, or how it can be used. The only constraint is that the context member
+I<must> be a scalar or reference. Typically, the context member is a reference
+to a Perl hash, an anonymous hash reference, or a blessed object. Again, some
+examples that might appear in your in your interface module/script:
 
   # use a reference to an existing hash
   my %context = (
@@ -399,12 +592,24 @@ In keeping with Magpie's general goal of letting developers do what makes the mo
   return $app->run( $context );
 
 
-Obviously, the role of the context member will vary greatly depending upon your coding style and the needs of the application. In general, though, the most common use of the $ctxt is to accumulate the data needed to render the proper output for the current request. For example, if you are using the Template Toolkit Output class (Magpie::Output::TT2) you might use a plain hash reference as the context member, then use it to capture the template name and variables that your templates depend on to deliver the content.
+Obviously, the role of the context member will vary greatly depending upon
+your coding style and the needs of the application. In general, though, the
+most common use of the $ctxt is to accumulate the data needed to render the
+proper output for the current request. For example, if you are using the
+Template Toolkit Output class (Magpie::Output::TT2) you might use a plain hash
+reference as the context member, then use it to capture the template name and
+variables that your templates depend on to deliver the content.
 
 
 =head2 Event Handler Return Codes
 
-Each event handler method must return one of a number of I<event handler return codes>. The codes signal Magpie's internal event loop about what to do after the current event handler method is finished. The codes themselves are numeric, but are implemented as convenient Perl constants via the C<Magpie::Constants> module so you do not have to try to remember what the numeric codes are (this is similar to the way the C<Apache::Constants> module works for HTTP return codes).
+Each event handler method must return one of a number of I<event handler
+return codes>. The codes signal Magpie's internal event loop about what to do
+after the current event handler method is finished. The codes themselves are
+numeric, but are implemented as convenient Perl constants via the
+C<Magpie::Constants> module so you do not have to try to remember what the
+numeric codes are (this is similar to the way the C<Apache::Constants> module
+works for HTTP return codes).
 
  use Magpie::Constants;
 
@@ -423,7 +628,8 @@ The most common return codes and their effects on the application's behavior are
 
 =item C<< B<< OK >> >>
 
-Returning C<OK> from you event handler method signals Magpie that everything went as expected during the method's run and that it is safe to continue.
+Returning C<OK> from you event handler method signals Magpie that everything
+went as expected during the method's run and that it is safe to continue.
 
   sub event_init {
       my $self = shift;
@@ -437,7 +643,10 @@ Returning C<OK> from you event handler method signals Magpie that everything wen
 
 =item C<< B<< DECLINED >> >>
 
-Returning C<DECLINED> from your event handler method tells Magpie's internal event queue to skip to the next application or output class in the pipeline. Any other methods in the current application class that would usually be fired based on the current state will be skipped.
+Returning C<DECLINED> from your event handler method tells Magpie's internal
+event queue to skip to the next application or output class in the pipeline.
+Any other methods in the current application class that would usually be fired
+based on the current state will be skipped.
 
   sub event_init {
       my $self = shift;
@@ -455,7 +664,11 @@ Returning C<DECLINED> from your event handler method tells Magpie's internal eve
 
 =item C<< B<< OUTPUT >> >>
 
-Where the C<DECLINED> return code signals Magpie to skip to the I<very next> class in the pipeline, returning C<OUTPUT> from your event handler method tells Magpie's internal event queue to skip to I<very last> class in the application pipeline (which is presumed to be the Output class for the current application).
+Where the C<DECLINED> return code signals Magpie to skip to the I<very next>
+class in the pipeline, returning C<OUTPUT> from your event handler method
+tells Magpie's internal event queue to skip to I<very last> class in the
+application pipeline (which is presumed to be the Output class for the current
+application).
 
   sub event_init {
       my $self = shift;
@@ -474,7 +687,11 @@ Where the C<DECLINED> return code signals Magpie to skip to the I<very next> cla
 
 =item C<< B<< DONE >> >>
 
-Returning C<DONE> from your event handler method stops the application pipeline dead in its tracks. All subsequent classes that may be in the pipeline are skipped, including the Output class. It is rarely used, given it typically stops the application before any data is sent to the client, but it can be useful for sending appropriate HTTP response codes.
+Returning C<DONE> from your event handler method stops the application
+pipeline dead in its tracks. All subsequent classes that may be in the
+pipeline are skipped, including the Output class. It is rarely used, given it
+typically stops the application before any data is sent to the client, but it
+can be useful for sending appropriate HTTP response codes.
 
   sub event_init {
       my $self = shift;
@@ -495,7 +712,8 @@ Returning C<DONE> from your event handler method stops the application pipeline 
 
 =back
 
-With these details in mind let's look back at one of the event handler methods from the C<My::Greetings> package:
+With these details in mind let's look back at one of the event handler methods
+from the C<My::Greetings> package:
 
   sub event_evening {
       my $self = shift;
@@ -507,7 +725,9 @@ With these details in mind let's look back at one of the event handler methods f
   }
 
 
-At its core, Magpie only implements a symbol table (for holding event definitions) and an event queue (that fires and controls those events). The conditions under which the events are fired is totally swappable.
+At its core, Magpie only implements a symbol table (for holding event
+definitions) and an event queue (that fires and controls those events). The
+conditions under which the events are fired is totally swappable.
 
 =head1 Output Classes
 
@@ -568,19 +788,58 @@ Consider the following (obviously rigged) example of a CGI user login script:
 
  print $query->end_html;
 
-We have all seen (and probably written) scripts like this. On the one hand, it is hard to say that this code is wrong, exactly. After all, it works-- it does what we need it to do, and it didn't take very long to write. But from the point of view of modern Web application development there are at least three general weakness with this script.
+We have all seen (and probably written) scripts like this. On the one hand, it
+is hard to say that this code is wrong, exactly. After all, it works-- it does
+what we need it to do, and it didn't take very long to write. But from the
+point of view of modern Web application development there are at least three
+general weakness with this script.
 
-First, there is no division between application logic and the content is that generated for the client. Even if we do not need to support different types of Web clients and can get away with just generating HTML for desktop browsers, we run the risk of obscuring (or, worse, clobbering) the essential application logic in order to tweak the visual output.
+First, there is no division between application logic and the content is that
+generated for the client. Even if we do not need to support different types of
+Web clients and can get away with just generating HTML for desktop browsers,
+we run the risk of obscuring (or, worse, clobbering) the essential application
+logic in order to tweak the visual output.
 
-Second, and similarly, the application code and the logic that determines application state are also inextricably mixed. Now, obviously. conditional logic is likely to play a role in each state of any non-trivial application, but it all too easy for scripts like the one above to become brambles of if/else branches that obscure the application's essential functions.
+Second, and similarly, the application code and the logic that determines
+application state are also inextricably mixed. Now, obviously. conditional
+logic is likely to play a role in each state of any non-trivial application,
+but it all too easy for scripts like the one above to become brambles of
+if/else branches that obscure the application's essential functions.
 
-Finally, code like that found in this script is the enemy of modularity and re-use. A wise coder might wrap the block that checks for and verifies the user's login cookie into a validate_user_cookie() function in a custom application module that can be C<use>d or C<require>d into other scripts, but knowing what code to pull out into a function is not always obvious, and fact that such libs are usually not based on object oriented techniques make them brittle and a likely dumping ground for ugly solutions and hard-coded assumptions.
+Finally, code like that found in this script is the enemy of modularity and
+re-use. A wise coder might wrap the block that checks for and verifies the
+user's login cookie into a validate_user_cookie() function in a custom
+application module that can be C<use>d or C<require>d into other scripts, but
+knowing what code to pull out into a function is not always obvious, and fact
+that such libs are usually not based on object oriented techniques make them
+brittle and a likely dumping ground for ugly solutions and hard-coded
+assumptions.
 
-The point is that he script above will run, and for a certain set of requesting clients, it will work as expected; but it will not cope with future enhancements very well. For every additional case that the script has to handle we are stuck adding yet another layer of state detection code and hardcoded HTML output. By taking the "simple" approach, we have set a hard limit on the amount of change and complexity that the application can cope with. We have created a throw-away script that cannot grow or evolve without becoming an unmaintainable mess.
+The point is that he script above will run, and for a certain set of
+requesting clients, it will work as expected; but it will not cope with future
+enhancements very well. For every additional case that the script has to
+handle we are stuck adding yet another layer of state detection code and
+hardcoded HTML output. By taking the "simple" approach, we have set a hard
+limit on the amount of change and complexity that the application can cope
+with. We have created a throw-away script that cannot grow or evolve without
+becoming an unmaintainable mess.
 
-Magpie offers a way to abstract away both the state-handling logic (how an application determines what code to run under a given set of circumstances) and the output mechanism (how the given application state is represented to the requesting client) so that developers can devote their precious time to unique behavior of the application. You simply define the states of your application, and register events that will be executed when a given state is encountered, and Magpie handles the rest.
+Magpie offers a way to abstract away both the state-handling logic (how an
+application determines what code to run under a given set of circumstances)
+and the output mechanism (how the given application state is represented to
+the requesting client) so that developers can devote their precious time to
+unique behavior of the application. You simply define the states of your
+application, and register events that will be executed when a given state is
+encountered, and Magpie handles the rest.
 
-By thinking about an application in terms of states we have a convenient, unambiguous way to talk about and focus on the application's desired behavior without muddying the discussion with implementation-specific details. Similarly, by dividing an application into discrete states, we have a clear roadmap for how to. We can say things like, "The application must not advance past the validation state unless the user submitted a valid email address." rather than "keep re-showing the input form unless the user submits a valid email address".
+By thinking about an application in terms of states we have a convenient,
+unambiguous way to talk about and focus on the application's desired behavior
+without muddying the discussion with implementation-specific details.
+Similarly, by dividing an application into discrete states, we have a clear
+roadmap for how to. We can say things like, "The application must not advance
+past the validation state unless the user submitted a valid email address."
+rather than "keep re-showing the input form unless the user submits a valid
+email address".
 
 
 =head1 References
