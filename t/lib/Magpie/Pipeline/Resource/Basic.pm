@@ -2,7 +2,7 @@ package Magpie::Pipeline::Resource::Basic;
 use Moose;
 extends 'Magpie::Resource';
 use Magpie::Constants;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 sub GET {
     my $self = shift;
@@ -10,8 +10,6 @@ sub GET {
     $self->response->body('GET succeeded!');
     return OK;
 }
-
-
 
 before 'GET' => sub {
     my $self = shift;

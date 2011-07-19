@@ -4,8 +4,55 @@ use Moose;
 # ABSTRACT: Pipelined State Machine Plack Middleware Framework
 
 1;
+__END__
 
-=cut
+=pod
+
+=head1 SYNOPSIS
+
+  -----
+  # static.psgi
+  use Plack::Builder
+  use Plack::Middleware::Magpie;
+
+  # A static pipeline, will load the same components
+  # for every request,
+  my $app = builder {
+    enable "Magpie", context => {}, pipeline => [
+        # main application logic
+        'MyApp::Core',
+
+        # transform the result using Template Toolkit
+        'Magpie::Transformer::TT2' => { template_root => '/my/template/dir' }
+    ];
+  };
+
+  -----
+  # dynamic.psgi
+  use Plack::Builder
+  use Plack::Middleware::Magpie;
+
+  # use the machine and match, and match_env sugar to load components
+  # conditionally
+  my $app = builder {
+    enable "Magpie", context => {}, pipeline => [
+        machine {
+            # prepend an input transformer for POST and PUT requests
+            match_env { REQUEST_METHOD => qr/POST|PUT/ } => ['MyApp::InputHandler'];
+
+            # matches every request, generates core content
+            match qr|^/| => ['MyApp::XMLGenerator];
+
+            # apply different XSLT stylesheets based on the request path.
+            match qr|^/blog/| => [ 'Magpie::Transformer::XSLT'
+                                        => { stylesheet => '/style/blog.xsl'}];
+
+            match qr|^/shop/| => [ 'Magpie::Transformer::XSLT'
+                                        => { stylesheet => '/style/cart.xsl'}];
+        }
+    ];
+  };
+
 
 =head2 Altered States
 
@@ -73,61 +120,6 @@ point is to reduce brittleness and redundancies while ensuring that developers
 are free to implement their application in the way that makes most sense to
 them.
 
-Magpie's basic goals and design principles can be summed up as follows:
-
-=over
-
-=item *
-
-Magpie must provide a basic infrastructure that offers predictable, easy
-access to the common components used in creating Web applications and Web
-Services (creating cookies, client redirection, access to request data, etc.).
-This saves us from re-implementing interfaces for helper components for each
-application we write.
-
-=item *
-
-Magpie should provide a clear, well-defined interface for separating
-application state-detection from the event hander methods that are executed in
-response to a given state. This promotes fast, focussed, incremental
-development.
-
-=item *
-
-In any given Magpie application, event hander methods may be divided across
-one or more of a series of Application Classes, each of which may have its own
-state/event mapping logic that determines which events will be fired. This
-encourages modularity and code reuse.
-
-=item *
-
-In addition to the Application Class(es), a Magpie application pipeline will
-also contain one Output Class that generates the content for the requesting
-client. This encourages reusability by letting us expose the same application
-logic to different types of Web clients.
-
-
-=item *
-
-All Magpie's base component and helper classes must be easily replaceable with
-user-defined classes; This promotes invention, user contribution and project
-longevity.
-
-=item *
-
-Magpie's core code must be environment-agnostic, allowing developers to deploy
-applications under Mod_per1/Apache versions 1 and 2, as well as any Web server
-offering the Common Gateway Interface (CGI). User-defined application classes
-and custom components are free to favor one environment over another but
-Magpie's core must remain neutral.
-
-=item *
-
-Magpie must be judiciously magical-- providing just enough Perlish wizardry to
-make writing applications easy, while not presuming or enforcing a One True
-Way(tm) that limits developers' freedom.
-
-=back
 
 =head1 How Does Magpie Work?
 

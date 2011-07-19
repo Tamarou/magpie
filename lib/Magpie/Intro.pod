@@ -6,10 +6,60 @@ package Magpie::Intro;
 
 =head1 Introduction to Magpie
 
-This document introduces Magpie, the Simple Architecture for Web Applications.
+This document introduces Magpie, a dynamic pipelined application framework.
 
 =head1 What is Magpie?
 
-Inspired by the name SAX (Simple API for XML) from the XML processing World, Magpie stands for the Simple Architecture for Web Applications. Magpie provides a rapid application development environment for both browser-based Web applications and automated Web Services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. This frees developers to focus on the specific requirements of the application at hand. Magpie's design is heavily informed by the study of L<Finite State Machines|/References> and implements the L<Model-View-Controller|/References> development pattern.
+In the animal world, the Magpie (Pica pica) is an intelligent and mischevious bird with a reputation for pilfering shiny objects. In the enlightened world of Modern Perl, Magpie is an attempt to combine the best ideas (shiny objects) from the community's best Web development frameworks into a truly mature and intelligent environment.
+
+Implemented as a L<Plack::Middleware> component, Magpie provides a rapid application development framework for both browser-based Web applications and RESTful Web services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. Magpie's design is heavily informed by the study of L<Finite State Machines|/References>.
+
+Magpie's basic goals and design principles can be summed up as follows:
+
+=over
+
+=item *
+
+Magpie should provide a clear, well-defined interface for separating
+application state-detection from the event hander methods that are executed in
+response to a given state. This promotes fast, focussed, incremental
+development.
+
+=item *
+
+In any given Magpie application, event hander methods may be divided across
+one or more of a series of Application Classes, each of which may have its own
+state/event mapping logic that determines which events will be fired. This
+encourages modularity and code reuse.
+
+=item *
+
+In addition to the Application Class(es), a Magpie application pipeline will
+also contain one Output Class that generates the content for the requesting
+client. This encourages reusability by letting us expose the same application
+logic to different types of Web clients.
+
+
+=item *
+
+All Magpie's base component and helper classes must be easily replaceable with
+user-defined classes; This promotes invention, user contribution and project
+longevity.
+
+=item *
+
+Magpie's core code must be environment-agnostic, allowing developers to deploy
+applications under Mod_per1/Apache versions 1 and 2, as well as any Web server
+offering the Common Gateway Interface (CGI). User-defined application classes
+and custom components are free to favor one environment over another but
+Magpie's core must remain neutral.
+
+=item *
+
+Magpie must be judiciously magical-- providing just enough Perlish wizardry to
+make writing applications easy, while not presuming or enforcing a One True
+Way(tm) that limits developers' freedom.
+
+=back
 
 __END__
