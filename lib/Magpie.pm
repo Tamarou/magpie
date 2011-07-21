@@ -15,7 +15,7 @@ __END__
   use Plack::Builder
   use Plack::Middleware::Magpie;
 
-  # A static pipeline, will load the same components
+  # A static pipeline, will always load the same components
   # for every request,
   my $app = builder {
     enable "Magpie", context => {}, pipeline => [
@@ -264,212 +264,19 @@ examples above).
 
 =head3 Know Thy $self
 
-In Magpie Application classes the C<$self> class instance member is special:
-not only does it offer access to the methods in the Event model superclass and
-any custom methods implemented in the user-visible parts of the application
-class, it also offers access to a small set of application-wide convenience
-methods:
+In Magpie Application classes the C<$self> class instance member offers access to a handful of common attributes and methods:
 
 =over
 
-=item C<< B<< $self->query >> >>
+=item C<< B<< $self->request >> >>
 
-This offers access to the C<CGI.pm> or C<Apache::Request> object that can be
-used from any Application or Output class. All methods available to those
-classes can be accessed via the C<< $self->query >> method.
+This offers acccess to C<Plack::Request> object representing the current client request.
 
 Example:
 
-  if ( $self->query->method eq 'POST' ) {
+  if ( $self->request->method eq 'POST' ) {
     ...
   }
-
-=item C<< B<< $self->uri >> >>
-
-This is a factory methods for C<URI.pm> objects. It accepts a single URI as
-string as its sole argument and returns the C<URI> object. If called without
-an argument the current application URL (including querystring and path info)
-is used during object creation. See the documentation for C<URI.pm> for
-detailed info about the object this method returns.
-
-=item C<< B<< $self->redirect >> >>
-
-This method accepts a single URL string as its sole argument. If set, this
-method will cause the the Output class to send a redirect response to the
-client rather than performing any content transformations, template processing
-or other Output class methods. Note, though that setting a value for this
-method will B<not> immediately stop the current event handler. If you want to
-stop the application pipeline you can do that by returning C<DONE> from your
-even handler method (see the section on L<Event Handler Return Codes|Event
-Handler Return Codes> below).
-
-Example:
-
-  # if $some_var is not defined, set the redirection URI and
-  # skip directly to the application output phase
-  unless ( defined( $some_var ) ) {
-      $self->redirect('/login.html');
-      return Magpie::OUTPUT;
-  }
-
-=item C<< B<< $self->header >> >>
-
-Accepting a single key => value pair, this method sets an outgoing HTTP header
-on the outgoing response. Multiple calls add multiple headers. Direct access
-to the list of outgoing header key => value pairs is available via the C<<
-$self->headers >> method. Incoming request headers are available via the
-$self->query (C<CGI> or C<Apache::Request>) object.
-
-Example:
-
-  # set a strange custom outgoing header
-  $self->header( Bogus => 'IRBaboon' );
-
-  # set multiple headers at once
-  $self->headers( { name1 => 'value1, name2 => 'value2' } );
-
-=item C<< B<< $self->cookie >> >>
-
-The methods accepts a Perl hash of key => value pairs that will be used to add
-an HTTP Cookie to the outgoing response (Magpie's base Output class figures
-out whether you are using C<CGI.pm> or C<Apache::Request> and does the Right
-Thing for you-- all you have to do is pass in a hash). Multiple calls to the
-method add multiple cookies. Access to the list of outgoing cookies is
-available through the C<< $self->cookies >> method.
-
-Example:
-
-  # set a cookie
-  $self->cookie( -name    =>  'oreo',
-                 -value   =>  'doublestuff',
-                 -expires =>  '+3M');
-
-
-=item C<< B<< $self->charset >> >>
-
-The string passed to this method will set the outgoing character set header
-for the current response.
-
-Example:
-
-  # set the outgoing character set header
-  $self->charset('utf-8');
-
-=item C<< B<< $self->mime_type >> >>
-
-The string passed to this method will set the outgoing MIME type header for
-the current response.
-
-Example:
-
-  # send the generated result as plain text
-  $self->mime_type('text/plain');
-
-=item C<< B<< $self->server_status >> >>
-
-The numeric string passed to this method can be used to set the HTTP response
-code for the current request. The value returned by this method will be the
-status returned to interface module's call to $app_pipeline->run (where
-$app_pipeline is an instance of Magpie::Machine). If you do not set this value
-explicitly the default is C<200> which indicates that the process ran
-normally.
-
-Example:
-
-  # stop the application pipeline and send a 404 error
-  unless ( $ctxt->{some_file} && $other_condition ) {
-      $self->server_status(404);
-      return DONE;
-  }
-
-=back
-
-In addition to the above built-in methods, Magpie Event classes provide a bit
-of special convenience magic that allows you to create pipeline-wide accessor
-methods merely by calling those methods on the $self class instance object.
-
-Let's say for example that various event methods in the classes implemented in
-your application pipeline depend upon having access to data in the same
-database table. It would be wildly inefficient (not to mention silly) for each
-of those classes to create an new connection to the database. To solve this--
-and make sure that each class has access to the same data-- we can simply
-store the database handle in the instance class of the first class that makes
-the database connection:
-
-  package MyClass::One;
-  use DBI;
-
-  sub event_init {
-      my $self = shift;
-      my $ctxt = shift;
-      my $dbh = DBI->connect($data_source, $username, $auth, \%attr);
-      $self->db_handle( $dbh );
-      return OK;
-  }
-
-Now, any subsequent event handlers in that class B< or any class later in the
-application pipeline > can access the database handle by simply calling
-$self->db_handle
-
-  package MyClass::Two; # runs in the pipeline after MyClass::One, above
-
-  sub event_default {
-      my $self = shift;
-      my $ctxt = shift;
-
-      # magically works because the upstream event handler
-      # set a value for the db_handle method.
-      my $sth = $self->db_handle->prepare( $some_sql );
-      ...
-      return OK;
-  }
-
-While this bit of magic is quite useful, the implementation shown here depends
-on the fact that MyClass::One will run before MyClass::Two and for more
-complex application pipelines this assumption might create problems. If you
-wanted to make absolutely sure that every class in the application pipeline
-has access to the database handle, irrespective of what any of the application
-classes might (or might not) do, you can simply set the method on the
-application pipeline instance.
-
-  # sample2.pm -- A Typical Magpie application that sets a pipeline-wide
-  # database accessor
-  package sample2::handler;
-  use Magpie::Machine;
-  use Apache::Response;
-  use Apache::Const;
-  use DBI;
-
-
-  sub handler {
-      my $r = shift;
-
-      # load the Application and Output classes into
-      # the Magpie pipeline
-      my $app = Magpie::Machine->new();
-
-      $app->pipeline( qw(
-          MyClass::One
-          MyClass::Two
-          Magpie::Output::Scalar
-      ) );
-
-      # now, create the DB handle and pass it to the instance
-      # of the application pipeline
-      my $dbh = DBI->connect($data_source, $username, $auth, \%attr);
-      $app->db_handle( $dbh );
-
-      # can be any type of Perl reference or object
-      my $application_context = {};
-
-      # execute the application pipeline
-      return $app->run( $application_context );
-  }
-
-  1;
-
-This done, the database handle is now predictably available to all event
-methods in both MyClass::One and MyClass::Two via $self->db_handle .
 
 =head3 Keeping Things In $ctxt
 
@@ -479,14 +286,17 @@ kind of Perl object or reference to another data structure-- is passed as the
 sole argument to the application pipeline's run() method.
 
   # in your interface module/script:
-  return $app->run( $application_context );
-
+  my $handler = builder {
+      enable "Magpie", context => $app_context, pipeline => [
+         ...
+      ];
+  };
   ...
 
   # then later, in the event handler methods in your application classes
-  sub event_myevent {
+  sub myevent {
       my $self = shift;
-      my $ctxt = shift; # same object/data as $application_context above
+      my $ctxt = shift; # same object/data as $app_context above
   }
 
 In keeping with Magpie's general goal of letting developers do what makes the
@@ -502,25 +312,42 @@ examples that might appear in your in your interface module/script:
       default_template => 'index.xsl',
   );
 
-  return $app->run( \%context ); # note that this is a reference
-
-  # pass in an empty, anonymous hash reference
-  return $app->run( {} );
+  my $handler = builder {
+      enable "Magpie", context => \%context, pipeline => [
+         ...
+      ];
+  };
 
   # some advanced apps do well to make the context an object
   # that implements is own set of methods
   my $context = My::Application::ContextMember->new( %args );
 
-  return $app->run( $context );
+  my $handler = builder {
+      enable "Magpie", context => $context, pipeline => [
+         ...
+      ];
+  };
 
+When no context member is explicitly passed into the Magpie machine an anonymous hash reference is used as a fallback.
+
+  # no $ctxt is passed in
+  my $handler = builder {
+      enable "Magpie", pipeline => [
+         ...
+      ];
+  };
+
+  # then later...
+  sub myevent {
+      my $self = shift;
+      my $ctxt = shift; # now an anonymous hashref
+  }
 
 Obviously, the role of the context member will vary greatly depending upon
 your coding style and the needs of the application. In general, though, the
 most common use of the $ctxt is to accumulate the data needed to render the
 proper output for the current request. For example, if you are using the
-Template Toolkit Output class (Magpie::Output::TT2) you might use a plain hash
-reference as the context member, then use it to capture the template name and
-variables that your templates depend on to deliver the content.
+Template Toolkit Transformer class (Magpie::Transformer::TT2) you might use a plain hash reference as the context member, then use it to capture the template name and variables that your templates depend on to deliver the content.
 
 
 =head2 Event Handler Return Codes
@@ -535,7 +362,7 @@ works for HTTP return codes).
 
  use Magpie::Constants;
 
- sub event_myevent {
+ sub myevent {
      my $self = shift;
      my $ctxt = shift;
 
@@ -544,7 +371,7 @@ works for HTTP return codes).
      return OK;
  }
 
-The most common return codes and their effects on the application's behavior are as follows
+The most common return codes and their effects on the application's behavior are as follows:
 
 =over
 
@@ -570,13 +397,13 @@ event queue to skip to the next application or output class in the pipeline.
 Any other methods in the current application class that would usually be fired
 based on the current state will be skipped.
 
-  sub event_init {
+  sub init {
       my $self = shift;
       my $ctxt = shift;
 
       unless ( defined $ctxt->{some_required_data} ) {
           # we don't have the data we need to continue
-          $ctxt->{error_message} = "Insufficient data for event_init";
+          $ctxt->{error_message} = "Insufficient data for init event";
           return DECLINED;
       }
 
@@ -611,7 +438,7 @@ application).
 
 Returning C<DONE> from your event handler method stops the application
 pipeline dead in its tracks. All subsequent classes that may be in the
-pipeline are skipped, including the Output class. It is rarely used, given it
+pipeline are skippedIt is rarely used, given it
 typically stops the application before any data is sent to the client, but it
 can be useful for sending appropriate HTTP response codes.
 
@@ -623,7 +450,7 @@ can be useful for sending appropriate HTTP response codes.
           # we don't have the some crucial file needed to proceed
           # so throw a 404 Not Found response while stopping the
           # application
-          $self->server_status(404);
+          $self->response->status(404);
           return DONE;
       }
 
@@ -633,136 +460,6 @@ can be useful for sending appropriate HTTP response codes.
 
 
 =back
-
-With these details in mind let's look back at one of the event handler methods
-from the C<My::Greetings> package:
-
-  sub event_evening {
-      my $self = shift;
-      my $ctxt = shift;
-
-      $ctxt->{message} = 'Good evening!';
-
-      return OK;
-  }
-
-
-At its core, Magpie only implements a symbol table (for holding event
-definitions) and an event queue (that fires and controls those events). The
-conditions under which the events are fired is totally swappable.
-
-=head1 Output Classes
-
-=head2 XSLT (Magpie::Output::XML::LibXSLT)
-
-=head2 Template Toolkit (Magpie::Output::TT2)
-
-=head2 File (Magpie::Output::File)
-
-=head2 Scalar (Magpie::Output::Scalar)
-
-
-=head1 Application Pipelines
-
-THIS SPACE FOR RENT
-
-=head1 Why Magpie?
-
-Consider the following (obviously rigged) example of a CGI user login script:
-
- # login.cgi
- use CGI;
- use Digest::MD5;
-
- my $query = CGI->new();
-
- my %args = $query->Vars;
- my %users = (); tie %users, 'MLDBM','users.mldbm', O_CREAT|O_RDWR, 0640
-   or die "Can't open USERS file:$!\n";
-
- # Begin output
- print $query->header;
- print $query->start_html;
-
- if ( defined($args{username}) and defined($args{password}) ) {
-
-     if ( defined($users{ $args{username}) {
-         my $user = $args{username};
-         # if we have a valid user...
-         my $crypted = Digest::MD5::base_64($args{password});
-
-         if ( $user{password} eq $crypted ) {
-             # we have a valid user, proceed
-
-         }
-         else {
-             # bad password
-         }
-
-     }
-     else {
-         #invalid user
-     }
- }
- else {
-   # missing username or password
- }
-
- print $query->end_html;
-
-We have all seen (and probably written) scripts like this. On the one hand, it
-is hard to say that this code is wrong, exactly. After all, it works-- it does
-what we need it to do, and it didn't take very long to write. But from the
-point of view of modern Web application development there are at least three
-general weakness with this script.
-
-First, there is no division between application logic and the content is that
-generated for the client. Even if we do not need to support different types of
-Web clients and can get away with just generating HTML for desktop browsers,
-we run the risk of obscuring (or, worse, clobbering) the essential application
-logic in order to tweak the visual output.
-
-Second, and similarly, the application code and the logic that determines
-application state are also inextricably mixed. Now, obviously. conditional
-logic is likely to play a role in each state of any non-trivial application,
-but it all too easy for scripts like the one above to become brambles of
-if/else branches that obscure the application's essential functions.
-
-Finally, code like that found in this script is the enemy of modularity and
-re-use. A wise coder might wrap the block that checks for and verifies the
-user's login cookie into a validate_user_cookie() function in a custom
-application module that can be C<use>d or C<require>d into other scripts, but
-knowing what code to pull out into a function is not always obvious, and fact
-that such libs are usually not based on object oriented techniques make them
-brittle and a likely dumping ground for ugly solutions and hard-coded
-assumptions.
-
-The point is that he script above will run, and for a certain set of
-requesting clients, it will work as expected; but it will not cope with future
-enhancements very well. For every additional case that the script has to
-handle we are stuck adding yet another layer of state detection code and
-hardcoded HTML output. By taking the "simple" approach, we have set a hard
-limit on the amount of change and complexity that the application can cope
-with. We have created a throw-away script that cannot grow or evolve without
-becoming an unmaintainable mess.
-
-Magpie offers a way to abstract away both the state-handling logic (how an
-application determines what code to run under a given set of circumstances)
-and the output mechanism (how the given application state is represented to
-the requesting client) so that developers can devote their precious time to
-unique behavior of the application. You simply define the states of your
-application, and register events that will be executed when a given state is
-encountered, and Magpie handles the rest.
-
-By thinking about an application in terms of states we have a convenient,
-unambiguous way to talk about and focus on the application's desired behavior
-without muddying the discussion with implementation-specific details.
-Similarly, by dividing an application into discrete states, we have a clear
-roadmap for how to. We can say things like, "The application must not advance
-past the validation state unless the user submitted a valid email address."
-rather than "keep re-showing the input form unless the user submits a valid
-email address".
-
 
 =head1 References
 
