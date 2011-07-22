@@ -1,6 +1,6 @@
 package Magpie::Intro;
 
-# ABSTRACT: Introduction to the whys and wherefores fo Magpie
+# ABSTRACT: Introduction to the whys and wherefores of Magpie
 
 =pod
 
@@ -10,7 +10,9 @@ This document introduces Magpie, a dynamic pipelined application framework.
 
 =head1 What is Magpie?
 
-In the animal world, the Magpie (Pica pica) is an intelligent and mischevious bird with a reputation for pilfering shiny objects. In the enlightened world of Modern Perl, Magpie is an attempt to combine the best ideas (shiny objects) from the community's best Web development frameworks into a truly mature and intelligent environment.
+In the animal world, the Magpie (Pica pica) is an intelligent, mischievous bird with a reputation for pilfering shiny objects. In the enlightened world of Modern Perl, Magpie is an attempt to combine the best ideas (shiny objects) from the community's long history of Web development frameworks into a truly mature and intelligent environment.
+
+Ambitious? You bet. And we're in good company, we think. See, Perl itself is a magpie and always has been. Originally designed to fuse the best features of a slew of *NIX utilities into cohesive whole that made easy things easy and hard things possible, Perl has continuously evolved by adopting and internalizing the best features from each new generation of languages and tools that have been invented since (many of which were themselves influenced by Perl). At the same time, the Perl community has constantly evolved through a similar process. Community support, development infrastructure, even what constitutes "good Perl code" have all evolved by an iterative process of adoption -> extension -> invention. This is why we're making Magpie. We believe that by combining the best features of various popular Web development frameworks-- together with our own bits of invention-- we can create a development environment where easy things are easy and hard things are possible.
 
 Implemented as a L<Plack::Middleware> component, Magpie provides a rapid application development framework for both browser-based Web applications and RESTful Web services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. Magpie's design is heavily informed by the study of L<Finite State Machines|/References>.
 
