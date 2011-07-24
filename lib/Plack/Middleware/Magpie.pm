@@ -3,11 +3,12 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
-use Plack::Util::Accessor qw(pipeline resource assets context);
+use Plack::Util::Accessor qw(pipeline resource assets context conf);
 our @EXPORT = qw( machine match match_env );
 use Scalar::Util qw(reftype);
 use Magpie::Machine;
 use HTTP::Throwable::Factory;
+use Magpie::ConfigReader::XML;
 use Data::Dumper::Concise;
 
 my @STACK = ();
@@ -81,6 +82,9 @@ sub build_machine {
             }
             push @{$out->{$token}}, @{$frame->[2]} if $matched == scalar keys %{$rules};
         }
+        elsif ($match_type eq 'AUTO') {
+            push @{$out->{$token}}, @{$frame->[2]};
+        }
         else {
             warn "I don't know how to match '$match_type', skipping.\n"
         }
@@ -94,6 +98,13 @@ sub call {
 
     my @resource_handlers = ();
     my $req         = Plack::Request->new($env);
+
+    my $conf_file = $self->conf;
+    if ($conf_file) {
+        my $reader = Magpie::ConfigReader::XML->new;
+        @STACK = $reader->process($conf_file);
+    }
+
     my $machine_map = build_machine($req) || {};
     my $pipeline    = $self->pipeline     || [];
     my @tokens      = keys( %{$machine_map} );
@@ -111,7 +122,7 @@ sub call {
         $pipeline = \@temp;
     }
 
-    #warn "pipe " . Dumper( $pipeline );
+    warn "pipe " . Dumper( $pipeline );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,
