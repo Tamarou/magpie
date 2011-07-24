@@ -71,7 +71,8 @@ sub build_machine {
             foreach my $k (keys %{$rules} ) {
                 last unless defined $env->{$k};
                 my $val = $rules->{$k};
-                if (reftype $val eq 'REGEXP') {
+                my $val_type = reftype $val;
+                if ($val_type and $val_type eq 'REGEXP') {
                     $matched++ if $env->{$k} =~ m/$val/;
                 }
                 else {
