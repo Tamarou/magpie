@@ -98,17 +98,20 @@ sub call {
 
     my @resource_handlers = ();
     my $req         = Plack::Request->new($env);
+    my $pipeline    = $self->pipeline     || [];
 
     my $conf_file = $self->conf;
     if ($conf_file) {
         my $reader = Magpie::ConfigReader::XML->new;
         @STACK = $reader->process($conf_file);
+        push @{$pipeline}, $reader->make_token;
+
     }
 
     my $machine_map = build_machine($req) || {};
-    my $pipeline    = $self->pipeline     || [];
     my @tokens      = keys( %{$machine_map} );
 
+    #warn Dumper($machine_map);
     if ( scalar @tokens ) {
         my @temp = ();
         foreach my $step ( @{$pipeline} ) {
@@ -122,7 +125,7 @@ sub call {
         $pipeline = \@temp;
     }
 
-    warn "pipe " . Dumper( $pipeline );
+    #warn "pipe " . Dumper( $pipeline );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,

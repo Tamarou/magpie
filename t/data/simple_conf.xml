@@ -5,10 +5,10 @@
     </match>
     <add class="Magpie::Pipeline::CurlyArgs">
         <parameters>
-            <simple_arg>RIGHT!</simple_arg>
+            <simple_argument>RIGHT</simple_argument>
         </parameters>
     </add>
-    <match type="literal" rule="/stooges/">
+    <match type="literal" rule="/stooges">
         <add class="Magpie::Pipeline::ContextHash"/>
         <add class="Magpie::Pipeline::Larry"/>
     </match>

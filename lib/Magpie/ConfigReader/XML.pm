@@ -3,6 +3,11 @@ use Moose;
 use XML::LibXML;
 use Data::Dumper::Concise;
 
+sub make_token {
+    return '__MTOKEN__XMLCONF';
+}
+
+
 sub process {
     my $self = shift;
     my $xml_file = shift;
@@ -25,7 +30,7 @@ sub process {
             else {
                 warn "Unknown child element '$pipe_child_name' in config.\n";
             }
-            push @stack, [$match_type, $to_match, $input, '####'];
+            push @stack, [$match_type, $to_match, $input, make_token];
         }
     }
     return @stack;
@@ -55,7 +60,6 @@ sub process_add {
     my $params = {};
     if ($node->exists('./parameters')) {
         foreach my $param ($node->findnodes('./parameters/*')) {
-            warn Dumper( $param );
             my ($name, $value) = (undef, undef);
             if ($param->localname eq 'parameter' ) {
                 $name = $param->findvalue('@name|./name/text()');
