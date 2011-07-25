@@ -16,7 +16,7 @@ my $context = {
 };
 
 my $handler = builder {
-    enable "Magpie", context => $context, conf => 't/data/simple_conf.xml'
+    enable "Magpie", context => $context, conf => 't/data/match.xml'
 };
 
 test_psgi

@@ -48,6 +48,21 @@ sub process_match {
     elsif ($match_type eq 'LITERAL' ) {
         $match_type = 'STRING';
     }
+    elsif ($match_type eq 'ENV' ) {
+        $match_type = 'HASH';
+        $to_match = {};
+        foreach my $rule ($node->findnodes('./rules/rule')) {
+            my $key  = $rule->findvalue('@key|./key/text()');
+            my $val  = $rule->findvalue('@value|./value/text()');
+            my $type = $rule->findvalue('@type|./value/@type|./value/type/text()');
+            if ( $type && $type eq 'regexp' ) {
+                $val = qr|$val|;
+            }
+            next unless $key && $val;
+            $to_match->{$key} = $val;
+        }
+    }
+
     foreach my $add ($node->findnodes('./add')) {
         push @{$input}, process_add( $add );
     }
