@@ -1,15 +1,17 @@
 <?xml version="1.0"?>
-<pipeline>
-    <match type="regexp" rule="^/">
-        <add class="Magpie::Pipeline::Moe"/>
-    </match>
-    <add class="Magpie::Pipeline::CurlyArgs">
-        <parameters>
-            <simple_argument>RIGHT</simple_argument>
-        </parameters>
-    </add>
-    <match type="literal" rule="/stooges">
-        <add class="Magpie::Pipeline::ContextHash"/>
-        <add class="Magpie::Pipeline::Larry"/>
-    </match>
-</pipeline>
+<application>
+    <pipeline>
+        <match type="regexp" rule="^/">
+            <add class="Magpie::Pipeline::Moe"/>
+        </match>
+        <add class="Magpie::Pipeline::CurlyArgs">
+            <parameters>
+                <simple_argument>RIGHT</simple_argument>
+            </parameters>
+        </add>
+        <match type="literal" rule="/stooges">
+            <add class="Magpie::Pipeline::ContextHash"/>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+    </pipeline>
+</application>

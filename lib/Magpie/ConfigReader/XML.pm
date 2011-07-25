@@ -7,14 +7,24 @@ sub make_token {
     return '__MTOKEN__XMLCONF';
 }
 
+has match_stack => (
+    traits  => ['Array'],
+    is      => 'rw',
+    isa     => 'ArrayRef[ArrayRef]',
+    default => sub { [] },
+    handles => {
+        push_stack      => 'push',
+    },
+);
+
 
 sub process {
     my $self = shift;
     my $xml_file = shift;
-    my @stack = ();
     my $dom = XML::LibXML->load_xml( location => $xml_file );
     my $root = $dom->documentElement;
 
+    # now process the handler pipeline
     foreach my $pipe ($root->findnodes('//pipeline')) {
         foreach my $pipe_child ($pipe->childNodes) {
             my $pipe_child_name = $pipe_child->localname;
@@ -30,10 +40,10 @@ sub process {
             else {
                 warn "Unknown child element '$pipe_child_name' in config.\n";
             }
-            push @stack, [$match_type, $to_match, $input, make_token];
+            $self->push_stack( [$match_type, $to_match, $input, make_token] );
         }
     }
-    return @stack;
+    return @{ $self->match_stack };
 }
 
 sub process_match {
