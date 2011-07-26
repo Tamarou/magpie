@@ -7,8 +7,9 @@ use Plack::Util::Accessor qw(pipeline resource assets context conf);
 our @EXPORT = qw( machine match match_env );
 use Scalar::Util qw(reftype);
 use Magpie::Machine;
-use HTTP::Throwable::Factory;
+use Magpie::Matcher;
 use Magpie::ConfigReader::XML;
+use HTTP::Throwable::Factory;
 use Data::Dumper::Concise;
 
 my @STACK = ();
@@ -44,54 +45,6 @@ sub match_env {
     $_add_frame->($frame);
 }
 
-sub build_machine {
-    my $req = shift;
-
-    my $env = $req->env;
-    my $path = $req->path_info;
-    my $out = {};
-
-    foreach my $frame (@STACK) {
-        #warn "frame " . Dumper($frame);
-        my $match_type = $frame->[0];
-        my $token = $frame->[3];
-        $out->{$token} ||= [];
-        if ($match_type eq 'STRING') {
-            push @{$out->{$token}}, @{$frame->[2]} if $frame->[1] eq $path;
-        }
-        elsif ($match_type eq 'REGEXP') {
-            push @{$out->{$token}}, @{$frame->[2]} if  $path =~ /$frame->[1]/;
-        }
-        elsif ($match_type eq 'CODE') {
-            my $temp = $frame->[1]->($env);
-            push @{$out->{$token}}, @{$temp};
-        }
-        elsif ($match_type eq 'HASH') {
-            my $rules = $frame->[1];
-            my $matched = 0;
-            foreach my $k (keys %{$rules} ) {
-                last unless defined $env->{$k};
-                my $val = $rules->{$k};
-                my $val_type = reftype $val;
-                if ($val_type and $val_type eq 'REGEXP') {
-                    $matched++ if $env->{$k} =~ m/$val/;
-                }
-                else {
-                    $matched++ if qq($env->{$k}) eq qq($val);
-                }
-            }
-            push @{$out->{$token}}, @{$frame->[2]} if $matched == scalar keys %{$rules};
-        }
-        elsif ($match_type eq 'AUTO') {
-            push @{$out->{$token}}, @{$frame->[2]};
-        }
-        else {
-            warn "I don't know how to match '$match_type', skipping.\n"
-        }
-    }
-    return $out;
-}
-
 sub call {
     my($self, $env) = @_;
     my $app = $self->app;
@@ -102,29 +55,24 @@ sub call {
 
     my $conf_file = $self->conf;
     if ($conf_file) {
+        # only XML for now, more options later?
         my $reader = Magpie::ConfigReader::XML->new;
-        @STACK = $reader->process($conf_file);
-        push @{$pipeline}, $reader->make_token;
+        $reader->process($conf_file);
+
+        # config-based handlers are added to the front
+        # of the stack so there can be a base reusable conf
+        # file with dynamic additions in the building class.
+        unshift @STACK, @{ $reader->match_stack };
+        unshift @{$pipeline}, $reader->make_token;
 
     }
 
-    my $machine_map = build_machine($req) || {};
-    my @tokens      = keys( %{$machine_map} );
+    my $matcher = Magpie::Matcher->new(
+        plack_request => $req,
+        match_candidates => \@STACK,
+    );
 
-    #warn Dumper($machine_map);
-    if ( scalar @tokens ) {
-        my @temp = ();
-        foreach my $step ( @{$pipeline} ) {
-            if ( grep { $_ eq $step } @tokens ) {
-                push @temp, @{$machine_map->{$step}};
-            }
-            else {
-                push @temp, $step;
-            }
-        }
-        $pipeline = \@temp;
-    }
-
+    $pipeline = $matcher->detokenize_pipeline($pipeline);
     #warn "pipe " . Dumper( $pipeline );
 
     my $m = Magpie::Machine->new(

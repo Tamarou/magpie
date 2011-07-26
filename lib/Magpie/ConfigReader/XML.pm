@@ -1,4 +1,6 @@
 package Magpie::ConfigReader::XML;
+#ABSTRACT: Magpie Configuration via XML
+
 use Moose;
 use XML::LibXML;
 use Data::Dumper::Concise;
@@ -43,7 +45,6 @@ sub process {
             $self->push_stack( [$match_type, $to_match, $input, make_token] );
         }
     }
-    return @{ $self->match_stack };
 }
 
 sub process_match {
@@ -114,5 +115,7 @@ sub trim_whitespace {
     $string =~ s/\s+$//;
     return $string;
 }
+
+# SEEALSO: Magpie
 
 1;
