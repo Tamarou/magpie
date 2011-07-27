@@ -162,24 +162,25 @@ events that you application needs and let Magpie do the rest.
 
   # Greetings.pm -- A Magpie Application class that greets the
   #                 user based on application state
-  package Greetings;
-  use strict;
+  package MyApp::Pipeline::Greetings;
+  use Moose;
 
-  # inherit from the Event::Simple event model which
+  # inherit from the base Component class.
+  extends 'Magpie::Component';
+
   # determines the application state based on the value
-  # of a specific form/query param.
+  # of a specific form/query param ala CGI::Application.
+  with 'Magpie::Dispatcher::RequestParam' => { state_param => 'appstate' };
 
-  use base qw( Magpie::Event::Simple );
+  # Import handler
   use Magpie::Constants;
 
   # register the event handlers for this class
-  sub registerEvents {
-      return qw( morning afternoon evening );
-  }
+  __PACKAGE__->register_events( qw( morning afternoon evening default) );
 
   # implement the event handlers
 
-  sub event_morning {
+  sub morning {
       my $self = shift;
       my $ctxt = shift;
 
@@ -188,7 +189,7 @@ events that you application needs and let Magpie do the rest.
       return OK;
   }
 
-  sub event_afternoon {
+  sub afternoon {
       my $self = shift;
       my $ctxt = shift;
 
@@ -197,7 +198,7 @@ events that you application needs and let Magpie do the rest.
       return OK;
   }
 
-  sub event_evening {
+  sub evening {
       my $self = shift;
       my $ctxt = shift;
 
@@ -207,7 +208,7 @@ events that you application needs and let Magpie do the rest.
   }
 
   # will be called if no matching state is found
-  sub event_default {
+  sub default {
       my $self = shift;
       my $ctxt = shift;
 
@@ -219,7 +220,7 @@ events that you application needs and let Magpie do the rest.
   1;
 
 First, notice that the application class is a subclass of the
-C<Magpie::Event::Simple> Event model. In C<Magpie::Event::Simple> you register
+C<Magpie::Component>.  Through this interface (and the roles it consumes), you get access to the core attributes and methods of the Magpie application framework (see the section titled 'know thy $self' below). In C<Magpie::Event::Simple> you register
 a list of state events via the required registerEvents() function. The event
 model then determines which event handler method to fire by examining the
 value of a specific querystring or POSTed form parameter. (The default param

@@ -1,8 +1,8 @@
-package Core::HTTP::Base;
+package Core::HTTP::ParameterizedBase;
 use Moose;
 use Magpie::Constants;
 extends 'Magpie::Component';
-with 'Magpie::Dispatcher::RequestParam';
+with 'Magpie::Dispatcher::RequestParam' => { state_param => 'xxyy' };
 
 __PACKAGE__->register_events(qw(init cookie headers multicookie redirect redirect_cookie));
 
