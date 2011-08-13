@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<xsp:page   xmlns:xsp="http://www.apache.org/1999/XSP/Core"
+            xmlns:web="http://axkit.org/NS/xsp/webutils/v1"
+            xmlns:cookie="http://www.tamarou.com/public/cookie"
+>
+<html>
+  <xsp:logic>
+  my $to_encode = 'fill in the blanks';
+  </xsp:logic>
+    <cookie:create name="oreo" value="doublestuff"/>
+        <body>
+          <div id="url_encode1">
+            <p><web:url_encode>fill in the blanks</web:url_encode></p>
+          </div>
+          <div id="url_encode2">   <p><web:url_encode><xsp:expr>$to_encode</xsp:expr></web:url_encode></p>
+          </div>
+          <div id="env_param">
+          <p><web:env_param name="QUERY_STRING"/></p>
+          </div>
+          <div id="query_string">
+          <p><web:query_string/></p>
+          </div>
+          <div id="path_info">
+          <p><web:path_info/></p>
+          </div>
+          <div id="request_uri">
+          <p><web:request_uri/></p>
+          </div>
+          <div id="request_host">
+          <p><web:request_host/></p>
+          </div>
+          <div id="username">
+          <p><web:username/></p>
+          </div>
+          <div id="is_https">
+          <p><web:is_https/></p>
+          </div>
+        </body>
+ </html>
+</xsp:page>

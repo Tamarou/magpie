@@ -36,8 +36,15 @@ has xsp_processor => (
     lazy_build  =>  1,
 );
 
+has taglibs => (
+    is          => 'ro',
+    isa         => 'HashRef',
+    default     => sub{ {} },
+);
+
 sub _build_xsp_processor {
-    return XML::XSP->new();
+    my $self = shift;
+    return XML::XSP->new( taglibs => $self->taglibs );
 }
 
 sub get_content {
@@ -48,13 +55,13 @@ sub get_content {
 
     # XXX make this work w/ dependency-aware Resource classes
     if (my $upstream = $self->plack_response->body ) {
-        $dom = XML::LibXML->load_xml( IO => $upstream );
+        if (ref $upstream) {
+            $dom = XML::LibXML->load_xml( IO => $upstream );
+        }
+        else {
+            $dom = XML::LibXML->load_xml( string => $upstream );
+        }
     }
-    else {
-        warn "Nothing UPSTREAM\n";
-        $dom = XML::LibXML::Document->new();
-    }
-
     $self->content_dom( $dom );
     return OK;
 }
@@ -103,7 +110,11 @@ sub transform {
 
     my $generated_dom = $instance->xml_generator($self->plack_request, XML::LibXML::Document->new, undef);
 
-    my $new_body     = $generated_dom->toString;
+    my $new_body = $generated_dom->toString;
+    if ( $instance->has_response ) {
+        $self->plack_response( $instance->response );
+    }
+
     $self->response->content_length( length($new_body) );
     $self->response->body( $new_body );
 
