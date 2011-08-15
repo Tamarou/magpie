@@ -3,8 +3,8 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
-use Plack::Util::Accessor qw(pipeline resource assets context conf);
-our @EXPORT = qw( machine match match_env );
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix);
+our @EXPORT = qw( machine match match_env match_accept);
 use Scalar::Util qw(reftype);
 use Magpie::Machine;
 use Magpie::Matcher;
@@ -45,6 +45,13 @@ sub match_env {
     $_add_frame->($frame);
 }
 
+sub match_accept {
+    my $to_match = shift;
+    my $input    = shift;
+    my $frame = ['ACCEPT', $to_match, $input, $MTOKEN];
+    $_add_frame->($frame);
+}
+
 sub call {
     my($self, $env) = @_;
     my $app = $self->app;
@@ -68,8 +75,9 @@ sub call {
     }
 
     my $matcher = Magpie::Matcher->new(
-        plack_request => $req,
-        match_candidates => \@STACK,
+        plack_request       => $req,
+        accept_matrix       => $self->accept_matrix || [],
+        match_candidates    => \@STACK,
     );
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);

@@ -3,6 +3,7 @@ package Magpie::Matcher;
 
 use Moose;
 use Scalar::Util qw(reftype);
+use HTTP::Negotiate;
 use Data::Dumper::Concise;
 
 has plack_request => (
@@ -21,6 +22,13 @@ has match_candidates => (
     },
 );
 
+has accept_matrix => (
+    traits  => ['Array'],
+    is      => 'rw',
+    isa     => 'ArrayRef[ArrayRef]',
+    default => sub { [] },
+);
+
 sub make_map {
     my $self = shift;
 
@@ -31,6 +39,9 @@ sub make_map {
     my $env = $req->env;
     my $path = $req->path_info;
     my $out = {};
+
+    # this is expensive, so only do it once
+    my $accept_variant = HTTP::Negotiate::choose($self->accept_matrix, $req->headers);
 
     foreach my $frame (@{ $candidates }) {
         #warn "frame " . Dumper($frame);
@@ -65,6 +76,9 @@ sub make_map {
         }
         elsif ($match_type eq 'AUTO') {
             push @{$out->{$token}}, @{$frame->[2]};
+        }
+        elsif ($match_type eq 'ACCEPT') {
+            push @{$out->{$token}}, @{$frame->[2]} if length $accept_variant && $frame->[1] eq $accept_variant;
         }
         else {
             warn "I don't know how to match '$match_type', skipping.\n"
