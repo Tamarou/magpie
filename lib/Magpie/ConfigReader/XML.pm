@@ -15,16 +15,29 @@ has match_stack => (
     isa     => 'ArrayRef[ArrayRef]',
     default => sub { [] },
     handles => {
-        push_stack      => 'push',
+        push_stack => 'push',
     },
 );
 
+ has accept_matrix => (
+    traits  => ['Array'],
+    is      => 'rw',
+    isa     => 'ArrayRef[ArrayRef]',
+    default => sub { [] },
+    handles => {
+        add_variant => 'push',
+    },
+);
 
 sub process {
     my $self = shift;
     my $xml_file = shift;
     my $dom = XML::LibXML->load_xml( location => $xml_file );
     my $root = $dom->documentElement;
+
+    if ( $root->exists('//accept_matrix')) {
+        $self->process_accept_matrix( $root->findnodes('//accept_matrix') );
+    }
 
     # now process the handler pipeline
     foreach my $pipe ($root->findnodes('//pipeline')) {
@@ -73,6 +86,9 @@ sub process_match {
             $to_match->{$key} = $val;
         }
     }
+    elsif ($match_type eq 'ACCEPT' ) {
+        $to_match = $node->findvalue('@variant_name|./variant_name/text()');
+    }
 
     foreach my $add ($node->findnodes('./add')) {
         push @{$input}, process_add( $add );
@@ -114,6 +130,41 @@ sub trim_whitespace {
     $string =~ s/^\s+//;
     $string =~ s/\s+$//;
     return $string;
+}
+
+sub process_accept_matrix {
+    my $self = shift;
+    my $node = shift;
+    foreach my $variant ($node->findnodes('./variant')) {
+        my $name = $variant->findvalue('@name|./name/text()');
+        next unless length $name;
+        my ($type, $lang, $qs, $encoding, $charset, $length);
+
+        if ($variant->exists('@type|./type')) {
+            $type = $variant->findvalue('@type|./type/text()');
+        }
+
+        if ($variant->exists('@language|./language|@lang|./lang')) {
+            $lang = $variant->findvalue('@language|./language/text()|@lang|./lang/text()');
+        }
+
+        if ($variant->exists('@qs|./qs')) {
+            $qs = $variant->findvalue('@qs|./qs/text()');
+        }
+
+        if ($variant->exists('@encoding|./encoding')) {
+            $encoding = $variant->findvalue('@encoding|./encoding/text()');
+        }
+
+        if ($variant->exists('@charset|./charset')) {
+            $charset = $variant->findvalue('@charset|./charset/text()');
+        }
+
+        if ($variant->exists('@length|./length')) {
+            $length = $variant->findvalue('@length|./length/text()');
+        }
+        $self->add_variant([$name, $qs, $type, $encoding, $charset, $lang, $length]);
+    }
 }
 
 # SEEALSO: Magpie

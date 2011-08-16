@@ -71,6 +71,7 @@ sub call {
         # file with dynamic additions in the building class.
         unshift @STACK, @{ $reader->match_stack };
         unshift @{$pipeline}, $reader->make_token;
+        $self->accept_matrix( $reader->accept_matrix );
 
     }
 

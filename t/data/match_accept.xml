@@ -1,0 +1,28 @@
+<?xml version="1.0"?>
+<application>
+    <accept_matrix>
+        <variant name="text_de" type="text/plain" language="de"/>
+        <variant>
+            <name>text_en</name>
+            <type>text/plain</type>
+            <language>en</language>
+        </variant>
+    </accept_matrix>
+    <pipeline>
+        <add class="Magpie::Pipeline::Moe"/>
+        <add class="Magpie::Pipeline::CurlyArgs">
+            <parameters>
+                <simple_argument>RIGHT</simple_argument>
+            </parameters>
+        </add>
+        <match type="accept" variant_name="text_de">
+            <add class="Magpie::Pipeline::ContextHash"/>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+        <match type="accept" variant_name="text_en">
+            <add class="Magpie::Pipeline::Larry"/>
+            <add class="Magpie::Pipeline::ContextHash"/>
+        </match>
+    </pipeline>
+</application>
+
