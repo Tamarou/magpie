@@ -32,6 +32,7 @@ has match_stack => (
 sub process {
     my $self = shift;
     my $xml_file = shift;
+    warn "PROCESSIN!!!\n";
     my $dom = XML::LibXML->load_xml( location => $xml_file );
     my $root = $dom->documentElement;
 
@@ -133,7 +134,6 @@ sub trim_whitespace {
 }
 
 sub process_accept_matrix {
-    my $self = shift;
     my $node = shift;
     foreach my $variant ($node->findnodes('./variant')) {
         my $name = $variant->findvalue('@name|./name/text()');

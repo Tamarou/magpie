@@ -10,6 +10,7 @@ use Magpie::Machine;
 use Magpie::Matcher;
 use Magpie::ConfigReader::XML;
 use HTTP::Throwable::Factory;
+use File::stat;
 use Data::Dumper::Concise;
 
 my @STACK = ();
@@ -52,6 +53,18 @@ sub match_accept {
     $_add_frame->($frame);
 }
 
+sub config_cache {
+    my $self = shift;
+    if (@_) {
+        $self->{_magpie_config_cache} = shift;
+    }
+    return $self->{_magpie_config_cache};
+}
+
+sub has_config_cache {
+    return exists shift->{_magpie_config_cache};
+}
+
 sub call {
     my($self, $env) = @_;
     my $app = $self->app;
@@ -63,16 +76,33 @@ sub call {
     my $conf_file = $self->conf;
     if ($conf_file) {
         # only XML for now, more options later?
-        my $reader = Magpie::ConfigReader::XML->new;
-        $reader->process($conf_file);
+        my $file_meta = stat($conf_file);
+        if ( $self->has_config_cache && $self->config_cache->{mtime} == $file_meta->mtime) {
+            my $cache = $self->config_cache;
+            unshift @STACK, @{ $cache->{match_stack} };
+            unshift @{$pipeline}, $cache->{token};
+            $self->accept_matrix( $cache->{accept_matrix} );
+        }
+        else {
+            my $reader = Magpie::ConfigReader::XML->new;
+            $reader->process($conf_file);
 
-        # config-based handlers are added to the front
-        # of the stack so there can be a base reusable conf
-        # file with dynamic additions in the building class.
-        unshift @STACK, @{ $reader->match_stack };
-        unshift @{$pipeline}, $reader->make_token;
-        $self->accept_matrix( $reader->accept_matrix );
+            my $token = $reader->make_token;
 
+            # config-based handlers are added to the front
+            # of the stack so there can be a base reusable conf
+            # file with dynamic additions in the building class.
+            $self->config_cache({
+                match_stack     => $reader->match_stack,
+                token           => $token,
+                accept_matrix   => $reader->accept_matrix,
+                mtime           => $file_meta->mtime,
+            });
+
+            unshift @STACK, @{ $reader->match_stack };
+            unshift @{$pipeline}, $reader->make_token;
+            $self->accept_matrix( $reader->accept_matrix );
+        }
     }
 
     my $matcher = Magpie::Matcher->new(
