@@ -67,11 +67,14 @@ sub has_config_cache {
 
 sub call {
     my($self, $env) = @_;
+
+    #warn Dumper( $env );
     my $app = $self->app;
 
     my @resource_handlers = ();
-    my $req         = Plack::Request->new($env);
-    my $pipeline    = $self->pipeline     || [];
+    my $req                 = Plack::Request->new($env);
+    my @builder_pipeline    = @{$self->pipeline || []};
+    my $pipeline            = \@builder_pipeline;
 
     my $conf_file = $self->conf;
     if ($conf_file) {
@@ -79,7 +82,11 @@ sub call {
         my $file_meta = stat($conf_file);
         if ( $self->has_config_cache && $self->config_cache->{mtime} == $file_meta->mtime) {
             my $cache = $self->config_cache;
-            unshift @STACK, @{ $cache->{match_stack} };
+            # XXX STACK is already global so caching a second time
+            # has shitty side effects.
+            #my @cached_stack = @{$cache->{match_stack}};
+            #unshift @STACK, @cached_stack;
+
             unshift @{$pipeline}, $cache->{token};
             $self->accept_matrix( $cache->{accept_matrix} );
         }
@@ -93,7 +100,7 @@ sub call {
             # of the stack so there can be a base reusable conf
             # file with dynamic additions in the building class.
             $self->config_cache({
-                match_stack     => $reader->match_stack,
+                #match_stack     => $reader->match_stack, #see the above XXX
                 token           => $token,
                 accept_matrix   => $reader->accept_matrix,
                 mtime           => $file_meta->mtime,
@@ -112,7 +119,7 @@ sub call {
     );
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);
-    #warn "pipe " . Dumper( $pipeline );
+    warn "pipe " . Dumper( $pipeline, \@STACK );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,
@@ -122,8 +129,10 @@ sub call {
 
     if ( $resource ) {
         if ( ref( $resource ) eq 'HASH' ) {
-            my $class = delete $resource->{class};
-            push @resource_handlers, ( $class, $resource );
+            # dont clobber the actual data
+            my %copy = %{$resource};
+            my $class = delete $copy{class};
+            push @resource_handlers, ( $class, \%copy );
         }
         else {
             push @resource_handlers, $resource;
@@ -134,6 +143,7 @@ sub call {
         $m->assets( $assets );
     }
 
+    warn "res " . Dumper(\@resource_handlers);
     $m->pipeline( @resource_handlers, @{ $pipeline });
 
     # if we have upstream MW, pass it along
@@ -148,7 +158,6 @@ sub call {
         my $subref = $m->error;
         return $subref->();
     }
-
     return $m->plack_response->finalize;
 };
 
