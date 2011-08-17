@@ -134,6 +134,7 @@ sub trim_whitespace {
 }
 
 sub process_accept_matrix {
+    my $self = shift;
     my $node = shift;
     foreach my $variant ($node->findnodes('./variant')) {
         my $name = $variant->findvalue('@name|./name/text()');
