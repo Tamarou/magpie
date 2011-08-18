@@ -8,10 +8,13 @@ use Magpie::Resource::File;
 
 has resource => (
     is          => 'rw',
-    isa         => 'MagpieResourceObject',
+    isa         => 'MagpieResourceObject|Undef',
     coerce      => 1,
-    default     => sub { Magpie::Resource::File->new }
+    #default     => sub { Magpie::Resource::File->new }
 );
+
+sub has_resource { defined shift->resource ? 1 : 0 }
+
 
 #-------------------------------------------------------------------------------
 # pipline( @list_of_class_names )

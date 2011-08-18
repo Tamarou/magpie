@@ -32,7 +32,7 @@ has match_stack => (
 sub process {
     my $self = shift;
     my $xml_file = shift;
-    warn "PROCESSIN!!!\n";
+
     my $dom = XML::LibXML->load_xml( location => $xml_file );
     my $root = $dom->documentElement;
 

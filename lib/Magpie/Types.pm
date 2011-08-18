@@ -65,7 +65,11 @@ coerce 'MagpieResourceObject'
             $class->new( $args );
         },
     => from 'Str'
-        => via { HTTP::Throwable::Factory->new_exception($_ => {}) },
+        => via {
+            my $class = shift;
+            Class::MOP::load_class( $class );
+            $class->new;
+        },
 ;
 
 # SEEALSO: Magpie

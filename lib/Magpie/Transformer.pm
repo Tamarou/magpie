@@ -10,11 +10,12 @@ use Data::Dumper::Concise;
 
 has resource => (
     is          => 'rw',
-    isa         => 'MagpieResourceObject',
+    isa         => 'MagpieResourceObject|Undef',
     coerce      => 1,
-    default     => sub { Magpie::Resource::File->new },
-    predicate   => 'has_resource',
 );
+
+#lame
+sub has_resource { defined shift->resource ? 1 : 0 }
 
 # SEEALSO: Magpie
 

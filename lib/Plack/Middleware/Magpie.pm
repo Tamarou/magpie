@@ -72,9 +72,8 @@ sub call {
     my $app = $self->app;
 
     my @resource_handlers = ();
-    my $req                 = Plack::Request->new($env);
-    my @builder_pipeline    = @{$self->pipeline || []};
-    my $pipeline            = \@builder_pipeline;
+    my $req         = Plack::Request->new($env);
+    my $pipeline    = $self->pipeline || [];
 
     my $conf_file = $self->conf;
     if ($conf_file) {
@@ -119,7 +118,7 @@ sub call {
     );
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);
-    warn "pipe " . Dumper( $pipeline, \@STACK );
+    #warn "pipe " . Dumper( $pipeline, \@STACK );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,
@@ -143,7 +142,6 @@ sub call {
         $m->assets( $assets );
     }
 
-    warn "res " . Dumper(\@resource_handlers);
     $m->pipeline( @resource_handlers, @{ $pipeline });
 
     # if we have upstream MW, pass it along
