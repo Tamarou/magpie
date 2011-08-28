@@ -56,10 +56,66 @@ sub get_content {
 
     my $dom = undef;
 
-    my $xml_parser = XML::LibXML->new;
+    my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );
+
+##
+    my $docroot = undef;
+
+    if ( $self->has_resource && $self->resource->has_root ) {
+        $docroot = $self->resource->root;
+    }
+    elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
+        $docroot = $self->request->env->{DOCUMENT_ROOT};
+    }
+    else {
+        $docroot = Cwd::getcwd;
+    }
+
+    # we only want to touch URIs that may need munging to
+    # resolve to a document root.
+    my $match_cb = sub {
+        my $uri = shift;
+        # don't handle URI's supported by libxml
+        return 0 if $uri =~ /^(https?|ftp|file):/;
+        return 0 if $docroot && $uri =~ m|^\Q$docroot\E|;
+        return 1;
+    };
+
+    my $open_cb = sub {
+        my $uri = shift || './';
+        if ($docroot) {
+            unless ($uri =~ m|^\Q$docroot\E|) {
+                $docroot .= '/' unless $docroot =~ m|/$|;
+                $uri = $docroot . $uri;
+            }
+        }
+        my $fh = IO::File->new($uri) || die "Error opening file $uri";
+        local $/ = undef;
+        my $data = <$fh>;
+        return \$data;
+    };
+
+    my $read_cb = sub {
+        my $string_ref = shift;
+        my $length = shift;
+        return substr($$string_ref, 0, $length, "");
+    };
+
+    my $icb = XML::LibXML::InputCallback->new();
+    $icb->register_callbacks( [ $match_cb, $open_cb, $read_cb, sub {} ] );
+    $xml_parser->input_callbacks($icb);
+##
+
     if (my $upstream = $self->plack_response->body ) {
         if (ref $upstream) {
-            $dom = $xml_parser->load_xml( IO => $upstream );
+            try {
+                $dom = $xml_parser->load_xml( IO => $upstream );
+            }
+            catch {
+                warn "Error XML: $_\n";
+                $self->set_error({ status_code => 500, reason => $_ });
+            };
+
         }
         else {
             $dom = $xml_parser->load_xml( string => $upstream );
@@ -85,6 +141,9 @@ sub transform {
 
     if ( $self->has_resource && $self->resource->has_root ) {
         $docroot = $self->resource->root;
+    }
+    elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
+        $docroot = $self->request->env->{DOCUMENT_ROOT};
     }
     else {
         $docroot = Cwd::getcwd;
@@ -152,7 +211,7 @@ sub transform {
     my $content_type = $style->media_type;
     my $encoding     = $style->output_encoding;
     $self->response->content_type("$content_type; $encoding");
-    $self->response->content_length( Plack::Util::content_length($new_body) );
+    $self->response->content_length( length($new_body) );
     $self->response->body( $new_body );
 
     return OK;

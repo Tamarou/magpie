@@ -8,6 +8,7 @@ use Data::Dumper::Concise;
 use Plack::App::File;
 
 has root => (
+    traits => [ qw(MooseX::UndefTolerant::Attribute)],
     is          => 'rw',
     isa         => 'Str',
     predicate   => 'has_root',
@@ -18,7 +19,14 @@ sub GET {
     my $ctxt = shift;
     my %paf_args = ();
 
-    $paf_args{root} = $self->root if $self->has_root;
+    if ( $self->has_root ) {
+        $paf_args{root} = $self->root;
+    }
+    elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
+        $paf_args{root} = $self->request->env->{DOCUMENT_ROOT};
+        $self->root($self->request->env->{DOCUMENT_ROOT});
+    }
+
     my $paf = Plack::App::File->new(%paf_args);
     my $r = $paf->call($self->request->env);
 
