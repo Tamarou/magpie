@@ -153,9 +153,10 @@ sub call {
     $m->run( $self->context || {} );
 
     if ( $m->has_error ) {
-        my $subref = $m->error;
+        my $subref = $m->error();
         return $subref->();
     }
+
     return $m->plack_response->finalize;
 };
 
