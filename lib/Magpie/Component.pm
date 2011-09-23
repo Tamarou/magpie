@@ -12,7 +12,7 @@ has breadboard => (
     isa         => 'Magpie::Breadboard',
     default     => sub { Magpie::Breadboard->new; },
     required    => 1,
-    handles     => [qw( add_asset assets resolve_asset )],
+    handles     => [qw( add_asset assets resolve_asset internal_assets resolve_internal_asset)],
 );
 
 sub init_symbols {

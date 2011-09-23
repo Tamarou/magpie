@@ -13,8 +13,21 @@ sub BUILD {
     my $self = shift;
     container $self => as {
         container 'Assets' => as {};
-        container 'MagpieInternal' => as {};
+        container 'MagpieInternal' => as {
+            service 'default_resource' => (
+                lifecycle => 'Singleton',
+                block => sub {
+                    my $s = shift;
+                    warn "NEW ABSTRACT";
+                    Magpie::Resource::Abstract->new;
+                }
+            );
+        };
     };
+}
+
+sub internal_assets {
+    return shift->get_sub_container('MagpieInternal');
 }
 
 sub assets {
@@ -50,6 +63,10 @@ sub add_asset {
     else {
 
     }
+}
+
+sub resolve_internal_asset {
+    return shift->internal_assets->resolve( @_ );
 }
 
 sub resolve_asset {

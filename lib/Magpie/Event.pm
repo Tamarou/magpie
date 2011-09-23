@@ -26,6 +26,7 @@ has plack_response => (
     isa         => 'Plack::Response',
     default     => sub { Plack::Response->new(200); },
     reader      => 'response',
+    predicate   => 'has_response',
 );
 
 has symbol_table => (
@@ -204,9 +205,11 @@ sub load_handler {
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
                 breadboard     => $self->breadboard,
+                resource       => $self->resource,
             ) || die "Error loading handler $!";
 
-            $new_handler->resource( $self->resource ) if $new_handler->can('resource');
+#             warn "ZOMG " . $self->meta->name . " " . $new_handler->meta->name . " " . Dumper( $self->resource );
+#             $new_handler->resource( $self->resource ) if $new_handler->can('resource');
         }
         catch {
             my $error = "Fatal error during build for class '$handler': $_\n";

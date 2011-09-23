@@ -28,6 +28,18 @@ has consumes => (
     default     => 'text/plain',
 );
 
+has dependencies => (
+    traits    => ['Hash'],
+    is        => 'rw',
+    isa       => 'HashRef[Str]',
+    default   => sub { {} },
+    handles   => {
+        add_dependency      => 'set',
+        get_dependency      => 'get',
+        delete_dependency   => 'delete',
+    },
+);
+
 sub GET {
     shift->set_error('NotImplemented');
     return DONE;

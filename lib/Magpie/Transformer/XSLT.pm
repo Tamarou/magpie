@@ -10,6 +10,7 @@ use XML::LibXSLT;
 use Try::Tiny;
 use Scalar::Util ();
 use Cwd ();
+use URI ();
 use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( qw(get_content transform));
@@ -50,7 +51,10 @@ sub _build_xslt_processor {
     return XML::LibXSLT->new();
 }
 
+our $WTF = 0;
+
 sub get_content {
+    warn "GET CONTENT $WTF";
     my $self = shift;
     my $ctxt = shift;
 
@@ -59,10 +63,11 @@ sub get_content {
     my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );
 
 ##
-    my $docroot = undef;
+    my $docroot  = undef;
+    my $resource = $self->resource;
 
-    if ( $self->has_resource && $self->resource->has_root ) {
-        $docroot = $self->resource->root;
+    if ( $self->resource->can('has_root') && $self->resource->has_root ) {
+        $docroot = $resource->root;
     }
     elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
         $docroot = $self->request->env->{DOCUMENT_ROOT};
@@ -74,22 +79,41 @@ sub get_content {
     # we only want to touch URIs that may need munging to
     # resolve to a document root.
     my $match_cb = sub {
-        my $uri = shift;
+        my $uri_string = shift;
+        warn "\n>>>>> MATCH $uri_string";
+        my $uri = URI->new($uri_string, 'file');
+        my $scheme = $uri->scheme;
+
+        if ($resource && (!defined($scheme) || $scheme eq 'file') && -f $uri->path) {
+            my @stat = stat($uri->path);
+            my $mtime = @stat ? $stat[9] : -1;
+            $resource->add_dependency($uri->path => $mtime . '-' . $stat[7]);
+        }
         # don't handle URI's supported by libxml
-        return 0 if $uri =~ /^(https?|ftp|file):/;
-        return 0 if $docroot && $uri =~ m|^\Q$docroot\E|;
+        return 0 if $uri_string =~ /^(https?|ftp|file):/;
+        return 0 if $docroot && $uri_string =~ m|^\Q$docroot\E|;
         return 1;
     };
 
     my $open_cb = sub {
         my $uri = shift || './';
+        warn "OPEN $uri\n";
         if ($docroot) {
             unless ($uri =~ m|^\Q$docroot\E|) {
-                $docroot .= '/' unless $docroot =~ m|/$|;
+                if ($resource) {
+                    $resource->delete_dependency($uri);
+                }
+                $docroot .= '/' unless $docroot =~ m|/$| || $uri =~ m|^/|;
                 $uri = $docroot . $uri;
             }
         }
+
         my $fh = IO::File->new($uri) || die "Error opening file $uri";
+        my @stat = stat($uri);
+        my $mtime = @stat ? $stat[9] : -1;
+        # mtime + size, for Etags
+        $resource->add_dependency($uri => $mtime . '-' . $stat[7]);
+
         local $/ = undef;
         my $data = <$fh>;
         return \$data;
@@ -126,7 +150,9 @@ sub get_content {
         $dom = XML::LibXML::Document->new();
     }
 
+    warn "DEPS " . Dumper( $resource->dependencies );
     $self->content_dom( $dom );
+    $WTF++;
     return OK;
 }
 
@@ -139,7 +165,7 @@ sub transform {
 
     my $docroot = undef;
 
-    if ( $self->has_resource && $self->resource->has_root ) {
+    if ( $self->resource->can('has_root') && $self->resource->has_root ) {
         $docroot = $self->resource->root;
     }
     elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {

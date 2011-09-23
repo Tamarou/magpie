@@ -6,13 +6,13 @@ use Bread::Board;
 
 use_ok('Magpie::Machine');
 
-my $resources = container '' => as {
+my $assets = container '' => as {
         service 'somevar' => 'some value';
 };
 
 my $m = Magpie::Machine->new();
 
-$m->assets( $resources );
+$m->assets( $assets );
 
 ok( $m );
 
@@ -26,4 +26,10 @@ ok( $m->assets->has_service('othervar'), 'asset added in handler.' );
 my $other = $m->resolve_asset( service => 'othervar' );
 
 is( $other, 'other value', 'correct value passed');
+
+# check a few common internals
+my $resource = $m->resource;
+ok( $resource );
+isa_ok($resource, 'Magpie::Resource::Abstract');
+
 done_testing();

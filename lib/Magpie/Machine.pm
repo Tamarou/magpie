@@ -2,18 +2,18 @@ package Magpie::Machine;
 use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
-use Magpie::Resource::File;
+use Magpie::Resource::Abstract;
 
 #ABSTRACT: Event Class For Creating Magpie Pipelines
 
 has resource => (
     is          => 'rw',
-    isa         => 'MagpieResourceObject|Undef',
+    isa         => 'MagpieResourceObject',
     coerce      => 1,
-    #default     => sub { Magpie::Resource::File->new }
+    default     => sub { return $_[0]->resolve_internal_asset( service => 'default_resource') },
 );
 
-sub has_resource { defined shift->resource ? 1 : 0 }
+#sub has_resource { defined shift->resource ? 1 : 0 }
 
 
 #-------------------------------------------------------------------------------
