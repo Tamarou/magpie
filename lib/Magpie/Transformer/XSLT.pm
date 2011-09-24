@@ -10,6 +10,7 @@ use XML::LibXSLT;
 use Try::Tiny;
 use Scalar::Util ();
 use Cwd ();
+use File::Spec ();
 use URI ();
 use Data::Dumper::Concise;
 
@@ -51,23 +52,18 @@ sub _build_xslt_processor {
     return XML::LibXSLT->new();
 }
 
-our $WTF = 0;
+has document_root => (
+    is          => 'ro',
+    isa         => 'Str',
+    lazy_build  =>  1,
+);
 
-sub get_content {
-    warn "GET CONTENT $WTF";
+sub _build_document_root {
     my $self = shift;
-    my $ctxt = shift;
-
-    my $dom = undef;
-
-    my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );
-
-##
-    my $docroot  = undef;
-    my $resource = $self->resource;
+    my $docroot = undef;
 
     if ( $self->resource->can('has_root') && $self->resource->has_root ) {
-        $docroot = $resource->root;
+        $docroot = $self->resource->root;
     }
     elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
         $docroot = $self->request->env->{DOCUMENT_ROOT};
@@ -76,18 +72,34 @@ sub get_content {
         $docroot = Cwd::getcwd;
     }
 
+    return Cwd::realpath($docroot);
+}
+
+our $WTF = 0;
+
+sub get_content {
+    #warn "GET CONTENT $WTF";
+    my $self = shift;
+    my $ctxt = shift;
+
+    my $dom = undef;
+
+    my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );
+
+    my $docroot  = $self->document_root;
+    my $resource = $self->resource;
+
     # we only want to touch URIs that may need munging to
     # resolve to a document root.
     my $match_cb = sub {
         my $uri_string = shift;
-        warn "\n>>>>> MATCH $uri_string";
         my $uri = URI->new($uri_string, 'file');
         my $scheme = $uri->scheme;
 
         if ($resource && (!defined($scheme) || $scheme eq 'file') && -f $uri->path) {
             my @stat = stat($uri->path);
             my $mtime = @stat ? $stat[9] : -1;
-            $resource->add_dependency($uri->path => $mtime . '-' . $stat[7]);
+            $resource->add_dependency($uri->path => { mtime => $mtime, size => $stat[7]});
         }
         # don't handle URI's supported by libxml
         return 0 if $uri_string =~ /^(https?|ftp|file):/;
@@ -97,7 +109,6 @@ sub get_content {
 
     my $open_cb = sub {
         my $uri = shift || './';
-        warn "OPEN $uri\n";
         if ($docroot) {
             unless ($uri =~ m|^\Q$docroot\E|) {
                 if ($resource) {
@@ -112,7 +123,7 @@ sub get_content {
         my @stat = stat($uri);
         my $mtime = @stat ? $stat[9] : -1;
         # mtime + size, for Etags
-        $resource->add_dependency($uri => $mtime . '-' . $stat[7]);
+        $resource->add_dependency($uri => { mtime => $mtime, size => $stat[7]});
 
         local $/ = undef;
         my $data = <$fh>;
@@ -150,7 +161,6 @@ sub get_content {
         $dom = XML::LibXML::Document->new();
     }
 
-    warn "DEPS " . Dumper( $resource->dependencies );
     $self->content_dom( $dom );
     $WTF++;
     return OK;
@@ -163,17 +173,7 @@ sub transform {
     my $style = undef;
     my $xslt_processor = XML::LibXSLT->new;
 
-    my $docroot = undef;
-
-    if ( $self->resource->can('has_root') && $self->resource->has_root ) {
-        $docroot = $self->resource->root;
-    }
-    elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
-        $docroot = $self->request->env->{DOCUMENT_ROOT};
-    }
-    else {
-        $docroot = Cwd::getcwd;
-    }
+    my $docroot = $self->document_root;
 
     # we only want to touch URIs that may need munging to
     # resolve to a document root.
@@ -181,19 +181,24 @@ sub transform {
         my $uri = shift;
         # don't handle URI's supported by libxml
         return 0 if $uri =~ /^(https?|ftp|file):/;
-        return 0 if $docroot && $uri =~ m|^\Q$docroot\E|;
+        #return 0 if $docroot && $uri =~ m|^\Q$docroot\E|;
         return 1;
     };
 
     my $open_cb = sub {
         my $uri = shift || './';
-        if ($docroot) {
-            unless ($uri =~ m|^\Q$docroot\E|) {
-                $docroot .= '/' unless $docroot =~ m|/$|;
-                $uri = $docroot . $uri;
-            }
+
+        unless ($uri =~ m|^\Q$docroot\E|) {
+            $docroot .= '/' unless $docroot =~ m|/$|;
+            $uri = $docroot . $uri;
         }
+
+        #warn "stylesheet open $uri";
         my $fh = IO::File->new($uri) || die "Error opening file $uri";
+        my @stat = stat($uri);
+        my $mtime = @stat ? $stat[9] : -1;
+        # mtime + size, for Etags
+        $self->resource->add_dependency($uri => { mtime => $mtime, size => $stat[7]});
         local $/ = undef;
         my $data = <$fh>;
         return \$data;
@@ -208,8 +213,14 @@ sub transform {
     my $icb = XML::LibXML::InputCallback->new();
     $icb->register_callbacks( [ $match_cb, $open_cb, $read_cb, sub {} ] );
     $xslt_processor->input_callbacks($icb);
+
+    my $stylesheet_file = $self->stylesheet_file;
+    unless ($stylesheet_file =~ m|^\Q$docroot\E| || -f $stylesheet_file) {
+        $docroot .= '/' unless $docroot =~ m|/$|;
+        $stylesheet_file = $docroot . $stylesheet_file;
+    }
     try {
-        $style = $xslt_processor->parse_stylesheet_file( $self->stylesheet_file );
+        $style = $xslt_processor->parse_stylesheet_file( $stylesheet_file );
     }
     catch {
         warn "Error parsing stylesheet file: $_\n";
@@ -231,6 +242,7 @@ sub transform {
         $self->set_error({ status_code => 500, reason => $_ });
     };
 
+    #warn "DEPS " . Dumper( $self->resource->dependencies );
     return OK if $self->has_error;
 
     my $new_body     = $style->output_as_bytes( $result );

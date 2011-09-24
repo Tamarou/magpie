@@ -31,12 +31,13 @@ has consumes => (
 has dependencies => (
     traits    => ['Hash'],
     is        => 'rw',
-    isa       => 'HashRef[Str]',
+    isa       => 'HashRef[HashRef]',
     default   => sub { {} },
     handles   => {
         add_dependency      => 'set',
         get_dependency      => 'get',
         delete_dependency   => 'delete',
+        has_dependencies    => 'count',
     },
 );
 

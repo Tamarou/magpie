@@ -18,7 +18,6 @@ sub BUILD {
                 lifecycle => 'Singleton',
                 block => sub {
                     my $s = shift;
-                    warn "NEW ABSTRACT";
                     Magpie::Resource::Abstract->new;
                 }
             );

@@ -9,6 +9,7 @@
         <body>
             <h1>Hello Shopper!</h1>
             <p><xsl:value-of select="$testparam"/></p>
+            <p><xsl:copy-of select="./*"/></p>
         </body>
     </html>
 </xsl:template>
