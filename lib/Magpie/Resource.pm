@@ -28,6 +28,10 @@ has consumes => (
     default     => 'text/plain',
 );
 
+has data => (
+    is          => 'rw',
+);
+
 has dependencies => (
     traits    => ['Hash'],
     is        => 'rw',

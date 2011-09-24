@@ -45,15 +45,15 @@ test_psgi
             like $res->content, qr/Included text/;
 
         }
-        {
-            my $req = HTTP::Request->new(GET => "http://localhost/xinclude/blog/index.xml?testparam=wooo");
-            my $res = $cb->($req);
-            like $res->content, qr/Hello DFH!/;
-            like $res->content, qr/wooo/;
-            like $res->content, qr/Header/;
-            like $res->content, qr/Footer/;
-            like $res->content, qr/Included text/;
-        }
+#         {
+#             my $req = HTTP::Request->new(GET => "http://localhost/xinclude/blog/index.xml?testparam=wooo");
+#             my $res = $cb->($req);
+#             like $res->content, qr/Hello DFH!/;
+#             like $res->content, qr/wooo/;
+#             like $res->content, qr/Header/;
+#             like $res->content, qr/Footer/;
+#             like $res->content, qr/Included text/;
+#         }
 
     };
 

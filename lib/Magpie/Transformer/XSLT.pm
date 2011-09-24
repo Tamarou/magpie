@@ -75,6 +75,17 @@ sub _build_document_root {
     return Cwd::realpath($docroot);
 }
 
+sub absolute_path {
+    my $self = shift;
+    my $path = shift;
+    my $docroot = $self->document_root;
+    unless ($path =~ m|^\Q$docroot\E|) {
+        $docroot .= '/' unless $docroot =~ m|/$| || $path =~ m|^/|;
+        $path = $docroot . $path;
+    }
+    return $path;
+}
+
 our $WTF = 0;
 
 sub get_content {
@@ -109,21 +120,16 @@ sub get_content {
 
     my $open_cb = sub {
         my $uri = shift || './';
-        if ($docroot) {
-            unless ($uri =~ m|^\Q$docroot\E|) {
-                if ($resource) {
-                    $resource->delete_dependency($uri);
-                }
-                $docroot .= '/' unless $docroot =~ m|/$| || $uri =~ m|^/|;
-                $uri = $docroot . $uri;
-            }
+        unless ($uri =~ m|^\Q$docroot\E|) {
+            $resource->delete_dependency($uri);
         }
 
-        my $fh = IO::File->new($uri) || die "Error opening file $uri";
-        my @stat = stat($uri);
+        my $file_path = $self->absolute_path($uri);
+        my $fh = IO::File->new($file_path) || die "Error opening file $uri ($file_path)";
+        my @stat = stat($file_path);
         my $mtime = @stat ? $stat[9] : -1;
         # mtime + size, for Etags
-        $resource->add_dependency($uri => { mtime => $mtime, size => $stat[7]});
+        $resource->add_dependency($file_path => { mtime => $mtime, size => $stat[7]});
 
         local $/ = undef;
         my $data = <$fh>;
@@ -141,10 +147,16 @@ sub get_content {
     $xml_parser->input_callbacks($icb);
 ##
 
-    if (my $upstream = $self->plack_response->body ) {
+    my $upstream = $resource->data;
+    if ($upstream) {
         if (ref $upstream) {
+            # XXX: LibXML doesn't like plack's IO handle??
+                local $/ = undef;
+                my $temp = <$upstream>;
+                warn "WTF " . $temp;
+
             try {
-                $dom = $xml_parser->load_xml( IO => $upstream );
+                $dom = $xml_parser->load_xml( string => $temp );
             }
             catch {
                 warn "Error XML: $_\n";
@@ -160,6 +172,26 @@ sub get_content {
         warn "Nothing UPSTREAM\n";
         $dom = XML::LibXML::Document->new();
     }
+
+#     if (my $upstream = $self->plack_response->body ) {
+#         if (ref $upstream) {
+#             try {
+#                 $dom = $xml_parser->load_xml( IO => $upstream );
+#             }
+#             catch {
+#                 warn "Error XML: $_\n";
+#                 $self->set_error({ status_code => 500, reason => $_ });
+#             };
+#
+#         }
+#         else {
+#             $dom = $xml_parser->load_xml( string => $upstream );
+#         }
+#     }
+#     else {
+#         warn "Nothing UPSTREAM\n";
+#         $dom = XML::LibXML::Document->new();
+#     }
 
     $self->content_dom( $dom );
     $WTF++;
@@ -181,24 +213,19 @@ sub transform {
         my $uri = shift;
         # don't handle URI's supported by libxml
         return 0 if $uri =~ /^(https?|ftp|file):/;
-        #return 0 if $docroot && $uri =~ m|^\Q$docroot\E|;
         return 1;
     };
 
     my $open_cb = sub {
         my $uri = shift || './';
 
-        unless ($uri =~ m|^\Q$docroot\E|) {
-            $docroot .= '/' unless $docroot =~ m|/$|;
-            $uri = $docroot . $uri;
-        }
-
+        my $file_path = $self->absolute_path($uri);
         #warn "stylesheet open $uri";
-        my $fh = IO::File->new($uri) || die "Error opening file $uri";
-        my @stat = stat($uri);
+        my $fh = IO::File->new($file_path) || die "Error opening file $uri ($file_path)";
+        my @stat = stat($file_path);
         my $mtime = @stat ? $stat[9] : -1;
         # mtime + size, for Etags
-        $self->resource->add_dependency($uri => { mtime => $mtime, size => $stat[7]});
+        $self->resource->add_dependency($file_path => { mtime => $mtime, size => $stat[7]});
         local $/ = undef;
         my $data = <$fh>;
         return \$data;
@@ -216,9 +243,10 @@ sub transform {
 
     my $stylesheet_file = $self->stylesheet_file;
     unless ($stylesheet_file =~ m|^\Q$docroot\E| || -f $stylesheet_file) {
-        $docroot .= '/' unless $docroot =~ m|/$|;
-        $stylesheet_file = $docroot . $stylesheet_file;
+        $stylesheet_file = $self->absolute_path($stylesheet_file);
     }
+
+
     try {
         $style = $xslt_processor->parse_stylesheet_file( $stylesheet_file );
     }
@@ -242,7 +270,7 @@ sub transform {
         $self->set_error({ status_code => 500, reason => $_ });
     };
 
-    #warn "DEPS " . Dumper( $self->resource->dependencies );
+    warn "DEPS " . Dumper( $self->resource->dependencies );
     return OK if $self->has_error;
 
     my $new_body     = $style->output_as_bytes( $result );

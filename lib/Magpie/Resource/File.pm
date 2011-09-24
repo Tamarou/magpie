@@ -38,7 +38,7 @@ sub GET {
         });
     }
     $self->parent_handler->resource($self);
-    $self->plack_response( Plack::Response->new(@$r) );
+    $self->data( $r->[2] );
 
     return OK;
 }
