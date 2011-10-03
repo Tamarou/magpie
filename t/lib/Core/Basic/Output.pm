@@ -1,7 +1,7 @@
 package Core::Basic::Output;
 use Moose;
 use Magpie::Constants;
-extends 'Magpie::Component';
+extends 'Magpie::Transformer';
 
 my @events = qw( get_content );
 
@@ -13,7 +13,7 @@ sub get_content {
     my $self = shift;
     my $ctxt = shift;
     my $out = '<html><body>' . $ctxt->{content} . '</body></html>';
-    $self->response->body($out);
+    $self->resource->data($out);
     return OK;
 }
 

@@ -30,6 +30,7 @@ has consumes => (
 
 has data => (
     is          => 'rw',
+    predicate   => 'has_data',
 );
 
 has dependencies => (

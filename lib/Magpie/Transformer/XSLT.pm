@@ -8,11 +8,12 @@ use MooseX::Types::Path::Class;
 use XML::LibXML;
 use XML::LibXSLT;
 use Try::Tiny;
-use Scalar::Util ();
+use Scalar::Util qw(blessed);
 use Cwd ();
 use File::Spec ();
 use URI ();
 use Data::Dumper::Concise;
+use Carp qw(cluck);
 
 __PACKAGE__->register_events( qw(get_content transform));
 
@@ -89,7 +90,6 @@ sub absolute_path {
 our $WTF = 0;
 
 sub get_content {
-    #warn "GET CONTENT $WTF";
     my $self = shift;
     my $ctxt = shift;
 
@@ -145,53 +145,40 @@ sub get_content {
     my $icb = XML::LibXML::InputCallback->new();
     $icb->register_callbacks( [ $match_cb, $open_cb, $read_cb, sub {} ] );
     $xml_parser->input_callbacks($icb);
-##
 
     my $upstream = $resource->data;
     if ($upstream) {
         if (ref $upstream) {
-            # XXX: LibXML doesn't like plack's IO handle??
-                local $/ = undef;
-                my $temp = <$upstream>;
-                warn "WTF " . $temp;
-
+            if (blessed($upstream)) {
+                if ($upstream->isa('Plack::Util::IOWithPath')) {
+                    try {
+                        $dom = $xml_parser->load_xml( IO => $upstream );
+                    }
+                    catch {
+                        warn "Error loading XML I/O: $_\n";
+                        $self->set_error({ status_code => 500, reason => $_ });
+                    };
+                }
+                elsif ($upstream->isa('XML::LibXML::Document')) {
+                    $dom = $upstream;
+                }
+            }
+        }
+        else {
             try {
-                $dom = $xml_parser->load_xml( string => $temp );
+                $dom = $xml_parser->load_xml( string => $upstream );
             }
             catch {
-                warn "Error XML: $_\n";
+                warn "Error loading XML string: $_\n";
                 $self->set_error({ status_code => 500, reason => $_ });
             };
 
-        }
-        else {
-            $dom = $xml_parser->load_xml( string => $upstream );
         }
     }
     else {
         warn "Nothing UPSTREAM\n";
         $dom = XML::LibXML::Document->new();
     }
-
-#     if (my $upstream = $self->plack_response->body ) {
-#         if (ref $upstream) {
-#             try {
-#                 $dom = $xml_parser->load_xml( IO => $upstream );
-#             }
-#             catch {
-#                 warn "Error XML: $_\n";
-#                 $self->set_error({ status_code => 500, reason => $_ });
-#             };
-#
-#         }
-#         else {
-#             $dom = $xml_parser->load_xml( string => $upstream );
-#         }
-#     }
-#     else {
-#         warn "Nothing UPSTREAM\n";
-#         $dom = XML::LibXML::Document->new();
-#     }
 
     $self->content_dom( $dom );
     $WTF++;
@@ -270,7 +257,6 @@ sub transform {
         $self->set_error({ status_code => 500, reason => $_ });
     };
 
-    warn "DEPS " . Dumper( $self->resource->dependencies );
     return OK if $self->has_error;
 
     my $new_body     = $style->output_as_bytes( $result );
@@ -278,7 +264,7 @@ sub transform {
     my $encoding     = $style->output_encoding;
     $self->response->content_type("$content_type; $encoding");
     $self->response->content_length( length($new_body) );
-    $self->response->body( $new_body );
+    $self->resource->data( $new_body );
 
     return OK;
 }

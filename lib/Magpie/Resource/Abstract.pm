@@ -6,6 +6,22 @@ extends 'Magpie::Resource';
 use Magpie::Constants;
 use Data::Dumper::Concise;
 
+sub GET {
+    my $self = shift;
+    my $ctxt = shift;
+    $self->parent_handler->resource($self);
+    $self->data( $self->plack_response->body );
+    return OK;
+}
+
+sub POST {
+    my $self = shift;
+    my $ctxt = shift;
+    $self->parent_handler->resource($self);
+    $self->data( $self->plack_response->body );
+    return OK;
+}
+
 1;
 
 __END__

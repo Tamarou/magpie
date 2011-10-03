@@ -81,8 +81,7 @@ sub transform {
 
     return OK if $self->has_error;
 
-    $self->response->content_length( length($output) );
-    $self->response->body( $output );
+    $self->resource->data( $output );
 
     return OK;
 }

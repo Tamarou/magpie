@@ -137,6 +137,9 @@ sub call {
             push @resource_handlers, $resource;
         }
     }
+    else {
+        push @resource_handlers, 'Magpie::Resource::Abstract';
+    }
 
     if ( my $assets = $self->assets ) {
         $m->assets( $assets );
@@ -155,6 +158,16 @@ sub call {
     if ( $m->has_error ) {
         my $subref = $m->error();
         return $subref->();
+    }
+
+    # XXX: Real Accept-* based serialization will go here eventually.
+    if ($m->resource->has_data) {
+        my $data = $m->resource->data;
+        my $content_length = length $data || 0;
+        if ( $content_length ) {
+            $m->response->content_length( $content_length );
+            $m->plack_response->body($data);
+        }
     }
 
     return $m->plack_response->finalize;

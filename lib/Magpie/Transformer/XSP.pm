@@ -115,8 +115,7 @@ sub transform {
         $self->plack_response( $instance->response );
     }
 
-    $self->response->content_length( length($new_body) );
-    $self->response->body( $new_body );
+    $self->resource->data( $new_body );
 
     return OK;
 }

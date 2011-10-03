@@ -27,6 +27,13 @@ has plack_response => (
     default     => sub { Plack::Response->new(200); },
     reader      => 'response',
     predicate   => 'has_response',
+    trigger     => sub { shift->response_changed(1) },
+);
+
+has response_changed => (
+    is          => 'rw',
+    isa         => 'Bool',
+    default     => 0,
 );
 
 has symbol_table => (
