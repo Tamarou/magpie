@@ -206,8 +206,10 @@ sub load_handler {
 
         return HANDLER_ERROR if $self->has_error;
 
+        my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
+
         try {
-            $new_handler = $handler->new(
+            $new_handler = $handler->$constructor(
                 %{ $handler_args },
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
@@ -215,8 +217,6 @@ sub load_handler {
                 resource       => $self->resource,
             ) || die "Error loading handler $!";
 
-#             warn "ZOMG " . $self->meta->name . " " . $new_handler->meta->name . " " . Dumper( $self->resource );
-#             $new_handler->resource( $self->resource ) if $new_handler->can('resource');
         }
         catch {
             my $error = "Fatal error during build for class '$handler': $_\n";

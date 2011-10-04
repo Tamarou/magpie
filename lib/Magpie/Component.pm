@@ -1,7 +1,7 @@
 package Magpie::Component;
 # ABSTRACT: Base Class For All Magpie Pipeline Components
 use Moose;
-with qw(Magpie::Event);
+with qw(Magpie::Event MooseX::Traits);
 use Magpie::Constants;
 use Magpie::Breadboard;
 
