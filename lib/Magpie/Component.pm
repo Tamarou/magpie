@@ -4,8 +4,11 @@ use Moose;
 with qw(Magpie::Event MooseX::Traits);
 use Magpie::Constants;
 use Magpie::Breadboard;
-
 use Data::Dumper::Concise;
+
+has '+_trait_namespace' => (
+    default => 'Magpie::Plugin'
+);
 
 has breadboard => (
     is          => 'rw',

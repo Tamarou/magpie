@@ -7,6 +7,12 @@ BEGIN {
     if ( $@ ) {
         plan skip_all => 'XML::LibXSLT is not installed, cannot continue.'
     }
+
+    eval { require CHI; };
+    if ( $@ ) {
+        plan skip_all => 'Optional CHI caching module not installed, cannot continue.'
+    }
+
 };
 
 use FindBin;
@@ -15,11 +21,18 @@ use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
 use HTTP::Request::Common;
+use Data::Dumper::Concise;
+
+my $cache = CHI->new(
+    driver  => 'Memcached::libmemcached',
+    servers => [ '127.0.0.1:11211' ],
+);
+
 
 my $style_path = '/stylesheets';
 
 my $handler = builder {
-    enable "Magpie", resource => { class => 'Magpie::Resource::File', root => './t/htdocs' }, pipeline => [ machine {
+    enable "Magpie", resource => { class => 'Magpie::Resource::File', root => './t/htdocs', traits => ['Cache'], cache => $cache }, pipeline => [ machine {
         match qr|^/xinclude/blog/| => [
             'Magpie::Transformer::XSLT' => { stylesheet  => "$style_path/alternates/blog.xsl" },
         ];
@@ -46,13 +59,13 @@ test_psgi
 
         }
         {
-            my $req = HTTP::Request->new(GET => "http://localhost/xinclude/blog/index.xml?testparam=wooo");
-            my $res = $cb->($req);
-            like $res->content, qr/Hello DFH!/;
+            my $res = $cb->(GET "http://localhost/xinclude/shop/index.xml?testparam=wooo");
+            like $res->content, qr/Hello Shopper!/;
             like $res->content, qr/wooo/;
             like $res->content, qr/Header/;
             like $res->content, qr/Footer/;
             like $res->content, qr/Included text/;
+
         }
 
     };

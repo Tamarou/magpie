@@ -18,7 +18,7 @@ my $context = {
 my $handler = builder {
     enable "Magpie", context => $context, pipeline => [
         'Magpie::Pipeline::Moe',
-        'Magpie::Pipeline::CurlyArgs' => { traits => [qw(Magpie::Pipeline::Role::Appender)], reversable => 'regnad kcin', simple_argument => 'RIGHT' },
+        'Magpie::Pipeline::CurlyArgs' => { traits => [qw(+Magpie::Pipeline::Role::Appender)], reversable => 'regnad kcin', simple_argument => 'RIGHT' },
         'Magpie::Pipeline::ContextHash',
         'Magpie::Pipeline::Larry',
     ];

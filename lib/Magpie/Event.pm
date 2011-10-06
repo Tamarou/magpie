@@ -151,6 +151,12 @@ sub stop_application  {
     $self->free_queue();
     $self->clear_handlers();
     if ($self->has_parent_handler) {
+        if ($self->isa('Magpie::Resource')) {
+            $self->parent_handler->resource($self) if $self->parent_handler->can('resource');
+        }
+        else {
+            $self->parent_handler->resource($self->resource) if $self->can('resource') && $self->parent_handler->can('resource');
+        }
         $self->parent_handler->stop_application;
     }
 }

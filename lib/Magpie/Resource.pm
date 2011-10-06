@@ -14,6 +14,10 @@ sub load_queue {
     return $self->plack_request->method;
 }
 
+has '+_trait_namespace' => (
+    default => 'Magpie::Plugin::Resource'
+);
+
 has produces => (
     is          => 'ro',
     isa         => 'Str',

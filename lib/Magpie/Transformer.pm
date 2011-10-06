@@ -4,9 +4,13 @@ package Magpie::Transformer;
 use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
-use Magpie::Resource::Abstract;
+
 # abstract base class for all transformer;
 use Data::Dumper::Concise;
+
+has '+_trait_namespace' => (
+    default => 'Magpie::Plugin::Transformer'
+);
 
 has resource => (
     is          => 'rw',
@@ -14,13 +18,6 @@ has resource => (
     coerce      => 1,
     default     => sub { return $_[0]->resolve_internal_asset( service => 'default_resource') },
 );
-
-# has resource => (
-#     is          => 'rw',
-#     isa         => 'MagpieResourceObject',
-#     coerce      => 1,
-#     #default     => { Magpie::Resource::Abstract->new },
-# );
 
 
 #lame

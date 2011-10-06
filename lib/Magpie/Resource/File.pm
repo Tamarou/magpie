@@ -11,23 +11,38 @@ has root => (
     traits => [ qw(MooseX::UndefTolerant::Attribute)],
     is          => 'rw',
     isa         => 'Str',
-    predicate   => 'has_root',
+    lazy_build  => 1,
 );
+
+sub _build_root {
+    my $self = shift;
+    warn "buildroot called";
+    my $docroot = undef;
+    if ( defined $self->request->env->{DOCUMENT_ROOT} ) {
+        $docroot = $self->request->env->{DOCUMENT_ROOT};
+    }
+    else {
+        $docroot = Cwd::getcwd;
+    }
+
+    return Cwd::realpath($docroot);
+}
+
+sub absolute_path {
+    my $self = shift;
+    return Cwd::realpath($self->root . $self->request->env->{PATH_INFO});
+}
+
+sub mtime {
+    my @stat = stat(shift->absolute_path);
+    return scalar @stat ? $stat[9] : -1;
+}
 
 sub GET {
     my $self = shift;
     my $ctxt = shift;
     my %paf_args = ();
-
-    if ( $self->has_root ) {
-        $paf_args{root} = $self->root;
-    }
-    elsif ( defined $self->request->env->{DOCUMENT_ROOT} ) {
-        $paf_args{root} = $self->request->env->{DOCUMENT_ROOT};
-        $self->root($self->request->env->{DOCUMENT_ROOT});
-    }
-
-    my $paf = Plack::App::File->new(%paf_args);
+    my $paf = Plack::App::File->new(root => $self->root);
     my $r = $paf->call($self->request->env);
 
     unless ( $r->[0] == 200 ) {
