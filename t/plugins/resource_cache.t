@@ -13,6 +13,11 @@ BEGIN {
         plan skip_all => 'Optional CHI caching module not installed, cannot continue.'
     }
 
+    eval { require Memcached::libmemcached; };
+    if ( $@ ) {
+        plan skip_all => 'Optional Memcached::libmemcached caching module not installed, cannot continue.'
+    }
+
 };
 
 use FindBin;

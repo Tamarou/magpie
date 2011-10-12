@@ -34,6 +34,9 @@ sub match {
     my $to_match = shift;
     my $input    = shift;
     my $match_type   = reftype $to_match || 'STRING';
+    if ($match_type eq 'SCALAR' && re::is_regexp($to_match) == 1 ) {
+        $match_type = 'REGEXP';
+    }
     my $frame = [$match_type, $to_match, $input, $MTOKEN];
     $_add_frame->($frame);
 }
@@ -42,6 +45,9 @@ sub match_env {
     my $to_match = shift;
     my $input    = shift;
     my $match_type   = reftype $to_match || 'STRING';
+    if ($match_type eq 'SCALAR' && re::is_regexp($to_match) == 1 ) {
+        $match_type = 'REGEXP';
+    }
     my $frame = [$match_type, $to_match, $input, $MTOKEN];
     $_add_frame->($frame);
 }
@@ -161,8 +167,10 @@ sub call {
     }
 
     # XXX: Real Accept-* based serialization will go here eventually.
-    if ($m->resource->has_data) {
-        my $data = $m->resource->data;
+    #if ($m->resource->has_data) {
+    if (my $data = $m->resource->data) {
+        #my $data = $m->resource->data;
+        #warn "got data $data\n";
         my $content_length = length $data || 0;
         if ( $content_length ) {
             $m->response->content_length( $content_length );

@@ -8,7 +8,7 @@ use Data::Dumper::Concise;
 use Plack::App::File;
 
 has root => (
-    traits => [ qw(MooseX::UndefTolerant::Attribute)],
+    #traits => [ qw(MooseX::UndefTolerant::Attribute)],
     is          => 'rw',
     isa         => 'Str',
     lazy_build  => 1,

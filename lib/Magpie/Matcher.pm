@@ -51,7 +51,7 @@ sub make_map {
         if ($match_type eq 'STRING') {
             push @{$out->{$token}}, @{$frame->[2]} if $frame->[1] eq $path;
         }
-        elsif ($match_type eq 'REGEXP') {
+        elsif ($match_type eq 'REGEXP' || ($match_type eq 'SCALAR' && re::is_regexp($frame->[0]) == 1 )) {
             push @{$out->{$token}}, @{$frame->[2]} if  $path =~ /$frame->[1]/;
         }
         elsif ($match_type eq 'CODE') {
@@ -65,7 +65,9 @@ sub make_map {
                 last unless defined $env->{$k};
                 my $val = $rules->{$k};
                 my $val_type = reftype $val;
-                if ($val_type and $val_type eq 'REGEXP') {
+                if ($val_type && 
+                 ( $val_type eq 'REGEXP' || ($val_type eq 'SCALAR' && re::is_regexp($val) == 1 ))
+                ) {
                     $matched++ if $env->{$k} =~ m/$val/;
                 }
                 else {
