@@ -96,10 +96,11 @@ sub _build_data_source {
     }
     catch {
         my $error = "Could not connect to Kioku data source: $_\n";
+        warn $error;
         $self->set_error({ status_code => 500, reason => $error });
     };
 
-    return DECLINED if $self->has_error;
+    return undef if $self->has_error;
 
     $self->_kioku_scope( $k->new_scope );
     return $k;
@@ -138,7 +139,8 @@ sub GET {
     }
     warn "got data " . Dumper($data);
 
-    $self->parent_handler->resource( $data );
+    #$self->parent_handler->resource( $self );
+    $self->data( $data );
     return OK;
 }
 
