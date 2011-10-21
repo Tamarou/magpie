@@ -37,6 +37,13 @@ has data => (
     predicate   => 'has_data',
 );
 
+has state => (
+    is          => 'rw',
+    isa         => 'Str',
+    default     => 'uninitialized',
+    required    => 1,
+);
+
 has dependencies => (
     traits    => ['Hash'],
     is        => 'rw',

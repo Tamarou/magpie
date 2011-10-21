@@ -54,6 +54,7 @@ has error => (
     coerce      => 1,
     predicate   => 'has_error',
     writer      => 'set_error',
+    clearer     => 'clear_error',
 );
 
 has handlers => (
@@ -194,23 +195,28 @@ sub load_handler {
 
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
-    #warn "load: current handler: $handler \n";
+    #warn "load: current handler: $handler " . $self->has_error ." \n";
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
         # to the pipeline as the *name* of a class, rather
         # than a blessed instance
         my $new_handler;
 
+        my $handler_error = undef;
+
         try {
             Class::MOP::load_class( $handler );
         }
         catch {
-            my $error = "Fatal error loading handler class '$handler': $_ \n";
-            $self->set_error({ status_code => 500, reason => $error });
+            $handler_error = "Fatal error loading handler class '$handler': $_ \n";
+            #$self->set_error({ status_code => 500, reason => $error });
 
         };
 
-        return HANDLER_ERROR if $self->has_error;
+        if ( $handler_error ) {
+            $self->set_error({ status_code => 500, reason => $handler_error });
+            return HANDLER_ERROR;
+        }
 
         my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
 
@@ -225,11 +231,15 @@ sub load_handler {
 
         }
         catch {
-            my $error = "Fatal error during build for class '$handler': $_\n";
-            $self->set_error({ status_code => 500, reason => $error });
+            $handler_error = "Fatal error during build for class '$handler': $_\n";
+            #$self->set_error({ status_code => 500, reason => $error });
         };
 
-        return HANDLER_ERROR if $self->has_error;
+        if ( $handler_error ) {
+            $self->set_error({ status_code => 500, reason => $handler_error });
+            return HANDLER_ERROR;
+        }
+        #return HANDLER_ERROR if $self->has_error;
 
         $new_handler->parent_handler( $self );
         $self->register_handler( $handler => $new_handler );
@@ -266,7 +276,7 @@ sub run_handler {
                 }
             }
         }
-        # warn "Running handler $handler \n";
+        #warn "Running handler $handler \n";
         try {
             $h->run( $ctxt );
 

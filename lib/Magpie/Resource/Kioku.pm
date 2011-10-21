@@ -109,12 +109,15 @@ sub _build_data_source {
 
 sub GET {
     my $self = shift;
+    $self->parent_handler->resource( $self );
     my $req = $self->request;
 
     my $path = $req->path_info;
 
     if ( $path =~ /\/$/ ) {
-        die "don't know what to do with index request yet";
+        # XXX experimental but i think this works
+        $self->state('prompt');
+        return OK;
     }
 
     my @steps = split '/', $path;
@@ -131,15 +134,15 @@ sub GET {
         $self->set_error({ status_code => 500, reason => $error });
     };
 
-    return DECLINED if $self->has_error;
+    return OK if $self->has_error;
 
     unless ( $data ) {
         $self->set_error(404);
-        return DECLINED;
+        return OK;
     }
+
     warn "got data " . Dumper($data);
 
-    #$self->parent_handler->resource( $self );
     $self->data( $data );
     return OK;
 }
