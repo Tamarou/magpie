@@ -74,8 +74,9 @@ sub transform {
         $tt->process( $template, \%tt_vars, \$output ) || die $tt->error
     }
     catch {
-        warn "Error processing template: $_\n";
-        $self->set_error({ status_code => 500, reason => $_ });
+        my $error = "Error processing template: $_";
+        warn "$error\n";
+        $self->set_error({ status_code => 500, reason => $error });
 
     };
 

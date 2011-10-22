@@ -149,6 +149,7 @@ sub GET {
 
 sub POST {
     my $self = shift;
+    $self->parent_handler->resource( $self );
     my $req = $self->request;
     my $id = undef;
 
@@ -168,6 +169,7 @@ sub POST {
     }
     catch {
         my $error = "Could not create instance of wrapper class '$wrapper_class': $_\n";
+        warn $error;
         $self->set_error({ status_code => 500, reason => $error });
     };
 
@@ -178,16 +180,20 @@ sub POST {
     }
     catch {
         my $error = "Could not store POST data in Kioku data source: $_\n";
+        warn $error;
         $self->set_error({ status_code => 500, reason => $error });
     };
 
     return DECLINED if $self->has_error;
 
     warn "POST ID is $id\n";
+
     # XXX: all of this needs to go in an abstract object downstream serializer
     # can figure stuff out
     my $path = $req->path_info;
     $path =~ s|^/||;
+    $path =~ s|/$||;
+    $self->state('created');
     $self->response->status(201);
     $self->response->header( 'Location' => $req->base . $path . "/$id" );
     return OK;
