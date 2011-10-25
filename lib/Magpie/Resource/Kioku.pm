@@ -26,7 +26,6 @@ has dsn => (
     isa => "Str",
     is  => "ro",
 	predicate => "has_dsn",
-
 );
 
 has extra_args => (
