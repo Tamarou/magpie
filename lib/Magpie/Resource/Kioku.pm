@@ -100,7 +100,6 @@ sub _build_data_source {
     };
 
     return undef if $self->has_error;
-
     $self->_kioku_scope( $k->new_scope );
     return $k;
 }
@@ -158,8 +157,14 @@ sub POST {
 
     # XXX should check for a content body first.
     my %args = ();
-    for ($req->param) {
-        $args{$_} = $req->param($_);
+
+    if ($self->has_data) {
+        %args = %{$self->data};
+    }
+    else {
+        for ($req->param) {
+            $args{$_} = $req->param($_);
+        }
     }
 
     try {
