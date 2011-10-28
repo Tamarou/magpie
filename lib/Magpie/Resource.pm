@@ -35,6 +35,7 @@ has consumes => (
 has data => (
     is          => 'rw',
     predicate   => 'has_data',
+    clearer     =>  'clear_data',
 );
 
 has state => (

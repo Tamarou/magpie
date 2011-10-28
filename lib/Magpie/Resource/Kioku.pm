@@ -160,6 +160,7 @@ sub POST {
 
     if ($self->has_data) {
         %args = %{$self->data};
+        $self->clear_data;
     }
     else {
         for ($req->param) {
