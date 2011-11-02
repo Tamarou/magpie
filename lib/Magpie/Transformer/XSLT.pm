@@ -262,7 +262,7 @@ sub transform {
     my $new_body     = $style->output_as_bytes( $result );
     my $content_type = $style->media_type;
     my $encoding     = $style->output_encoding;
-    $self->response->content_type("$content_type; $encoding");
+    $self->response->content_type("$content_type; charset=$encoding");
     $self->response->content_length( length($new_body) );
     $self->resource->data( $new_body );
 
