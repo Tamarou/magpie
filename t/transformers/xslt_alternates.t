@@ -9,6 +9,9 @@ BEGIN {
     }
 };
 
+#use Devel::Leak::Object qw(GLOBAL_bless);
+#$Devel::Leak::Object::TRACKSOURCELINES = 1;
+
 use FindBin;
 use lib "$FindBin::Bin/lib";
 use Plack::Test;

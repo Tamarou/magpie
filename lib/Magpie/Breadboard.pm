@@ -21,6 +21,14 @@ sub BUILD {
                     Magpie::Resource::Abstract->new;
                 }
             );
+            service 'symbol_table' => (
+                lifecycle => 'Singleton',
+                block => sub {
+                    my $s = shift;
+                    Magpie::SymbolTable->new;
+                }
+            );
+
         };
     };
 }

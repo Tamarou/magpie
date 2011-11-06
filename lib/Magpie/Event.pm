@@ -39,13 +39,14 @@ has response_changed => (
 has symbol_table => (
     is          => 'rw',
     isa         => 'Magpie::SymbolTable',
-    default     => sub { return Magpie::SymbolTable->new },
+    default     => sub { return $_[0]->resolve_internal_asset( service => 'symbol_table') },
     required    => 1,
 );
 
 has parent_handler => (
     is          => 'rw',
     predicate   => 'has_parent_handler',
+    weak_ref    => 1,
 );
 
 has error => (
@@ -223,9 +224,10 @@ sub load_handler {
         try {
             $new_handler = $handler->$constructor(
                 %{ $handler_args },
+                parent_handler => $self,
                 plack_request  => $self->plack_request,
                 plack_response => $self->plack_response,
-                breadboard     => $self->breadboard,
+                breadboard     => ($self->has_parent_handler  ? $self->parent_handler->breadboard : $self->breadboard),
                 resource       => $self->resource,
             ) || die "Error loading handler $!";
 
@@ -241,7 +243,7 @@ sub load_handler {
         }
         #return HANDLER_ERROR if $self->has_error;
 
-        $new_handler->parent_handler( $self );
+        #$new_handler->parent_handler( $self );
         $self->register_handler( $handler => $new_handler );
     }
 

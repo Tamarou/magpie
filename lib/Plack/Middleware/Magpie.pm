@@ -178,6 +178,9 @@ sub call {
         }
     }
 
+    my $resp = $m->plack_response->finalize;
+    $m = undef;
+    return $resp;
     return $m->plack_response->finalize;
 };
 

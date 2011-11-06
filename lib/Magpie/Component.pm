@@ -13,8 +13,7 @@ has '+_trait_namespace' => (
 has breadboard => (
     is          => 'rw',
     isa         => 'Magpie::Breadboard',
-    default     => sub { Magpie::Breadboard->new; },
-    required    => 1,
+    default     => sub { warn "NEW BB" . return Magpie::Breadboard->new; },
     handles     => [qw( add_asset assets resolve_asset internal_assets resolve_internal_asset)],
 );
 

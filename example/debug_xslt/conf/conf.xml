@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<application>
+    <accept_matrix>
+        <variant name="text_de" type="text/plain" language="de"/>
+        <variant>
+            <name>text_en</name>
+            <type>text/plain</type>
+            <language>en</language>
+        </variant>
+    </accept_matrix>
+    <pipeline>
+        <add class="Magpie::Transformer::XSLT">
+            <parameters>
+                <stylesheet>/stylesheets/default.xsl</stylesheet>
+            </parameters>
+        </add>
+    </pipeline>
+</application>

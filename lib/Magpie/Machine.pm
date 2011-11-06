@@ -9,8 +9,7 @@ use Magpie::Resource::Abstract;
 has resource => (
     is          => 'rw',
     isa         => 'MagpieResourceObject',
-    coerce      => 1,
-    default     => sub { return $_[0]->resolve_internal_asset( service => 'default_resource') },
+    #coerce      => 1,
 );
 
 #sub has_resource { defined shift->resource ? 1 : 0 }
