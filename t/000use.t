@@ -12,6 +12,7 @@ File::Find::find(
         $path =~ s|^$root/||;
         $path =~ s|.pm$||;
         $path =~ s|/|::|g;
+        return if $path =~ /::(Resource|Transformer|Plugin)::/;
         push @classes, $path;
     },
     $root
