@@ -139,7 +139,7 @@ sub GET {
         return OK;
     }
 
-    warn "got data " . Dumper($data);
+    #warn "got data " . Dumper($data);
 
     $self->data( $data );
     return OK;
@@ -190,8 +190,6 @@ sub POST {
     };
 
     return DECLINED if $self->has_error;
-
-    warn "POST ID is $id\n";
 
     # XXX: all of this needs to go in an abstract object downstream serializer
     # can figure stuff out
