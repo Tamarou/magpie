@@ -3,7 +3,7 @@ use File::Find;
 
 my @classes = ();
 
-my $root = 'blib/lib';
+my $root = -e 'blib/' ? 'blib/lib' : 'lib';
 
 File::Find::find(
     sub {
