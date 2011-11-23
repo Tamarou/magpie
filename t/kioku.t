@@ -25,13 +25,20 @@ my %user = (
 );
 
 my $assets = container '' => as {
-        service 'somevar' => 'some value';
+    service 'somevar'   => 'some value';
+    service 'kioku_dir' => (
+        lifecycle => 'Singleton',
+        block     => sub {
+            my $s = shift;
+            KiokuDB->connect( "dbi:SQLite::memory:", create => 1, );
+        },
+    );
 };
 
 my $handler = builder {
     enable "Magpie", assets => $assets, pipeline => [
         machine {
-            match qr|/users| => ['Magpie::Resource::Kioku' => { wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User', dsn => "dbi:SQLite::memory:",  extra_args => {create => 1} }];
+            match qr|/users| => ['Magpie::Resource::Kioku' => { wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User' }];
         }
     ];
 };
