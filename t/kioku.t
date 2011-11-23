@@ -31,7 +31,7 @@ my $assets = container '' => as {
 my $handler = builder {
     enable "Magpie", assets => $assets, pipeline => [
         machine {
-            match qr|/users| => ['Magpie::Resource::Kioku' => { wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User', dsn => "dbi:SQLite:dbname=temp/kiokutest.db",  extra_args => {create => 1} }];
+            match qr|/users| => ['Magpie::Resource::Kioku' => { wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User', dsn => "dbi:SQLite::memory:",  extra_args => {create => 1} }];
         }
     ];
 };

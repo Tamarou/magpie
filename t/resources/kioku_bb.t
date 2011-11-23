@@ -22,7 +22,7 @@ my $style_path = 't/htdocs/stylesheets';
 my $handler = builder {
     enable "Magpie", pipeline => [ machine {
         match qr|/orders/| => [
-            'Magpie::Resource::Kioku' => { dsn => "dbi:SQLite:dbname=temp/kiokutest.db" },
+            'Magpie::Resource::Kioku' => { dsn => "dbi:SQLite::memory:", extra_args => { create => 1 } },
         ];
     }];
 };
