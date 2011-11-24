@@ -56,7 +56,6 @@ sub GET {
         my $session = $self->session;
         my $path = ( split '/', $self->request->path_info )[-1];
         if ( $session->id eq $path ) {
-            warn $session->id;
             $self->response->redirect('/');
             return DONE;
         }
