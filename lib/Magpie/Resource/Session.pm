@@ -1,4 +1,4 @@
-package DeepRecursion::Resource::Session;
+package Magpie::Resource::Session;
 use Moose;
 extends qw(Magpie::Resource);
 
@@ -37,6 +37,15 @@ sub _build_data_source {
     return $k;
 }
 
+has session => (
+    isa     => 'Plack::Session',
+    is      => 'ro',
+    lazy    => 1,
+    builder => '_build_sessions'
+);
+
+sub _build_sessions { Plack::Session->new( shift->request->env ) }
+
 sub GET {
     my $self = shift;
 
@@ -44,9 +53,9 @@ sub GET {
         return $self->DELETE;
     }
     if ( $self->request->path_info =~ qr|/session| ) {
-        my $session = Plack::Session->new( $self->request->env );
-        my $path = (split '/', $self->request->path_info)[-1];
-        if ( $session->id eq  $path ) {
+        my $session = $self->session;
+        my $path = ( split '/', $self->request->path_info )[-1];
+        if ( $session->id eq $path ) {
             warn $session->id;
             $self->response->redirect('/');
             return DONE;
@@ -61,7 +70,7 @@ sub GET {
 
 sub DELETE {
     my $self    = shift;
-    my $session = Plack::Session->new( $self->request->env );
+    my $session = $self->session;
     $session->expire;
     $self->response->redirect('/login');
     return DONE;
@@ -72,7 +81,7 @@ sub POST {
     my $ctxt = shift;
     my $req  = $self->request;
 
-    my $session  = Plack::Session->new( $req->env );
+    my $session  = $self->session;
     my $username = $req->param('username');
     my $password = $req->param('password');
 
@@ -92,7 +101,7 @@ sub POST {
     }
 
     unless ( $user->check_password($password) ) {
-        $self->set_error(403);
+        $self->set_error( { status_code => 403, reason => 'invalid login' } );
         return OK;
     }
 

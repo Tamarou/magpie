@@ -16,8 +16,9 @@ use Bread::Board;
 use HTTP::Request::Common;
 
 my %user = (
-    name   => 'ubu',
-    status => 'dubious at best',
+    id       => 'ubu',
+    password => 'test',
+    status   => 'dubious at best',
 );
 
 my $assets = container '' => as {
@@ -60,7 +61,6 @@ test_psgi
     }
     {
         my $res = $cb->( GET $url);
-        diag $res->dump;
     }
     };
 
