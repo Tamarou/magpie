@@ -47,23 +47,15 @@ has session => (
 sub _build_sessions { Plack::Session->new( shift->request->env ) }
 
 sub GET {
-    my $self = shift;
-
-    if ( my $action = $self->request->param('logout') ) {
-        return $self->DELETE;
+    my $self    = shift;
+    my $session = $self->session;
+    my $path    = ( split '/', $self->request->path_info )[-1];
+    unless ( $session->id eq $path ) {
+        $self->set_error(
+            { status_code => 404, reason => 'Session not found' } );
+        return DECLINED;
     }
-    if ( $self->request->path_info =~ qr|/session| ) {
-        my $session = $self->session;
-        my $path = ( split '/', $self->request->path_info )[-1];
-        if ( $session->id eq $path ) {
-            $self->response->redirect('/');
-            return DONE;
-        }
-        else {
-            $self->set_error(404);
-            return OK;
-        }
-    }
+    $self->data($session);
     return OK;
 }
 
@@ -71,7 +63,7 @@ sub DELETE {
     my $self    = shift;
     my $session = $self->session;
     $session->expire;
-    $self->response->redirect('/login');
+    $self->response->redirect( $self->request->base );
     return DONE;
 }
 
@@ -92,22 +84,29 @@ sub POST {
         $self->set_error( { status_code => 500, reason => $error } );
     };
 
-    return OK if $self->has_error;
+    return DECLINED if $self->has_error;
 
     unless ($user) {
-        $self->set_error(404);
-        return OK;
+        $self->set_error(
+            { status_code => 404, reason => 'User not found' } );
+        return DECLINED;
     }
 
     unless ( $user->check_password($password) ) {
         $self->set_error( { status_code => 403, reason => 'invalid login' } );
-        return OK;
+        return DECLINED;
     }
 
     $session->set( user => $user );
+    my $id = $session->id;
+
+    my $path = $req->path_info;
+    $path =~ s|^/||;
+    $path =~ s|/$||;
+
     $self->state('created');
-    $self->response->status(303);
-    $self->response->header( 'Location' => '/session/' . $session->id );
+    $self->response->status(201);
+    $self->response->header( 'Location' => $req->base . $path . "/$id" );
     return DONE;
 }
 

@@ -10,9 +10,7 @@ use Plack::Test;
 use Plack::Builder;
 use Plack::Middleware::Magpie;
 use Bread::Board;
-use HTTP::Request::Common;
-use Plack::Session::Store::Cache;
-use CHI;
+use HTTP::Request::Common qw(GET POST DELETE);
 
 use Magpie::Pipeline::Resource::Kioku::User;
 
@@ -33,15 +31,12 @@ my $assets = container '' => as {
 };
 
 my $handler = builder {
-    enable "Session", Plack::Session::Store::Cache->new(
-        cache => CHI->new( driver => 'FastMmap', )    #
-    );
+    enable "Session";
     enable "Magpie",
         assets   => $assets,
         pipeline => [
         machine {
-            match qr[/(?:login|session)] =>
-                [ 'Magpie::Resource::Session' => {} ];
+            match qr|/session| => [ 'Magpie::Resource::Session' => {} ];
             match qr|/users| => [
                 'Magpie::Resource::Kioku' => {
                     wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User'
@@ -58,19 +53,24 @@ test_psgi $handler => sub {
     my $res = $cb->( POST '/users' => [%user] );
 
     # Create Session
-    $res = $cb->( POST '/login', [ username => 'ubu', password => 'test' ] );
-    warn $res->dump;
-    is $res->code, '303', 'got the expected code (303)';
-    like $res->header('Location'), qr|/session/[\w]+|,
+    $res
+        = $cb->( POST '/session', [ username => 'ubu', password => 'test' ] );
+    is $res->code, '201', 'got the expected code (201)';
+    like $res->header('Location'), qr|http://localhost/session/\w+|,
         'response location looks correct';
 
     # Get the Session Resource
     my $location = $res->header('Location');
     my $cookie   = $res->header('Set-Cookie');
     $res = $cb->( GET $location, Cookie => $cookie );
-    is $res->code, 302, 'got the expected code (302)';
-    like $res->header('Location'), qr|/|, 'response location looks correct';
+    is $res->code, 200, 'got the expected code (200)';
 
+TODO: {
+        local $TODO
+            = 'DELETE is not getting dispatched properly';
+        $res = $cb->( DELETE $location, Cookie => $cookie );
+        is $res->code, 302, 'got the expected code (302)';
+    }
 };
 
 done_testing;
