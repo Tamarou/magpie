@@ -22,6 +22,10 @@ sub POST {
     return OK;
 }
 
+sub DELETE {
+    return OK;
+}
+
 1;
 
 __END__

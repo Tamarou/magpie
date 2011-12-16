@@ -209,6 +209,38 @@ sub POST {
     return OK;
 }
 
+sub DELETE {
+    my $self = shift;
+    $self->parent_handler->resource( $self );
+    my $req = $self->request;
+
+    my $path = $req->path_info;
+
+    if ( $path =~ /\/$/ ) {
+        $self->state('prompt');
+        return OK;
+    }
+
+    my @steps = split '/', $path;
+
+    my $id = $req->param('id') || pop @steps;
+
+    # should we do a separate lookup to make sure the data is there?
+    try {
+        $self->data_source->delete( $id );
+    }
+    catch {
+        my $error = "Could not delete data from Kioku data source: $_\n";
+        $self->set_error({ status_code => 500, reason => $error });
+    };
+
+    return OK if $self->has_error;
+    $self->state('deleted');
+    $self->response->status(204);
+    return OK;
+}
+
+
 package MagpieGenericWrapper;
 
 sub new {
