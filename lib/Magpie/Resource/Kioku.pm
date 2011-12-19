@@ -116,17 +116,12 @@ sub GET {
     my $req = $self->request;
 
     my $path = $req->path_info;
+    my $id = $self->get_entity_id;
 
-    if ( $path =~ /\/$/ ) {
-
-        # XXX experimental but i think this works
+    if ($path =~ /\/$/  && !$id ) {
         $self->state('prompt');
         return OK;
     }
-
-    my @steps = split '/', $path;
-
-    my $id = $req->param('id') || pop @steps;
 
     my $data = undef;
 
@@ -155,7 +150,6 @@ sub POST {
     my $self = shift;
     $self->parent_handler->resource($self);
     my $req = $self->request;
-    my $id  = undef;
 
     my $to_store = undef;
 
@@ -174,6 +168,43 @@ sub POST {
         }
     }
 
+    # permit POST to update if there's an entity ID.
+    # XXX: Should this go in an optional Role?
+    if (my $existing_id = $self->get_entity_id) {
+        my $existing = undef;
+        try {
+            ($existing) = $self->data_source->lookup($existing_id);
+        }
+        catch {
+            my $error = "Could not fetch data from Kioku data source for POST editing if entity with ID $existing_id: $_\n";
+            $self->set_error( { status_code => 500, reason => $error } );
+        };
+
+        return OK if $self->has_error;
+
+        if ($existing) {
+            foreach my $key (keys(%args)) {
+                $existing->$key( $args{$key} );
+            }
+
+            try {
+                $self->data_source->store($existing);
+            }
+            catch {
+                my $error = "Error updating data entity with ID $existing_id: $_\n";
+                $self->set_error( { status_code => 500, reason => $error } );
+            };
+
+            return OK if $self->has_error;
+
+            # finally, if it all went OK, say so.
+            $self->state('updated');
+            $self->response->status(204);
+            return OK;
+        }
+    }
+
+    # if we make it here there is no existing record, so make a new one.
     try {
         Class::MOP::load_class($wrapper_class);
         $to_store = $wrapper_class->new(%args);
@@ -186,6 +217,8 @@ sub POST {
     };
 
     return DECLINED if $self->has_error;
+
+    my $id = undef;
 
     try {
         $id = $self->data_source->store($to_store);

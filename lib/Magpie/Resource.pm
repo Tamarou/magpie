@@ -94,7 +94,7 @@ sub get_entity_id {
     my $path = $self->request->path_info;
     return undef if $path =~ /\/$/;
     my @steps = split '/', $path;
-    my $id = $req->param('id') || pop @steps;
+    my $id = $self->request->param('id') || pop @steps;
     return $id;
 }
 
