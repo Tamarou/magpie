@@ -88,6 +88,16 @@ sub OPTIONS {
     return DONE;
 }
 
+# convenience for container-based Resources
+sub get_entity_id {
+    my $self = shift;
+    my $path = $self->request->path_info;
+    return undef if $path =~ /\/$/;
+    my @steps = split '/', $path;
+    my $id = $req->param('id') || pop @steps;
+    return $id;
+}
+
 1;
 
 __END__
