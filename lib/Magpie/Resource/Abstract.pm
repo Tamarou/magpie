@@ -1,4 +1,5 @@
 package Magpie::Resource::Abstract;
+
 # ABSTRACT: INCOMPLETE - Default Resource class.
 
 use Moose;
@@ -22,13 +23,14 @@ sub POST {
     return OK;
 }
 
-sub DELETE {
-    return OK;
-}
+sub PUT     { return OK; }
+sub DELETE  { return OK; }
+sub HEAD    { return OK; }
+sub OPTIONS { return OK; }
 
 1;
-
 __END__
+
 =pod
 
 # SEALSO: Magpie, Magpie::Resource

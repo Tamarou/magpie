@@ -124,7 +124,7 @@ sub call {
     );
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);
-    #warn "pipe " . Dumper( $pipeline, \@STACK );
+    # warn "pipe " . Dumper( $pipeline, \@STACK );
 
     my $m = Magpie::Machine->new(
         plack_request => $req,
@@ -143,7 +143,7 @@ sub call {
             push @resource_handlers, $resource;
         }
     }
-    else {
+    elsif ( grep { ref($_) && ref($_)->isa('Magpie::Resource') } @{$pipeline} ) {
         push @resource_handlers, 'Magpie::Resource::Abstract';
     }
 
