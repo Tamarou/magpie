@@ -8,7 +8,6 @@ use Plack::Test;
 use Plack::Builder;
 use HTTP::Request::Common;
 use Plack::Middleware::Magpie;
-#use Data::Dumper::Concise;
 
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [

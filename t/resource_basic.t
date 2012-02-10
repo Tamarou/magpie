@@ -2,10 +2,7 @@ use Test::More;
 use strict;
 use warnings;
 use Magpie::Constants;
-#use Data::Dumper::Concise;
-
-use_ok('Magpie::Resource');
-use_ok('Magpie::Constants');
+use Magpie::Resource;
 
 {
     package Testy::Testerson;

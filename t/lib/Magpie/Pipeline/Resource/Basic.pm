@@ -1,8 +1,7 @@
 package Magpie::Pipeline::Resource::Basic;
 use Moose;
-extends 'Magpie::Resource';
 use Magpie::Constants;
-#use Data::Dumper::Concise;
+extends 'Magpie::Resource';
 
 sub GET {
     my $self = shift;

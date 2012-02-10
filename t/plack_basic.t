@@ -4,7 +4,7 @@ use Plack::Request;
 use HTTP::Request::Common;
 use FindBin;
 use lib "$FindBin::Bin/lib";
-use_ok('Magpie::Machine');
+use Magpie::Machine;
 
 test_psgi
     app => sub {
