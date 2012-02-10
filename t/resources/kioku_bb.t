@@ -1,12 +1,8 @@
 use strict;
 use warnings;
 use Test::More;
-
-BEGIN {
-    eval { require KiokuX::Model; };
-    if ( $@ ) {
-        plan skip_all => 'KiokuX::Model is not installed, cannot continue.'
-    }
+use Test::Requires qw{
+    KiokuX::Model
 };
 
 use FindBin;
@@ -20,27 +16,29 @@ use Bread::Board;
 my $style_path = 't/htdocs/stylesheets';
 
 my $handler = builder {
-    enable "Magpie", pipeline => [ machine {
-        match qr|/orders/| => [
-            'Magpie::Resource::Kioku' => { dsn => "dbi:SQLite::memory:", extra_args => { create => 1 } },
-        ];
-    }];
+    enable "Magpie", pipeline => [
+        machine {
+            match qr|/orders/| => [
+                'Magpie::Resource::Kioku' => {
+                    dsn        => "dbi:SQLite::memory:",
+                    extra_args => { create => 1 }
+                },
+            ];
+        }
+    ];
 };
-
-use Data::Dumper::Concise;
 
 test_psgi
     app    => $handler,
     client => sub {
-        my $cb = shift;
-        {
-            my $res = $cb->(GET "http://localhost/orders/655321");
-            warn Dumper( $res );
-#             like $res->content, qr/Hello Shopper!/;
-#             like $res->content, qr/wooo/;
-#             like $res->content, qr/Header/;
-#             like $res->content, qr/Footer/;
-        }
+    my $cb = shift;
+    {
+        my $res = $cb->( GET "http://localhost/orders/655321" );
+        #             like $res->content, qr/Hello Shopper!/;
+        #             like $res->content, qr/wooo/;
+        #             like $res->content, qr/Header/;
+        #             like $res->content, qr/Footer/;
+    }
     };
 
 ok(1);
