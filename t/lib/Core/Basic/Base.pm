@@ -1,12 +1,13 @@
 package Core::Basic::Base;
 use Moose;
 use Magpie::Constants;
-extends 'Magpie::Component';
+extends 'Magpie::Resource';
 
 __PACKAGE__->register_events(qw(init first last));
 
 sub load_queue {
     my ($self, $ctxt) = @_;
+    $self->parent_handler->resource($self);
     my @events = ('init');
     if ( my $event = $self->request->param('appstate') ) {
         push @events, $event;

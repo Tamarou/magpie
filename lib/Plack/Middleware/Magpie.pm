@@ -168,7 +168,7 @@ sub call {
 
     # XXX: Real Accept-* based serialization will go here eventually.
     #if ($m->resource->has_data) {
-    if (my $data = $m->resource->data) {
+    if (defined $m->resource && (my $data = $m->resource->data)) {
         #my $data = $m->resource->data;
         #warn "got data $data\n";
         my $content_length = length $data || 0;
