@@ -143,7 +143,7 @@ sub call {
             push @resource_handlers, $resource;
         }
     }
-    elsif ( grep { !ref($_) && $_->isa('Magpie::Resource') } @{$pipeline} ) {
+    elsif (! grep { !ref($_) && $_->isa('Magpie::Resource') } @{$pipeline} ) {
         push @resource_handlers, 'Magpie::Resource::Abstract';
     }
 
