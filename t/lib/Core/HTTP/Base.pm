@@ -1,7 +1,7 @@
 package Core::HTTP::Base;
 use Moose;
 use Magpie::Constants;
-extends 'Magpie::Resource';
+extends 'Magpie::Component';
 with 'Magpie::Dispatcher::RequestParam';
 
 __PACKAGE__->register_events(qw(init cookie headers multicookie redirect redirect_cookie));
@@ -9,7 +9,6 @@ __PACKAGE__->register_events(qw(init cookie headers multicookie redirect redirec
 sub init {
     my $self    = shift;
     my $ctxt    = shift;
-    $self->parent_handler->resource($self);
     $ctxt->{content} = '<p>Howdy</p>';
     return OK;
 }

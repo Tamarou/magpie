@@ -12,18 +12,16 @@ use HTTP::Request::Common;
 my $handler = builder {
     enable "Magpie", pipeline => [
         'Magpie::Pipeline::Moe',
-        'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' },
-        'Magpie::Pipeline::Larry',
+        'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' }, 'Magpie::Pipeline::Larry',
     ];
 };
 
 test_psgi
     app    => $handler,
     client => sub {
-    my $cb  = shift;
-    my $res = $cb->( GET "http://localhost/" );
-    like $res->content,
-        qr/_moebaz__moebar__curlyfoo_RIGHT_larryfoo__larrybar_/;
+        my $cb = shift;
+        my $res = $cb->(GET "http://localhost/");
+        like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_larryfoo__larrybar_/;
     };
 
 done_testing;
