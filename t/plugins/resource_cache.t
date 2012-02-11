@@ -4,7 +4,7 @@ use Test::More;
 
 use Test::Requires qw{
     CHI
-    Memcacedh::libmemcached
+    Memcached::libmemcached
     XML::LibXSLT
 };
 
