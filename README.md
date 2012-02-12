@@ -18,5 +18,5 @@ Magpie has a channel on `irc.perl.org`, `#magpie`. You are welcome to come there
 
 We are the guys behind [Tamarou](http://tamarou.com), a small consulting shop. We've been doing web application for a decade, and consulting for rather less than that.
 
-1: http://www.w3.org/TR/2004/REC-webarch-20041215/
-2: https://github.com/Tamarou/Firebrand
+[1]: http://www.w3.org/TR/2004/REC-webarch-20041215/
+[2]: https://github.com/Tamarou/Firebrand
