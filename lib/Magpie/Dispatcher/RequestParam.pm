@@ -1,6 +1,8 @@
 package Magpie::Dispatcher::RequestParam;
 use MooseX::Role::Parameterized;
 
+# ABSTRACT: Request Parameter Dispatcher
+
 parameter state_param => (
     is          => 'ro',
     isa         => 'Str',
@@ -38,3 +40,5 @@ sub load_queue {
 }
 
 1;
+__END__
+

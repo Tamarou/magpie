@@ -1,5 +1,8 @@
 package Magpie::Transformer::JSON;
 use Moose;
+
+# ABSTRACT: JSON Ouput Transformer
+
 extends 'Magpie::Transformer';
 use Scalar::Util qw(blessed);
 use Magpie::Constants;
