@@ -3,16 +3,12 @@ use Moose::Role;
 use Magpie::Constants;
 use Data::Dumper::Concise;
 
-requires qw(mtime);
+requires qw(mtime _build_cache);
 
 has cache => (
     is          => 'ro',
     lazy_build  => 1,
 );
-
-sub _build_cache {
-    die "implement builder method";
-}
 
 around 'GET' => sub {
     my $orig = shift;
