@@ -11,9 +11,9 @@ sub load_queue { return qw(transform) }
 
 sub transform {
     my $self = shift;
-    
+
     return DECLINED if $self->resource->isa('Magpie::Resource::Abstract');
-    
+
     if ( $self->resource->has_data ) {
         my $data        = $self->resource->data;
         my $json_string = undef;
@@ -21,7 +21,9 @@ sub transform {
             my @objects = ();
             while ( my $block = $data->next ) {
                 foreach my $object (@$block) {
-                    push @objects, JSON::Any->encode($object);
+                    my $data
+                        = $object->can('pack') ? $object->pack : {%$object};
+                    push @objects, JSON::Any->encode($data);
                 }
             }
             $json_string = '[' . ( join ', ', @objects ) . ']';
