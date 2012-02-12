@@ -1,10 +1,11 @@
 package Magpie::Breadboard;
-# ABSTRACT: Bread::Board Container For Pipeline Assets
 use Moose;
+
+# ABSTRACT: Bread::Board Container For Pipeline Assets
+
 use Bread::Board;
 use Bread::Board::Dumper;
-use Data::Dumper::Concise;
-use Scalar::Util qw(blessed);
+
 extends 'Bread::Board::Container';
 
 has '+name' => ( default => 'Application' );

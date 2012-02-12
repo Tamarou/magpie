@@ -8,10 +8,8 @@ use Magpie::SymbolTable;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
-use Scalar::Util qw( blessed );
-use Carp qw(cluck);
+
 BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
-use Data::Dumper::Concise;
 
 
 has plack_request => (
