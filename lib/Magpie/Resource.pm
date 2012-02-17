@@ -1,4 +1,5 @@
 package Magpie::Resource;
+
 # ABSTRACT: Abstract base class for all resource types;
 
 use Moose;
@@ -101,6 +102,25 @@ sub get_entity_id {
 1;
 
 __END__
-=pod
 
-# SEEALSO: Magpie
+=head1 DESCRIPTION
+
+   A resource is not the thing that is transferred across the wire or picked
+   up off the disk or seen from afar while walking your dog. Each of those is
+   only a representation. The same is true of physical objects encountered in
+   life and never identified with URI and never made accessible on the net.
+   Yes, it does present a bit of a quandary, but it is one that we have all
+   learned to live with. Our eyes are not powerful enough to see identity
+   through the representations, but our minds are powerful enough to associate
+   identity to that which we see. Do I think of a different identifier every
+   time I see my dog, or do I simply think of my dog as one identity and
+   experience many representations of that identity over time (and on into
+   memory and imagination)?
+
+   Roy Fielding - July 2002
+
+=head1 SEE ALSO
+
+=for :list
+* L<Magpie>
+
