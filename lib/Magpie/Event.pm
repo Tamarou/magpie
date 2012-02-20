@@ -100,9 +100,6 @@ has registered_handlers => (
 has current_handler => (
     is        => 'rw',
     predicate => 'has_current_handler',
-    handles   => {
-        run_current_handler => 'run',
-    },
 );
 
 has current_handler_args => (
@@ -256,7 +253,7 @@ sub load_handler {
 # run_handler($context)
 # Run the instance of the currently selected handler class, passing in the
 # application's context member. This method is called by the parent classes'
-# event queue (see init_queue() in this class and
+# event queue (see init_queue() in this class)
 #-------------------------------------------------------------------------------
 sub run_handler {
     my $self = shift;
@@ -279,7 +276,6 @@ sub run_handler {
         #warn "Running handler $handler \n";
         try {
             $h->run( $ctxt );
-
         }
         catch {
             my $error = "Fatal error running handler '$handler': $_";
