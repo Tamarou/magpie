@@ -191,13 +191,14 @@ sub load_handler {
 
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
-    #warn "load: current handler: $handler " . $self->has_error ." \n";
+    warn "load: current handler: $handler " . $self->has_error ." \n";
+    
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
         # to the pipeline as the *name* of a class, rather
         # than a blessed instance
         my $new_handler;
-
+		warn "fetchie: $handler " . $handler->isa('Plack::Middleware');
         my $handler_error = undef;
 
         try {
@@ -214,6 +215,18 @@ sub load_handler {
             return HANDLER_ERROR;
         }
 
+		if ( $handler->isa('Plack::Middleware') ) {
+			warn "middleware";
+            Class::MOP::load_class( 'Magpie::Transformer::Middleware' );
+			my $mw = $handler;
+			my %mw_args = %{ $handler_args };
+			my $mw_class = Plack::Util::load_class($mw, 'Plack::Middleware');
+			$handler = 'Magpie::Transformer::Middleware';
+			$handler_args->{middleware_sub} = sub { $mw_class->wrap($self, %mw_args) };
+			$self->current_handler( $handler );
+		}
+
+		
         my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
 
         try {
@@ -242,6 +255,7 @@ sub load_handler {
         $self->register_handler( $handler => $new_handler );
     }
 
+	warn "AFTER $handler";
     if ($self->fetch_handler( $handler )) {
         $self->add_to_queue( "run_handler" );
     }
@@ -260,7 +274,7 @@ sub run_handler {
     my $ctxt = shift;
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
-    #warn "run handler: $handler\n";
+    warn "run handler: $handler\n";
 
     if ( my $h = $self->fetch_handler( $handler ) ) {
         # class may be loaded but params may be different
