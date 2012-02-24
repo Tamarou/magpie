@@ -150,7 +150,7 @@ terminates.
 
 In Magpie, application classes are implemented as subclasses of an event
 model. This underlying Event class is responsible for registering event
-handlers with Magpie'S internal queue and for determining which of those
+handlers with Magpie's internal queue and for determining which of those
 registered handlers will be fired in response to the current state. In short,
 the Event class determines which state the application is in, and which of the
 registered event handler methods will be fired in response to that state.
