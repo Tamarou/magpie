@@ -279,6 +279,8 @@ Example:
     ...
   }
 
+=back
+
 =head3 Keeping Things In $ctxt
 
 The second argument passed to each event handler method is the I<context
