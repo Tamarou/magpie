@@ -6,7 +6,7 @@ use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
 
-__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS ) );
+__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT ) );
 
 # XXX: Move to a real Dispactcher
 sub load_queue {
