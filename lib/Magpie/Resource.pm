@@ -89,6 +89,21 @@ sub OPTIONS {
     return DONE;
 }
 
+sub TRACE {
+    shift->set_error('NotImplemented');
+    return DONE;
+}
+
+sub PATCH {
+    shift->set_error('NotImplemented');
+    return DONE;
+}
+
+sub CONNECT {
+    shift->set_error('NotImplemented');
+    return DONE;
+}
+
 # convenience for container-based Resources
 sub get_entity_id {
     my $self = shift;
