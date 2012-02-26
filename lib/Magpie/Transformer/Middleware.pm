@@ -24,12 +24,12 @@ sub call_middleware {
     my ($self, $ctxt) = @_;
 	warn "MW CALLED";
 	my $env = $self->request->env;
-	my $mw = $self->middleware_sub->($env);
+	my $mw = $self->middleware_sub->();
 	my $r = $mw->($env);
-	warn "RRRRRRRR" . Dumper($r);
+	warn "RRRRRRRR " . Dumper($mw, $r);
 	my $new_resp = Plack::Response->new(@$r);
 	$self->plack_response( $new_resp );
-	$self->plack_request( Plack::Request->new($new_resp->env) );
+	$self->plack_request( Plack::Request->new($env) );
     return OK;
 }
 

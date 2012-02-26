@@ -222,7 +222,11 @@ sub load_handler {
 			my %mw_args = %{ $handler_args };
 			my $mw_class = Plack::Util::load_class($mw, 'Plack::Middleware');
 			$handler = 'Magpie::Transformer::Middleware';
-			$handler_args->{middleware_sub} = sub { $mw_class->wrap($self, %mw_args) };
+			use Data::Dumper::Concise;
+			my $foo = $self->response->finalize;
+			warn "foo " . Dumper($foo);
+			
+			$handler_args->{middleware_sub} = sub { $mw_class->wrap(sub { warn "callback" . Dumper($foo); return $foo }, %mw_args) };
 			$self->current_handler( $handler );
 		}
 

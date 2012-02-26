@@ -29,7 +29,7 @@ test_psgi
     app    => $handler,
     client => sub {
         my $cb = shift;
-        my $res = $cb->(GET "http://localhost/");
+        my $res = $cb->(GET "http://localhost/some/path/to/wev");
         like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
     };
 
