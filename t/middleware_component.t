@@ -30,7 +30,7 @@ test_psgi
     client => sub {
         my $cb = shift;
         my $res = $cb->(GET "http://localhost/some/path/to/wev");
-        like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
+        like $res->content, qr/_moebaz__moebar__MW__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
     };
 
 done_testing();

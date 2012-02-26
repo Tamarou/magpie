@@ -8,8 +8,9 @@ use Data::Dumper::Concise;
 sub call {
     my($self, $env) = @_;
     my $resp = $self->app->($env);
-    warn "in mw " . Dumper($resp);
-    $resp->[2] .= '__' . $self->some_arg . '__';
+    my $body = join " ", @{$resp->[2]};
+    $body .= '_' . $self->some_arg . '_';
+    $resp->[2] = [ $body ];
     return $resp;
 };
 
