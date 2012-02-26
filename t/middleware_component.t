@@ -22,6 +22,7 @@ my $handler = builder {
         'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' },
         'Magpie::Pipeline::ContextHash',
         'Magpie::Pipeline::Larry',
+        'Plack::Middleware::ContentMD5',
     ];
 };
 
@@ -31,6 +32,7 @@ test_psgi
         my $cb = shift;
         my $res = $cb->(GET "http://localhost/some/path/to/wev");
         like $res->content, qr/_moebaz__moebar__MW__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
+        is defined $res->headers('content-md5'), 1;
     };
 
 done_testing();
