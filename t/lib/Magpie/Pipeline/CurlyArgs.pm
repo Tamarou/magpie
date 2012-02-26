@@ -21,6 +21,7 @@ sub load_queue {
 sub foo {
     my ($self, $ctxt) = @_;
     my $body = $self->response->body || '';
+    $body = ref($body) eq 'ARRAY' ? join '', @$body : $body;
     $body .= '_curlyfoo_' . $self->simple_argument;
     $self->response->body( $body );
     return OK;

@@ -100,9 +100,6 @@ has registered_handlers => (
 has current_handler => (
     is        => 'rw',
     predicate => 'has_current_handler',
-    handles   => {
-        run_current_handler => 'run',
-    },
 );
 
 has current_handler_args => (
@@ -195,12 +192,12 @@ sub load_handler {
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
     #warn "load: current handler: $handler " . $self->has_error ." \n";
+    
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
         # to the pipeline as the *name* of a class, rather
         # than a blessed instance
         my $new_handler;
-
         my $handler_error = undef;
 
         try {
@@ -217,6 +214,19 @@ sub load_handler {
             return HANDLER_ERROR;
         }
 
+		if ( $handler->isa('Plack::Middleware') ) {
+            Class::MOP::load_class( 'Magpie::Transformer::Middleware' );
+			my $munged_args = { 
+				middleware_args => $handler_args,
+				middleware_class => $handler,
+			};
+			$handler = 'Magpie::Transformer::Middleware';
+			$handler_args = $munged_args;
+			$self->current_handler($handler);
+			$self->current_handler_args($handler_args);
+		}
+
+		
         my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
 
         try {
@@ -256,7 +266,7 @@ sub load_handler {
 # run_handler($context)
 # Run the instance of the currently selected handler class, passing in the
 # application's context member. This method is called by the parent classes'
-# event queue (see init_queue() in this class and
+# event queue (see init_queue() in this class)
 #-------------------------------------------------------------------------------
 sub run_handler {
     my $self = shift;
@@ -279,7 +289,6 @@ sub run_handler {
         #warn "Running handler $handler \n";
         try {
             $h->run( $ctxt );
-
         }
         catch {
             my $error = "Fatal error running handler '$handler': $_";
