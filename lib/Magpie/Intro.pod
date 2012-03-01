@@ -12,7 +12,7 @@ This document introduces Magpie, a dynamic pipelined application framework.
 
 In the animal world, the Magpie (Pica pica) is an intelligent, mischievous bird with a reputation for pilfering shiny objects. In the enlightened world of Modern Perl, Magpie is an attempt to combine the best ideas (shiny objects) from the community's long history of Web development frameworks into a truly mature and intelligent environment.
 
-Ambitious? You bet. And we're in good company, we think. See, Perl itself is a magpie and always has been. Originally designed to fuse the best features of a slew of *NIX utilities into cohesive whole that made easy things easy and hard things possible, Perl has continuously evolved by adopting and internalizing the best features from each new generation of languages and tools that have been invented since (many of which were themselves influenced by Perl). At the same time, the Perl community has constantly evolved through a similar process. Community support, development infrastructure, even what constitutes "good Perl code" have all evolved by an iterative process of adoption -> extension -> invention. This is why we're making Magpie. We believe that by combining the best features of various popular Web development frameworks-- together with our own bits of invention-- we can create a development environment where easy things are easy and hard things are possible.
+Ambitious? You bet. And we're in good company, we think. Perl itself is a magpie and always has been. Originally designed to fuse the best features of a slew of *NIX utilities into cohesive whole that made easy things easy and hard things possible, Perl has continuously evolved by adopting and internalizing the best features from each new generation of languages and tools that have been invented since (many of which were themselves influenced by Perl). At the same time, the Perl community has constantly evolved through a similar process. Community support, development infrastructure, even what constitutes "good Perl code" have all evolved by an iterative process of adoption -> extension -> invention. This is why we're making Magpie. We believe that by combining the best features of various popular Web development frameworks-- together with our own bits of invention-- we can create a development environment where easy things are easy and hard things are possible.
 
 Implemented as a L<Plack::Middleware> component, Magpie provides a rapid application development framework for both browser-based Web applications and RESTful Web services by removing (or at least greatly reducing) the redundant aspects of day-to-day application coding. Magpie's design is heavily informed by the study of L<Finite State Machines|/References>.
 
@@ -60,9 +60,21 @@ Magpie's core must remain neutral.
 
 Magpie must be judiciously magical-- providing just enough Perlish wizardry to
 make writing applications easy, while not presuming or enforcing a One True
-Way(tm) that limits developers' freedom.
+Way(tm) that unduly limits developers' freedom.
 
 =back
+
+=head1 Resource-Oriented Application Development
+
+=head2 The URL Is Not The Resource, The Resource Is Not The Thing
+
+When a client sends a request via HTTP to a given URL they are asking for a B<Representation> of a Resource, not the Resource itself. Unfortunately, the first generation of Web frameworks that tried to implement practical RESTful architectures often mixed things up and made it seem like the URL was the Resource and the Resource was the Thing. 
+
+implement data access via a RESTful API and so you reach for one of the popular tools that purports to make the process simple. The early stages of the project are promising. 
+
+But wait, a POST to the C</order> endpoint requires more than a one-to-one relationship with the database's C<order> table. You have to check product availability for each item in the order, you have to access the C<customers> and C<customer_addresses> tables to grab the client's address to calculate shipping, etc. Where does all that extra logic go? Do you cram it into the validation stage? Do you create different Controller methods to handle those tasks?  
+
+Soon, you find that the hands-off "connect the database to the Web" application you thought you were building is turning into a series hacks, work-arounds, and one-offs. The tool that was supposed to make things easier now actually ties your hands in certain very common ways. You're wondering why this all seems so hard and you begin to suspect that REST is just another in a long line of overcomplicated bondage fads that look great on paper but fall to pieces when you try to do anything substantial. 
 
 =head2 Altered States
 
