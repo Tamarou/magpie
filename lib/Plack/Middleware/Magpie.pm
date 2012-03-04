@@ -3,7 +3,9 @@ package Plack::Middleware::Magpie;
 use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
-use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix);
+
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache);
+
 our @EXPORT = qw( machine match match_env match_accept);
 use Scalar::Util qw(reftype);
 use Magpie::Machine;
@@ -59,16 +61,9 @@ sub match_accept {
     $_add_frame->($frame);
 }
 
-sub config_cache {
-    my $self = shift;
-    if (@_) {
-        $self->{_magpie_config_cache} = shift;
-    }
-    return $self->{_magpie_config_cache};
-}
 
 sub has_config_cache {
-    return exists shift->{_magpie_config_cache};
+    return defined shift->config_cache;
 }
 
 sub call {
