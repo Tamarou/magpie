@@ -118,13 +118,12 @@ sub register_events {
         $registered_events{$pkg} ||= [];
         push @{ $registered_events{$pkg} }, @_;
     }
-
     return $pkg->registered_events;
 }
 
 sub registered_events {
     my $thing = shift;
-    my $pkg = ref( $thing ) ? $thing->meta->name : $thing;
+    my $pkg = blessed( $thing ) ? $thing->meta->name : $thing;
     my $ref = $registered_events{$pkg} || [];
     return @{ $ref };
 }
