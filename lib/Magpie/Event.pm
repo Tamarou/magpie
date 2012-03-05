@@ -1,6 +1,7 @@
 package Magpie::Event;
 # ABSTRACT: Core Event Role Shared By All Magpie Classes
 use Moose::Role;
+
 with qw( Magpie::Event::Symbol Magpie::Types );
 
 use Magpie::Constants;
@@ -32,13 +33,6 @@ has response_changed => (
     is          => 'rw',
     isa         => 'Bool',
     default     => 0,
-);
-
-has symbol_table => (
-    is          => 'rw',
-    isa         => 'Magpie::SymbolTable',
-    default     => sub { return $_[0]->resolve_internal_asset( service => 'symbol_table') },
-    required    => 1,
 );
 
 has parent_handler => (
@@ -479,7 +473,7 @@ sub add_to_queue      {
     #warn "add to queue $symbol";
     $symbol = $self->_qualify_symbol_name( $symbol );
 
-    unless ( $self->symbol_table->has_symbol($symbol) ) {
+    unless ( $self->has_symbol($symbol) ) {
         warn "Warning: '$symbol' could not be added to the queue. Are you sure you registered it via register_events?";
         #XXX: should we die or set_error here instead?
         return;
@@ -505,7 +499,7 @@ sub remove_from_queue {
 
     $symbol = $self->_qualify_symbol_name( $symbol );
 
-    unless ( $self->symbol_table->has_symbol($symbol) ) {
+    unless ( $self->has_symbol($symbol) ) {
         warn "Warning: Unregistered event '$symbol' could not be removed from the queue because it does not exist. Are you sure you registered it via register_events?";
         return;
     }
