@@ -6,56 +6,69 @@ use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
 
-__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT ) );
+my @HTTP_METHODS = qw(GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT);
+__PACKAGE__->register_events( qw(method_not_allowed), @HTTP_METHODS );
 
 # XXX: Move to a real Dispactcher
 sub load_queue {
-    my $self = shift;
-    my $ctxt = shift;
-    return $self->plack_request->method;
+    my $self   = shift;
+    my $method = $self->plack_request->method;
+    if ( scalar grep { $_ eq $method } @HTTP_METHODS ) {
+        return $method;
+    }
+    return 'method_not_allowed';
 }
 
-has '+_trait_namespace' => (
-    default => 'Magpie::Plugin::Resource'
-);
+sub method_not_allowed {
+    my $self = shift;
+    $self->set_error(
+        {   status_code        => 405,
+            reason             => 'Method not allowed.',
+            additional_headers => [ Allow => \@HTTP_METHODS ],
+        }
+    );
+    return DONE;
+}
+
+has '+_trait_namespace' => ( default => 'Magpie::Plugin::Resource' );
 
 has produces => (
-    is          => 'ro',
-    isa         => 'Str',
-    required    => 1,
-    default     => 'text/plain',
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    default  => 'text/plain',
 );
 
 has consumes => (
-    is          => 'ro',
-    isa         => 'Str',
-    required    => 1,
-    default     => 'text/plain',
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    default  => 'text/plain',
 );
 
 has data => (
-    is          => 'rw',
-    predicate   => 'has_data',
-    clearer     =>  'clear_data',
+    is        => 'rw',
+    predicate => 'has_data',
+    clearer   => 'clear_data',
 );
 
 has state => (
-    is          => 'rw',
-    isa         => 'Str',
-    default     => 'uninitialized',
-    required    => 1,
+    is       => 'rw',
+    isa      => 'Str',
+    default  => 'uninitialized',
+    required => 1,
 );
 
 has dependencies => (
-    traits    => ['Hash'],
-    is        => 'rw',
-    isa       => 'HashRef[HashRef]',
-    default   => sub { {} },
-    handles   => {
-        add_dependency      => 'set',
-        get_dependency      => 'get',
-        delete_dependency   => 'delete',
-        has_dependencies    => 'count',
+    traits  => ['Hash'],
+    is      => 'rw',
+    isa     => 'HashRef[HashRef]',
+    default => sub { {} },
+    handles => {
+        add_dependency    => 'set',
+        get_dependency    => 'get',
+        delete_dependency => 'delete',
+        has_dependencies  => 'count',
     },
 );
 
