@@ -11,8 +11,7 @@ use Magpie::Constants;
     package Testy::Testerson;
     use Moose;
     with qw( Magpie::Event );
-    has '+symbol_table' => ( default => sub { Magpie::SymbolTable->new } );
-
+    sub default_symbol_table { Magpie::SymbolTable->new }
 }
 
 my $e = Testy::Testerson->new();
