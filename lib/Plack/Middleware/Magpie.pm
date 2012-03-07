@@ -5,8 +5,7 @@ use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
 
-use Plack::Util::Accessor
-    qw(pipeline resource assets context conf accept_matrix config_cache);
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache);
 
 our @EXPORT = qw( machine match match_env match_accept);
 use Scalar::Util qw(reftype);

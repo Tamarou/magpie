@@ -27,7 +27,7 @@ test_psgi
     }
     {
         my $resp = $cb->( PUT "/", );
-        is $resp->code, 501, 'PUT / is 501 Not Implemented';
+        is $resp->code, 405, 'PUT / is 405 Not Allowed';
     }
     {
         my $resp = $cb->( HTTP::Request->new( 'PROPFIND', '/' ) );
