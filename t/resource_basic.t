@@ -8,6 +8,8 @@ use Magpie::Resource;
     package Testy::Testerson;
     use Moose;
     extends 'Magpie::Resource';
+
+    sub POST { return 200; }
 }
 
 my $r = Testy::Testerson->new();
@@ -29,8 +31,8 @@ my $resp = $error->();
 
 ok( $resp );
 
-# 501 is "not implemented"
+# 405 is "not allowed"
 
-is( $resp->[0], 501 );
+is( $resp->[0], 405 );
 
 done_testing();

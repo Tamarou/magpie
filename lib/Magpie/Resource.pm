@@ -19,17 +19,6 @@ sub load_queue {
     return 'method_not_allowed';
 }
 
-sub method_not_allowed {
-    my $self = shift;
-    $self->set_error(
-        {   status_code        => 405,
-            reason             => 'Method not allowed.',
-            additional_headers => [ Allow => \@HTTP_METHODS ],
-        }
-    );
-    return DONE;
-}
-
 has '+_trait_namespace' => ( default => 'Magpie::Plugin::Resource' );
 
 has produces => (
@@ -72,49 +61,67 @@ has dependencies => (
     },
 );
 
-sub GET {
-    shift->set_error('NotImplemented');
+use Data::Dumper::Concise;
+
+sub methods_implemented {
+    my $self = shift;
+    my %implemented = ();
+    foreach my $class ( $self->meta->linearized_isa ) {
+        next if $class =~ /^(Magpie|Moose)::/;
+        foreach (@HTTP_METHODS){
+            $implemented{$_}++ if $class->meta->has_method($_);
+        }
+    }
+    return ( keys( %implemented ));
+}
+
+sub method_not_allowed {
+    my $self = shift;
+    my $method = $self->plack_request->method;
+    my @allowed = $self->methods_implemented;
+    $self->set_error(
+        {   status_code        => 405,
+            reason             => "Method '$method' not allowed.",
+            additional_headers => [ Allow => \@allowed ],
+        }
+    );
     return DONE;
+}
+
+sub GET {
+    shift->method_not_allowed(@_);
 }
 
 sub POST {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub PUT {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub DELETE {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub HEAD {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub OPTIONS {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub TRACE {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub PATCH {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub CONNECT {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 # convenience for container-based Resources
