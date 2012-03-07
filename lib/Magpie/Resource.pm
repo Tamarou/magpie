@@ -19,17 +19,6 @@ sub load_queue {
     return 'method_not_allowed';
 }
 
-sub method_not_allowed {
-    my $self = shift;
-    $self->set_error(
-        {   status_code        => 405,
-            reason             => 'Method not allowed.',
-            additional_headers => [ Allow => \@HTTP_METHODS ],
-        }
-    );
-    return DONE;
-}
-
 has '+_trait_namespace' => ( default => 'Magpie::Plugin::Resource' );
 
 has produces => (
@@ -71,8 +60,6 @@ has dependencies => (
         has_dependencies  => 'count',
     },
 );
-
-use Data::Dumper::Concise;
 
 sub methods_implemented {
     my $self = shift;
