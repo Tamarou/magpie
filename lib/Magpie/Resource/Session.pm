@@ -48,19 +48,21 @@ sub _build_sessions { Plack::Session->new( shift->request->env ) }
 
 sub GET {
     my $self    = shift;
+    $self->parent_handler->resource($self);
     my $session = $self->session;
-    my $path    = ( split '/', $self->request->path_info )[-1];
-    unless ( $session->id eq $path ) {
+    my $id    = $self->get_entity_id;
+    unless ( $session->id eq $id ) {
         $self->set_error(
             { status_code => 404, reason => 'Session not found' } );
-        return DECLINED;
+        return OK;
     }
-    $self->data($session);
+    $self->data([$session]);
     return OK;
 }
 
 sub DELETE {
     my $self    = shift;
+    $self->parent_handler->resource($self);    
     my $session = $self->session;
     $session->expire;
     $self->response->redirect( $self->request->base );
@@ -69,7 +71,7 @@ sub DELETE {
 
 sub POST {
     my $self = shift;
-    my $ctxt = shift;
+    $self->parent_handler->resource($self);    
     my $req  = $self->request;
 
     my $session  = $self->session;

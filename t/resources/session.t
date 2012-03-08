@@ -64,13 +64,8 @@ test_psgi $handler => sub {
     my $cookie   = $res->header('Set-Cookie');
     $res = $cb->( GET $location, Cookie => $cookie );
     is $res->code, 200, 'got the expected code (200)';
-
-TODO: {
-        local $TODO
-            = 'DELETE is not getting dispatched properly';
-        $res = $cb->( DELETE $location, Cookie => $cookie );
-        is $res->code, 302, 'got the expected code (302)';
-    }
+    $res = $cb->( DELETE $location, Cookie => $cookie );
+    is $res->code, 302, 'got the expected code (302)';
 };
 
 done_testing;
