@@ -30,6 +30,7 @@ has match_stack => (
 );
 
 sub process {
+    warn "process config";
     my $self = shift;
     my $xml_file = shift;
 
@@ -38,6 +39,10 @@ sub process {
 
     if ( $root->exists('//accept_matrix')) {
         $self->process_accept_matrix( $root->findnodes('//accept_matrix') );
+    }
+
+    if ( $root->exists('//assets')) {
+        $self->process_assets( $root->findnodes('//assets') );
     }
 
     # now process the handler pipeline
@@ -166,6 +171,26 @@ sub process_accept_matrix {
         }
         $self->add_variant([$name, $qs, $type, $encoding, $charset, $lang, $length]);
     }
+}
+
+sub process_assets {
+    my $self = shift;
+    my $node = shift;
+    foreach my $container ($node->findnodes('./container')) {
+        # process containers
+    }
+
+    foreach my $service ($node->findnodes('./service')) {
+        # process services
+    }
+}
+
+sub process_asset_container {
+    # XXX TODO
+}
+
+sub process_asset_service {
+    # XXX TODO
 }
 
 # SEEALSO: Magpie
