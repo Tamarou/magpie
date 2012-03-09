@@ -14,6 +14,22 @@ use HTTP::Request::Common qw(GET POST DELETE);
 
 use Magpie::Pipeline::Resource::Kioku::User;
 
+{
+
+    package Test::Resource::Session;
+    use Moose;
+    extends qw(Magpie::Resource::Session);
+
+    sub lookup_user {
+        Magpie::Pipeline::Resource::Kioku::User->new(
+            id       => 'ubu',
+            password => 'test',
+            status   => 'test',
+        );
+    }
+
+}
+
 my %user = (
     id       => 'ubu',
     password => 'test',
@@ -36,12 +52,7 @@ my $handler = builder {
         assets   => $assets,
         pipeline => [
         machine {
-            match qr|/session| => [ 'Magpie::Resource::Session' => {} ];
-            match qr|/users| => [
-                'Magpie::Resource::Kioku' => {
-                    wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User'
-                }
-            ];
+            match qr|/session| => [ 'Test::Resource::Session' => {} ];
         }
         ];
 };
@@ -49,12 +60,8 @@ my $handler = builder {
 test_psgi $handler => sub {
     my $cb = shift;
 
-    # Create User
-    my $res = $cb->( POST '/users' => [%user] );
-
     # Create Session
-    $res
-        = $cb->( POST '/session', [ username => 'ubu', password => 'test' ] );
+    my $res = $cb->( POST '/session', [ username => 'ubu', password => 'test' ] );
     is $res->code, '201', 'got the expected code (201)';
     like $res->header('Location'), qr|http://localhost/session/\w+|,
         'response location looks correct';
