@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
 
-use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache);
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets);
 
 our @EXPORT = qw( machine match match_env match_accept);
 use Scalar::Util qw(reftype);
@@ -77,6 +77,7 @@ sub call {
     catch {
         HTTP::Throwable::Factory->throw( 400, { message => $_ } );
     };
+
     my $pipeline = $self->pipeline || [];
 
     my $conf_file = $self->conf;
@@ -113,12 +114,14 @@ sub call {
                     token         => $token,
                     accept_matrix => $reader->accept_matrix,
                     mtime         => $file_meta->mtime,
+                    assets        => $reader->assets,
                 }
             );
 
             unshift @STACK, @{ $reader->match_stack };
             unshift @{$pipeline}, $reader->make_token;
             $self->accept_matrix( $reader->accept_matrix );
+            $self->config_assets( $reader->assets );
         }
     }
 
@@ -154,6 +157,10 @@ sub call {
 
     if ( my $assets = $self->assets ) {
         $m->assets($assets);
+    }
+
+    foreach my $asset ( @{$self->config_assets} ) {
+        $m->add_asset( $asset );
     }
 
     $m->pipeline( @resource_handlers, @{$pipeline} );

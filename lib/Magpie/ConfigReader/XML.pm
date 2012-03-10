@@ -174,13 +174,16 @@ sub process_accept_matrix {
 }
 
 sub process_assets {
+    Class::MOP::load_class('Bread::Board');
     my $self = shift;
     my $node = shift;
     foreach my $container ($node->findnodes('./container')) {
+        warn "Container";
         # process containers
     }
 
     foreach my $service ($node->findnodes('./service')) {
+        warn "Service";
         # process services
     }
 }
