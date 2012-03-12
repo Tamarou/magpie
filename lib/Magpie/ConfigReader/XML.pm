@@ -40,7 +40,7 @@ has accept_matrix => (
 );
 
 sub process {
-    warn "process config";
+    #warn "process config";
     my $self = shift;
     my $xml_file = shift;
 
@@ -188,12 +188,12 @@ sub process_assets {
     my $self = shift;
     my $node = shift;
     foreach my $container ($node->findnodes('./container')) {
-        warn "Container";
+        #warn "Container";
         $self->process_asset_container($container);
     }
 
     foreach my $service ($node->findnodes('./service')) {
-        warn "Service";
+        #warn "Service";
         $self->process_asset_service($service);
     }
 }

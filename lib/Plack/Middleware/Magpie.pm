@@ -15,7 +15,7 @@ use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 my @STACK      = ();
 my $MTOKEN     = undef;
 my $_add_frame = sub {
@@ -133,7 +133,7 @@ sub call {
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);
 
-    warn "pipe " . Dumper( $pipeline, \@STACK );
+    #warn "pipe " . Dumper( $pipeline, \@STACK );
 
     my $m = Magpie::Machine->new( plack_request => $req, );
 

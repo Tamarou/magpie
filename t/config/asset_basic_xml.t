@@ -28,12 +28,6 @@ test_psgi
             like $res->content,
         qr/_moebaz__moebar__simplefoo__some value__simplebaz__curlyfoo_RIGHT_larryfoo__larrybar_/;
         }
-        {
-            my $res = $cb->(GET "http://localhost/badpath");
-            like $res->content,
-        qr/_moebaz__moebar__simplefoo__some value__simplebaz__curlyfoo_RIGHT_larryfoo__larrybar_/;
-        }
-
     };
 
 
