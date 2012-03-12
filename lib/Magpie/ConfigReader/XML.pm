@@ -19,7 +19,17 @@ has match_stack => (
     },
 );
 
- has accept_matrix => (
+has assets => (
+    traits  => ['Array'],
+    is      => 'rw',
+    isa     => 'ArrayRef[Object]',
+    default => sub { [] },
+    handles => {
+        add_asset => 'push',
+    },
+);
+
+has accept_matrix => (
     traits  => ['Array'],
     is      => 'rw',
     isa     => 'ArrayRef[ArrayRef]',
@@ -179,21 +189,51 @@ sub process_assets {
     my $node = shift;
     foreach my $container ($node->findnodes('./container')) {
         warn "Container";
-        # process containers
+        $self->process_asset_container($container);
     }
 
     foreach my $service ($node->findnodes('./service')) {
         warn "Service";
-        # process services
+        $self->process_asset_service($service);
     }
 }
 
 sub process_asset_container {
-    # XXX TODO
+    my ($self, $node, $parent) = @_;
+    my $name = $node->findvalue('@name|./name/text()') || '';
+    my $c = Bread::Board::Container->new( name => $name );
+    if (defined $parent) {
+        $parent->add_sub_container($c);
+    }
+    else {
+        $self->add_asset($c);
+    }
+
+    foreach my $service ($node->findnodes('./service')) {
+        $self->process_asset_service($service, $c);
+    }
 }
 
 sub process_asset_service {
-    # XXX TODO
+    my ($self, $node, $container) = @_;
+
+    my $name          = $node->findvalue('@name|./name/text()');
+    my $injector_type = $node->findvalue('@type|./type/text()');
+
+    $injector_type ||= 'literal';
+    my $s;
+    
+    if ($injector_type eq 'literal') {
+        my $val = $node->findvalue('@value|./value/text()|./text()');
+        $s = Bread::Board::Literal->new( name => $name, value => $val );
+    }
+    
+    if (defined $container) {
+        $container->add_service($s);
+    }
+    else {
+        $self->add_asset($s);
+    }
 }
 
 # SEEALSO: Magpie
