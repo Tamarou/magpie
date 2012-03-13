@@ -1,7 +1,9 @@
 <?xml version="1.0"?>
 <application>
 	<assets>
-		<service name="somevar">some value</service>
+		<container name="MyContainer">
+			<service name="somevar">some value</service>
+		</container>
 	</assets>
     <pipeline>
     	<match type="regexp" rule="^/basic">

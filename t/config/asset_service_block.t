@@ -16,7 +16,7 @@ my $context = {
 };
 
 my $handler = builder {
-    enable "Magpie", context => $context, conf => 't/data/asset_basic.xml'
+    enable "Magpie", context => $context, conf => 't/data/asset_basic_container.xml'
 };
 
 test_psgi
@@ -24,9 +24,9 @@ test_psgi
     client => sub {
         my $cb = shift;
         {
-            my $res = $cb->(GET "http://localhost/basic?appstate=bareservice");
+            my $res = $cb->(GET "http://localhost/basic?appstate=simplecontainer");
             like $res->content,
-        qr/_moebaz__moebar__configassets__some value__curlyfoo_RIGHT_larryfoo__larrybar_/;
+        qr/_moebaz__moebar__simplecontainer__some value__curlyfoo_RIGHT_larryfoo__larrybar_/;
         }
     };
 

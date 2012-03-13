@@ -216,16 +216,19 @@ sub process_asset_container {
 
 sub process_asset_service {
     my ($self, $node, $container) = @_;
+    
+    my %service_args = (
+        name => $node->findvalue('@name|./name/text()'),
+    );
 
-    my $name          = $node->findvalue('@name|./name/text()');
     my $injector_type = $node->findvalue('@type|./type/text()');
 
     $injector_type ||= 'literal';
     my $s;
     
     if ($injector_type eq 'literal') {
-        my $val = $node->findvalue('@value|./value/text()|./text()');
-        $s = Bread::Board::Literal->new( name => $name, value => $val );
+        $service_args{value} = $node->findvalue('@value|./value/text()|./text()');
+        $s = Bread::Board::Literal->new(%service_args);
     }
     
     if (defined $container) {
