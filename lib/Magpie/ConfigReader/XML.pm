@@ -224,12 +224,28 @@ sub process_asset_service {
     my $injector_type = $node->findvalue('@type|./type/text()');
 
     $injector_type ||= 'literal';
-    my $s;
+    my $injector_subclass;
     
     if ($injector_type eq 'literal') {
+        $injector_subclass = 'Bread::Board::Literal';
         $service_args{value} = $node->findvalue('@value|./value/text()|./text()');
-        $s = Bread::Board::Literal->new(%service_args);
     }
+    elsif ($injector_type eq 'block') {
+        $injector_subclass = 'Bread::Board::BlockInjection';
+        my $dep_string = '';
+        foreach my $classnode ($node->findnodes('./requires/class')) {
+            $dep_string .= 'use ' . $classnode->findvalue('.') . ';';
+        }
+        my $block = $node->findvalue('./block/text()');
+        my $pkg_name = random_string();
+        my $subname  = random_string();
+        my $full_name = $pkg_name . '::' . $subname;
+        my $pkg = 'package ' . $pkg_name .'; ' . $dep_string . ' sub ' . $subname . '{' . $block . '} 1;';
+        eval "$pkg";
+        $service_args{block} = \&$full_name;
+    }
+
+    my $s = $injector_subclass->new(%service_args);
     
     if (defined $container) {
         $container->add_service($s);
@@ -239,6 +255,15 @@ sub process_asset_service {
     }
 }
 
+sub random_string {
+    my $length = shift || 10;
+    my $ret = '';
+    my @chars = ('a'..'z', 'A'..'Z');
+    for (0..$length) {
+        $ret .= $chars[ rand @chars ];
+    }
+    return $ret;
+}
 # SEEALSO: Magpie
 
 1;

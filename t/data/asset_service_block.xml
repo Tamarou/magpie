@@ -2,7 +2,15 @@
 <application>
 	<assets>
 		<container name="MyContainer">
-			<service name="somevar">some value</service>
+			<service name="simple_moose" type="block"><block><![CDATA[
+			    my $s = shift;
+			    my $obj = TestObject::SimpleMoose->new();
+			    $obj;
+			]]></block>
+			<requires>
+				<class>TestObject::SimpleMoose</class>
+			</requires>
+			</service>
 		</container>
 	</assets>
     <pipeline>

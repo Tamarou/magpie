@@ -15,7 +15,7 @@ use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 my @STACK      = ();
 my $MTOKEN     = undef;
 my $_add_frame = sub {
@@ -156,9 +156,9 @@ sub call {
         # If there is no Resource and nothing in the Pipeline then, really,
         # we haven't found any way to prcess the request. 404 is what most
         # people would expect, I think.
-        unless ( scalar @{$pipeline} ) {
-            HTTP::Throwable::Factory->throw(404);
-        }
+        #unless ( scalar @{$pipeline} ) {
+        #    HTTP::Throwable::Factory->throw(404);
+        #}
         push @resource_handlers, 'Magpie::Resource::Abstract';
     }
 
@@ -166,8 +166,9 @@ sub call {
         $m->assets($assets);
     }
 
-    foreach my $asset ( @{$self->config_assets} ) {
-        warn "Adding asset" . Dumper($asset);
+    my $config_assets = $self->config_assets || [];
+    foreach my $asset ( @{$config_assets} ) {
+        #warn "Adding asset" . Dumper($asset);
         $m->add_asset( $asset );
     }
 
