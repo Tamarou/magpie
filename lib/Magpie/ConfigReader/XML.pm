@@ -265,9 +265,14 @@ sub process_asset_service {
                 my $dep_val  = $d->findvalue('@value|./value/text()');
                 my $dep_key  = $d->findvalue('@key|./key/text()') || $dep_name;
                 $deps->{$dep_key} = Bread::Board::Literal->new( name => $dep_name, value => $dep_val);
-                
+            }
+            else {
+                 my $dep_name = $d->findvalue('@name|./name/text()');
+                my $dep_path = $d->findvalue('@service_path|./service_path/text()');
+                $deps->{$dep_name} = Bread::Board::Dependency->new( service_path => $dep_path );                
             }
         }
+        
         $service_args{dependencies} = $deps;
     }
 

@@ -6,14 +6,19 @@
 				<class>TestObject::SimpleMoose</class>
 				<block><![CDATA[
 					my $s = shift;
-					my $obj = TestObject::SimpleMoose->new(foo => $s->param('foo'));
+					my $obj = TestObject::SimpleMoose->new(
+						foo => $s->param('foo'),
+						favorite_holiday => $s->param('holiday')
+					);
 					$obj;
 				]]></block>
 				<dependencies>
 					<dependency type="literal" name="foo" value="baz"/>
+					<dependency name="holiday" service_path="../holiday"/>
 				</dependencies>
 			</service>
 		</container>
+	    <service name="holiday">Christmas</service>
 	</assets>
     <pipeline>
     	<match type="regexp" rule="^/basic">

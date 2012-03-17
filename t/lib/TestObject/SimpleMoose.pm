@@ -13,4 +13,10 @@ has foo => (
 	default		=> 'bar',
 );
 
+has favorite_holiday => (
+	is			=> 'rw',
+	isa			=> 'Str',
+	default		=> 'Easter',
+);
+
 1;

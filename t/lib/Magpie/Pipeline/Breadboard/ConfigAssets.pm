@@ -30,7 +30,7 @@ sub blockinjector {
     my $body = $self->response->body || '';
     my $simple_moose = $self->resolve_asset( service => 'MyContainer/simple_moose' );
     warn "SM" . Dumper($simple_moose);
-    $body .= '_blockinjector_' . '_' . $simple_moose->name . '_' . $simple_moose->foo . '_';
+    $body .= '_blockinjector_' . '_' . $simple_moose->name . '_' . $simple_moose->foo . '_' . $simple_moose->favorite_holiday . '_';
     $self->response->body( $body );
     return OK;
 }
