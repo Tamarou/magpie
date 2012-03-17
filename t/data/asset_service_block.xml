@@ -2,14 +2,13 @@
 <application>
 	<assets>
 		<container name="MyContainer">
-			<service name="simple_moose" type="block"><block><![CDATA[
+			<service name="simple_moose" type="block">
+			<class>TestObject::SimpleMoose</class>
+			<block><![CDATA[
 			    my $s = shift;
 			    my $obj = TestObject::SimpleMoose->new();
 			    $obj;
 			]]></block>
-			<requires>
-				<class>TestObject::SimpleMoose</class>
-			</requires>
 			</service>
 		</container>
 	</assets>

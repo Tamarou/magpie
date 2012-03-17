@@ -232,15 +232,26 @@ sub process_asset_service {
     }
     elsif ($injector_type eq 'block') {
         $injector_subclass = 'Bread::Board::BlockInjection';
-        my $dep_string = '';
-        foreach my $classnode ($node->findnodes('./requires/class')) {
-            $dep_string .= 'use ' . $classnode->findvalue('.') . ';';
+        my %deps = ();
+        
+        if ($node->exists('@class|./class')) {
+            my $dep = $node->findvalue('@class|./class/text()'); 
+            $deps{$dep} = 1;
         }
+
+        foreach my $classnode ($node->findnodes('./requires/class')) {
+            my $dep = $classnode->findvalue('.');
+            $deps{$dep} = 1;
+        }
+
+        my $dep_string = join "\n", map { "use $_;" } keys %deps;
+        
         my $block = $node->findvalue('./block/text()');
         my $pkg_name = random_string();
         my $subname  = random_string();
         my $full_name = $pkg_name . '::' . $subname;
         my $pkg = 'package ' . $pkg_name .'; ' . $dep_string . ' sub ' . $subname . '{' . $block . '} 1;';
+
         eval "$pkg";
         $service_args{block} = \&$full_name;
     }
