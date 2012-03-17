@@ -26,7 +26,7 @@ test_psgi
         {
             my $res = $cb->(GET "http://localhost/basic?appstate=blockinjector");
             like $res->content,
-        qr/_moebaz__moebar__blockinjector__some name__curlyfoo_RIGHT_larryfoo__larrybar_/;
+        qr/_moebaz__moebar__blockinjector__some name_baz__curlyfoo_RIGHT_larryfoo__larrybar_/;
         }
     };
 

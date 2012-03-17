@@ -3,12 +3,15 @@
 	<assets>
 		<container name="MyContainer">
 			<service name="simple_moose" type="block">
-			<class>TestObject::SimpleMoose</class>
-			<block><![CDATA[
-			    my $s = shift;
-			    my $obj = TestObject::SimpleMoose->new();
-			    $obj;
-			]]></block>
+				<class>TestObject::SimpleMoose</class>
+				<block><![CDATA[
+					my $s = shift;
+					my $obj = TestObject::SimpleMoose->new(foo => $s->param('foo'));
+					$obj;
+				]]></block>
+				<dependencies>
+					<dependency type="literal" name="foo" value="baz"/>
+				</dependencies>
 			</service>
 		</container>
 	</assets>

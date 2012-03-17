@@ -5,7 +5,12 @@ has name => (
 	is			=> 'rw',
 	isa			=> 'Str',
 	default		=> 'some name',
-	#required	=> 1,
+);
+
+has foo => (
+	is			=> 'rw',
+	isa			=> 'Str',
+	default		=> 'bar',
 );
 
 1;

@@ -255,6 +255,21 @@ sub process_asset_service {
         eval "$pkg";
         $service_args{block} = \&$full_name;
     }
+    
+    if ($node->exists('./dependencies')) {
+        my $deps = {};
+        foreach my $d ($node->findnodes('./dependencies/dependency')) {
+            my $dep_type = $d->findvalue('@type|./type/text()');
+            if ($dep_type && $dep_type eq 'literal') {
+                my $dep_name = $d->findvalue('@name|./name/text()');
+                my $dep_val  = $d->findvalue('@value|./value/text()');
+                my $dep_key  = $d->findvalue('@key|./key/text()') || $dep_name;
+                $deps->{$dep_key} = Bread::Board::Literal->new( name => $dep_name, value => $dep_val);
+                
+            }
+        }
+        $service_args{dependencies} = $deps;
+    }
 
     my $s = $injector_subclass->new(%service_args);
     
