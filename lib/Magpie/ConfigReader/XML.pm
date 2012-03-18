@@ -209,6 +209,10 @@ sub process_asset_container {
         $self->add_asset($c);
     }
 
+    foreach my $child ($node->findnodes('./container')) {
+        $self->process_asset_container($child, $c);
+    }
+
     foreach my $service ($node->findnodes('./service')) {
         $self->process_asset_service($service, $c);
     }
