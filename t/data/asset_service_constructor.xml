@@ -1,32 +1,15 @@
 <?xml version="1.0"?>
 <application>
 	<assets>
-		<container name="MyContainer">
-			<service name="simple_moose" type="block">
-				<class>TestObject::SimpleMoose</class>
-				<block><![CDATA[
-					my $s = shift;
-					my $obj = TestObject::SimpleMoose->new(
-						foo => $s->param('foo'),
-						favorite_holiday => $s->param('holiday')
-					);
-					$obj;
-				]]></block>
-				<dependencies>
-					<dependency type="literal" name="foo" value="baz"/>
-					<dependency name="holiday" service_path="../xmas"/>
-				</dependencies>
-			</service>
-		</container>
-		<!--
 		<container name="Container2">
 			<service name="simple_moose" type="constructor">
 				<class>TestObject::SimpleMoose</class>
 				<dependencies>
 					<dependency type="literal" name="foo" value="baz"/>
-					<dependency name="favorite_holiday" service_path="../holiday"/>
+					<dependency name="favorite_holiday" service_path="../xmas"/>
 				</dependencies>
-		</container> -->
+			</service>
+		</container>
 	    <service name="xmas">Christmas</service>
 	</assets>
     <pipeline>

@@ -221,6 +221,10 @@ sub process_asset_service {
         name => $node->findvalue('@name|./name/text()'),
     );
 
+    if ($node->exists('@class|./class')) {
+        $service_args{class} = $node->findvalue('@class|./class/text()'); 
+    }
+
     my $injector_type = $node->findvalue('@type|./type/text()');
 
     $injector_type ||= 'literal';
@@ -229,6 +233,12 @@ sub process_asset_service {
     if ($injector_type eq 'literal') {
         $injector_subclass = 'Bread::Board::Literal';
         $service_args{value} = $node->findvalue('@value|./value/text()|./text()');
+    }
+    elsif ($injector_type eq 'constructor') {
+        $injector_subclass = 'Bread::Board::ConstructorInjection';    
+    }
+    elsif ($injector_type eq 'setter') {
+        $injector_subclass = 'Bread::Board::SetterInjection';    
     }
     elsif ($injector_type eq 'block') {
         $injector_subclass = 'Bread::Board::BlockInjection';
