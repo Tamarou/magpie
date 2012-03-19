@@ -216,6 +216,17 @@ sub process_asset_container {
     foreach my $service ($node->findnodes('./service')) {
         $self->process_asset_service($service, $c);
     }
+    
+    foreach my $alias ($node->findnodes('./alias')) {
+        my $name = $alias->findvalue('@name|./name/text()');    
+        my $path = $alias->findvalue('@path|./path/text()');
+        my $service_alias = Bread::Board::Service::Alias->new(
+            name                => $name,
+            aliased_from_path   => $path,
+        );
+        $c->add_service($service_alias)
+    }
+
 }
 
 sub process_asset_service {
@@ -285,7 +296,7 @@ sub process_asset_service {
                 $deps->{$dep_key} = Bread::Board::Literal->new( name => $dep_name, value => $dep_val);
             }
             else {
-                 my $dep_name = $d->findvalue('@name|./name/text()');
+                my $dep_name = $d->findvalue('@name|./name/text()');
                 my $dep_path = $d->findvalue('@service_path|./service_path/text()');
                 $deps->{$dep_name} = Bread::Board::Dependency->new( service_path => $dep_path );                
             }
