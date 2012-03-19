@@ -269,6 +269,10 @@ sub process_asset_service {
         eval "$pkg";
         $service_args{block} = \&$full_name;
     }
+
+    if ($node->exists('@lifecycle|./lifecycle')) {
+            $service_args{lifecycle} = $node->findvalue('@lifecycle|./lifecycle'); 
+    }
     
     if ($node->exists('./dependencies')) {
         my $deps = {};
