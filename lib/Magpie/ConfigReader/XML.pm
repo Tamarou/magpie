@@ -196,6 +196,16 @@ sub process_assets {
         #warn "Service";
         $self->process_asset_service($service);
     }
+
+    foreach my $alias ($node->findnodes('./alias')) {
+        my $name = $alias->findvalue('@name|./name/text()');
+        my $path = $alias->findvalue('@path|./path/text()');
+        my $service_alias = Bread::Board::Service::Alias->new(
+            name                => $name,
+            aliased_from_path   => $path,
+        );
+        $self->add_asset($service_alias)
+    }
 }
 
 sub process_asset_container {
@@ -216,9 +226,9 @@ sub process_asset_container {
     foreach my $service ($node->findnodes('./service')) {
         $self->process_asset_service($service, $c);
     }
-    
+
     foreach my $alias ($node->findnodes('./alias')) {
-        my $name = $alias->findvalue('@name|./name/text()');    
+        my $name = $alias->findvalue('@name|./name/text()');
         my $path = $alias->findvalue('@path|./path/text()');
         my $service_alias = Bread::Board::Service::Alias->new(
             name                => $name,
@@ -231,36 +241,36 @@ sub process_asset_container {
 
 sub process_asset_service {
     my ($self, $node, $container) = @_;
-    
+
     my %service_args = (
         name => $node->findvalue('@name|./name/text()'),
     );
 
     if ($node->exists('@class|./class')) {
-        $service_args{class} = $node->findvalue('@class|./class/text()'); 
+        $service_args{class} = $node->findvalue('@class|./class/text()');
     }
 
     my $injector_type = $node->findvalue('@type|./type/text()');
 
     $injector_type ||= 'literal';
     my $injector_subclass;
-    
+
     if ($injector_type eq 'literal') {
         $injector_subclass = 'Bread::Board::Literal';
         $service_args{value} = $node->findvalue('@value|./value/text()|./text()');
     }
     elsif ($injector_type eq 'constructor') {
-        $injector_subclass = 'Bread::Board::ConstructorInjection';    
+        $injector_subclass = 'Bread::Board::ConstructorInjection';
     }
     elsif ($injector_type eq 'setter') {
-        $injector_subclass = 'Bread::Board::SetterInjection';    
+        $injector_subclass = 'Bread::Board::SetterInjection';
     }
     elsif ($injector_type eq 'block') {
         $injector_subclass = 'Bread::Board::BlockInjection';
         my %deps = ();
-        
+
         if ($node->exists('@class|./class')) {
-            my $dep = $node->findvalue('@class|./class/text()'); 
+            my $dep = $node->findvalue('@class|./class/text()');
             $deps{$dep} = 1;
         }
 
@@ -270,7 +280,7 @@ sub process_asset_service {
         }
 
         my $dep_string = join "\n", map { "use $_;" } keys %deps;
-        
+
         my $block = $node->findvalue('./block/text()');
         my $pkg_name = random_string();
         my $subname  = random_string();
@@ -282,9 +292,9 @@ sub process_asset_service {
     }
 
     if ($node->exists('@lifecycle|./lifecycle')) {
-            $service_args{lifecycle} = $node->findvalue('@lifecycle|./lifecycle'); 
+            $service_args{lifecycle} = $node->findvalue('@lifecycle|./lifecycle');
     }
-    
+
     if ($node->exists('./dependencies')) {
         my $deps = {};
         foreach my $d ($node->findnodes('./dependencies/dependency')) {
@@ -298,15 +308,15 @@ sub process_asset_service {
             else {
                 my $dep_name = $d->findvalue('@name|./name/text()');
                 my $dep_path = $d->findvalue('@service_path|./service_path/text()');
-                $deps->{$dep_name} = Bread::Board::Dependency->new( service_path => $dep_path );                
+                $deps->{$dep_name} = Bread::Board::Dependency->new( service_path => $dep_path );
             }
         }
-        
+
         $service_args{dependencies} = $deps;
     }
 
     my $s = $injector_subclass->new(%service_args);
-    
+
     if (defined $container) {
         $container->add_service($s);
     }
