@@ -152,13 +152,14 @@ sub call {
         }
     }
     elsif ( !grep { !ref($_) && $_->isa('Magpie::Resource') } @{$pipeline} ) {
-    
+
         # If there is no Resource and nothing in the Pipeline then, really,
         # we haven't found any way to prcess the request. 404 is what most
         # people would expect, I think.
-        #unless ( scalar @{$pipeline} ) {
-        #    HTTP::Throwable::Factory->throw(404);
-        #}
+        unless ( scalar @{$pipeline} ) {
+            my $err = HTTP::Throwable::Factory->new_exception('NotFound');
+            return $err->();
+        }
         push @resource_handlers, 'Magpie::Resource::Abstract';
     }
 

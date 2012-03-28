@@ -10,7 +10,7 @@ use Plack::Middleware::Magpie;
 use HTTP::Request::Common;
 
 my $handler = builder {
-    enable "Magpie";
+    enable "Magpie", resource => 'Magpie::Resource::Abstract';
 };
 
 test_psgi
