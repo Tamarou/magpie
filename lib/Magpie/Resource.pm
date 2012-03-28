@@ -4,19 +4,10 @@ package Magpie::Resource;
 
 use Moose;
 extends 'Magpie::Component';
+with 'Magpie::Dispatcher::RequestMethod';
 use Magpie::Constants;
 
-__PACKAGE__->register_events( qw(method_not_allowed), HTTP_METHODS );
-
-# XXX: Move to a real Dispactcher
-sub load_queue {
-    my $self   = shift;
-    my $method = $self->plack_request->method;
-    if ( scalar grep { $_ eq $method } HTTP_METHODS ) {
-        return $method;
-    }
-    return 'method_not_allowed';
-}
+__PACKAGE__->register_events(Magpie::Dispatcher::RequestMethod::events());
 
 has '+_trait_namespace' => ( default => 'Magpie::Plugin::Resource' );
 

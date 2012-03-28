@@ -185,7 +185,7 @@ sub load_handler {
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
     #warn "load: current handler: $handler " . $self->has_error ." \n";
-    
+
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
         # to the pipeline as the *name* of a class, rather
@@ -209,7 +209,7 @@ sub load_handler {
 
 		if ( $handler->isa('Plack::Middleware') ) {
             Class::MOP::load_class( 'Magpie::Transformer::Middleware' );
-			my $munged_args = { 
+			my $munged_args = {
 				middleware_args => $handler_args,
 				middleware_class => $handler,
 			};
@@ -219,7 +219,7 @@ sub load_handler {
 			$self->current_handler_args($handler_args);
 		}
 
-		
+
         my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
 
         try {
@@ -447,9 +447,6 @@ sub init_queue {
     my $pkg = $self->meta->name;
     my @event_names = ();
 
-#     if ( $self->has_dispatcher ) {
-#         # XXX: pluggable dispatcher here
-#     }
     if ( $self->can('load_queue') ) {
         @event_names = $self->load_queue($ctxt);
     }
