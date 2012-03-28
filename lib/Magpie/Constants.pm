@@ -18,6 +18,7 @@ sub import {
         SERVER_ERROR  => sub () { 500 },
         HANDLER_ERROR => sub () { 501 },
         QUEUE_ERROR   => sub () { 502 },
+        HTTP_METHODS  => sub () { (qw(GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT)) },
     );
 
     for my $symbol ( keys %exports ) {

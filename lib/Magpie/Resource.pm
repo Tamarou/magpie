@@ -6,14 +6,13 @@ use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
 
-my @HTTP_METHODS = qw(GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT);
-__PACKAGE__->register_events( qw(method_not_allowed), @HTTP_METHODS );
+__PACKAGE__->register_events( qw(method_not_allowed), HTTP_METHODS );
 
 # XXX: Move to a real Dispactcher
 sub load_queue {
     my $self   = shift;
     my $method = $self->plack_request->method;
-    if ( scalar grep { $_ eq $method } @HTTP_METHODS ) {
+    if ( scalar grep { $_ eq $method } HTTP_METHODS ) {
         return $method;
     }
     return 'method_not_allowed';
@@ -66,7 +65,7 @@ sub methods_implemented {
     my %implemented = ();
     foreach my $class ( $self->meta->linearized_isa ) {
         next if $class =~ /^(Magpie|Moose)::/;
-        foreach (@HTTP_METHODS){
+        foreach (HTTP_METHODS){
             $implemented{$_}++ if $class->meta->has_method($_);
         }
     }
@@ -75,7 +74,7 @@ sub methods_implemented {
 
 sub method_not_allowed {
     my $self = shift;
-    my $method = $self->plack_request->method;
+    my $method = $self->plack_request->method || 'unknown';
     my @allowed = $self->methods_implemented;
     $self->set_error(
         {   status_code        => 405,
