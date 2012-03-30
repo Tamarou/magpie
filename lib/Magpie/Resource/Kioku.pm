@@ -136,7 +136,7 @@ sub GET {
     return OK if $self->has_error;
 
     unless ($data) {
-        $self->set_error(404);
+        $self->set_error({ status_code => 404, reason => 'Resource not found.'});
         return OK;
     }
 
