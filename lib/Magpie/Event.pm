@@ -6,6 +6,7 @@ with qw( Magpie::Event::Symbol Magpie::Types );
 
 use Magpie::Constants;
 use Magpie::SymbolTable;
+use Magpie::Util;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
@@ -339,7 +340,7 @@ sub add_next_handler {
 sub add_handlers {
     my $self = shift;
     my @handlers = @_;
-    @handlers = $self->_make_tuples( @handlers );
+    @handlers = Magpie::Util::make_tuples( @handlers );
     $self->push_handlers(@handlers);
 }
 
@@ -352,25 +353,6 @@ sub reset_handlers {
     my @handlers = @_;
     $self->clear_handlers;
     return $self->add_handlers( @handlers );
-}
-
-#-------------------------------------------------------------------------------
-# internal convenience for regularizing potentially uneven lists of name/param
-# hash pairs
-#-------------------------------------------------------------------------------
-sub _make_tuples {
-    my $self = shift;
-    my @in = @_;
-    my @out = ();
-    for (my $i = 0; $i < scalar @in; $i++ ) {
-        next if ref( $in[$i] ) eq 'HASH';
-        my $args = {};
-        if ( ref( $in[$i + 1 ]) eq 'HASH' ) {
-            $args = $in[$i + 1 ];
-        }
-        push @out, [$in[$i], $args];
-    }
-    return @out;
 }
 
 sub end_application {
