@@ -5,17 +5,19 @@ use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
 
-use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets);
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins);
 
-our @EXPORT = qw( machine match match_env match_accept);
+our @EXPORT = qw( machine match match_env match_accept match_template);
 use Scalar::Util qw(reftype);
 use Magpie::Machine;
 use Magpie::Matcher;
+use Magpie::Util;
+use Magpie::Plugin::URITemplate;
 use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
-#use Data::Dumper::Concise;
+use Data::Dumper::Concise;
 my @STACK      = ();
 my $MTOKEN     = undef;
 my $_add_frame = sub {
@@ -59,6 +61,29 @@ sub match_accept {
     my $to_match = shift;
     my $input    = shift;
     my $frame    = [ 'ACCEPT', $to_match, $input, $MTOKEN ];
+    $_add_frame->($frame);
+}
+
+sub match_template {
+    my $to_match = shift;
+    my $input    = shift;
+    #warn "IN " . Dumper($input);
+    my ($re, $names) = Magpie::Plugin::URITemplate::process_template($to_match);
+    my @tuples = Magpie::Util::make_tuples(@{$input});
+    my @new_input = ();
+    foreach my $pair (@tuples) {
+        if (defined $pair->[1]->{traits}) {
+            push @{$pair->[1]->{traits}}, 'URITemplate';            
+        }
+        else {
+            $pair->[1]->{traits} = ['URITemplate'];
+        }
+        
+        $pair->[1]->{uri_template} = $to_match;
+        push @new_input, @{$pair};
+    }
+    my $frame    = [ 'REGEXP', $re, \@new_input, $MTOKEN ];
+    #warn "NEW FRAME" . Dumper($frame);
     $_add_frame->($frame);
 }
 

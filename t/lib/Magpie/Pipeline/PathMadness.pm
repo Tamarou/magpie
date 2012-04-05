@@ -11,7 +11,11 @@ sub GET {
 	my %params = $self->uri_template_params;
     my $body = $self->response->body || '';
     $body = ref($body) eq 'ARRAY' ? join '', @$body : $body;
-    $body .= '_pathmadness_' . $params{store_id} . '_' . $params{item_id};
+    my $vstring = '';
+    foreach my $k (sort keys %params) {
+    	$vstring .= '_' . $params{$k} . '_'; 
+    }
+    $body .= 'pathmadness_' . $vstring;
     $self->response->body( $body );
     return OK;
 }

@@ -11,21 +11,19 @@ use Plack::Middleware::Magpie;
 
 my $handler = builder {
     enable "Magpie", context => {}, pipeline => [
-		'Magpie::Pipeline::PathMadness' => {
-			traits => ['URITemplate'],
-			uri_template => '/shop/{store_id}/item/{item_id}',
-		}
+        machine {
+            match_template '/.+/{store_id}/item/{item_id}' => ['Magpie::Pipeline::PathMadness', 'Magpie::Pipeline::PathMadness'];
+        },
     ];
 };
 
-use Data::Printer;
 test_psgi
     app    => $handler,
     client => sub {
         my $cb = shift;
         {
             my $res = $cb->(GET "http://localhost/shop/aaa/item/1234567");
-            like $res->content, qr|pathmadness__1234567__aaa_|;
+            like $res->content, qr|pathmadness__1234567__aaa_pathmadness__1234567__aaa_|;
         }
     };
 
