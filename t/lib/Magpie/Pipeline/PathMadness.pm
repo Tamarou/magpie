@@ -13,7 +13,7 @@ sub GET {
     $body = ref($body) eq 'ARRAY' ? join '', @$body : $body;
     my $vstring = '';
     foreach my $k (sort keys %params) {
-    	$vstring .= '_' . $params{$k} . '_'; 
+    	$vstring .= '_' . $k . '::' . $params{$k} . '_'; 
     }
     $body .= 'pathmadness_' . $vstring;
     $self->response->body( $body );

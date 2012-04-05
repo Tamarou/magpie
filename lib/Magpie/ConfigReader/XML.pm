@@ -3,7 +3,10 @@ package Magpie::ConfigReader::XML;
 
 use Moose;
 use XML::LibXML;
-use Data::Dumper::Concise;
+use Magpie::Util;
+use Magpie::Plugin::URITemplate;
+
+#use Data::Dumper::Concise;
 
 sub make_token {
     return '__MTOKEN__XMLCONF';
@@ -84,11 +87,18 @@ sub process_match {
     my $to_match = $node->findvalue('@rule|./rule/text()');
     if ( $match_type eq 'REGEXP' ) {
         $to_match = qr|$to_match|;
+        foreach my $add ($node->findnodes('./add')) {
+            push @{$input}, process_add( $add );
+        }
     }
-    elsif ($match_type eq 'LITERAL' ) {
+    elsif ($match_type eq 'LITERAL') {
         $match_type = 'STRING';
+
+        foreach my $add ($node->findnodes('./add')) {
+            push @{$input}, process_add( $add );
+        }
     }
-    elsif ($match_type eq 'ENV' ) {
+    elsif ($match_type eq 'ENV') {
         $match_type = 'HASH';
         $to_match = {};
         foreach my $rule ($node->findnodes('./rules/rule')) {
@@ -101,14 +111,46 @@ sub process_match {
             next unless $key && $val;
             $to_match->{$key} = $val;
         }
+
+        foreach my $add ($node->findnodes('./add')) {
+            push @{$input}, process_add( $add );
+        }
+
     }
-    elsif ($match_type eq 'ACCEPT' ) {
+    elsif ($match_type eq 'ACCEPT') {
         $to_match = $node->findvalue('@variant_name|./variant_name/text()');
+
+        foreach my $add ($node->findnodes('./add')) {
+            push @{$input}, process_add( $add );
+        }
+    }
+    # NOTE: See comment in Plack::Middleware::Magpie re: this munging.
+    elsif ($match_type eq 'TEMPLATE') {
+        $match_type = 'REGEXP';
+        my $uri_template = $to_match;
+        
+        # to_match becomes the compiled regexp here
+        my ($match_re, $names) = Magpie::Plugin::URITemplate::process_template($to_match);
+        $to_match = $match_re;
+        my @old_input = ();
+        foreach my $add ($node->findnodes('./add')) {
+            push @old_input, process_add( $add );
+        }
+
+        my @tuples = Magpie::Util::make_tuples(@old_input);
+
+        foreach my $pair (@tuples) {
+            if (defined $pair->[1]->{traits}) {
+                push @{$pair->[1]->{traits}}, 'URITemplate';            
+            }
+            else {
+                $pair->[1]->{traits} = ['URITemplate'];
+            }
+            $pair->[1]->{uri_template} = $uri_template;
+            push @{$input}, @{$pair};
+        }    
     }
 
-    foreach my $add ($node->findnodes('./add')) {
-        push @{$input}, process_add( $add );
-    }
     return ($match_type, $to_match, $input);
 }
 

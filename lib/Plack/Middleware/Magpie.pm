@@ -17,7 +17,7 @@ use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 my @STACK      = ();
 my $MTOKEN     = undef;
 my $_add_frame = sub {
@@ -64,6 +64,9 @@ sub match_accept {
     $_add_frame->($frame);
 }
 
+# NOTE: We do this here (and the config file processor(s)) instead
+# of in Matcher.pm so we don't have to reparse the template on every request.
+# Consider benchmarking a fork that *does* do it in the Matcher at some point.
 sub match_template {
     my $to_match = shift;
     my $input    = shift;
