@@ -65,7 +65,7 @@ sub process_template {
 		}
 		elsif ($_ eq '}') {
 			push @names, $token;
-			$transformed .= '(.+)';
+			$transformed .= '(.*)';
 			$token = undef;
 			$intoken = 0;
 		
