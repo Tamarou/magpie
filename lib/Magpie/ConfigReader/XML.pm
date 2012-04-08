@@ -6,7 +6,7 @@ use XML::LibXML;
 use Magpie::Util;
 use Magpie::Plugin::URITemplate;
 
-#use Data::Dumper::Concise;
+#use Data::Printer;
 
 sub make_token {
     return '__MTOKEN__XMLCONF';
@@ -141,7 +141,7 @@ sub process_match {
 
         foreach my $pair (@tuples) {
             if (defined $pair->[1]->{traits}) {
-                push @{$pair->[1]->{traits}}, 'URITemplate';            
+                push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';            
             }
             else {
                 $pair->[1]->{traits} = ['URITemplate'];
@@ -168,14 +168,25 @@ sub process_add {
             else {
                 $name = $param->localname;
                 $value = $param->findvalue('./text()');
-                $params->{$name} = $value;
             }
 
             $value =~ s/^\s+//;
 	        $value =~ s/\s+$//;
 
+
             if( $name && $value ) {
-                $params->{$name} = $value;
+                if (defined $params->{$name}) {
+                    if (ref ($params->{$name}) eq 'ARRAY') {
+                        push @{$params->{$name}}, $value;
+                    }
+                    else {
+                        my $existing = delete $params->{$name};
+                        $params->{$name} = [$existing, $value];
+                    }
+                }
+                else {
+                    $params->{$name} = $value;
+                }
             }
         }
     }
