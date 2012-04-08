@@ -25,7 +25,7 @@ test_psgi
         my $cb = shift;
         {
             my $res = $cb->(GET "http://localhost/shop/aaa/item/1234567");
-            like $res->content, qr|pathmadness__1234567__aaa_|;
+            like $res->content, qr|pathmadness__item_id::1234567__store_id::aaa_|;
         }
     };
 
