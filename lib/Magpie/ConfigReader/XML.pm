@@ -141,10 +141,16 @@ sub process_match {
 
         foreach my $pair (@tuples) {
             if (defined $pair->[1]->{traits}) {
-                push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';            
+                if (ref $pair->[1]->{traits} eq 'ARRAY') {
+                    push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';
+                }
+                else {
+                    my $existing = delete $pair->[1]->{traits};
+                    $pair->[1]->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
+                }
             }
             else {
-                $pair->[1]->{traits} = ['URITemplate'];
+                $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
             }
             $pair->[1]->{uri_template} = $uri_template;
             push @{$input}, @{$pair};

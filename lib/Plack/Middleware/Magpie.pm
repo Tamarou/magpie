@@ -76,10 +76,10 @@ sub match_template {
     my @new_input = ();
     foreach my $pair (@tuples) {
         if (defined $pair->[1]->{traits}) {
-            push @{$pair->[1]->{traits}}, 'URITemplate';            
+            push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';            
         }
         else {
-            $pair->[1]->{traits} = ['URITemplate'];
+            $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
         }
         
         $pair->[1]->{uri_template} = $to_match;
