@@ -12,7 +12,7 @@ has uri_template_param_names => (
 );
 
 has uri_template => (
-	is			=> 'ro',
+	is			=> 'rw',
 	isa			=> 'Str',
 	required	=> 1,
 );
@@ -43,11 +43,11 @@ sub uri_template_params {
 	}
 
 	my %params = ();
-	
+
 	for (my $i = 0; $i < @{$names}; $i++) {
 		$params{$names->[$i]} = $vals[$i];
 	}
-	
+
 	return wantarray ? %params : \%params;
 }
 
@@ -68,7 +68,7 @@ sub process_template {
 			$transformed .= '(.*)';
 			$token = undef;
 			$intoken = 0;
-		
+
 		}
 		else {
 			if ($intoken) {
@@ -79,7 +79,7 @@ sub process_template {
 			}
 		}
 	}
-	
+
 	my $re = qr|$transformed|;
 	return ($re, \@names);
 

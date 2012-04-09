@@ -76,12 +76,12 @@ sub match_template {
     my @new_input = ();
     foreach my $pair (@tuples) {
         if (defined $pair->[1]->{traits}) {
-            push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';            
+            push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';
         }
         else {
             $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
         }
-        
+
         $pair->[1]->{uri_template} = $to_match;
         push @new_input, @{$pair};
     }
@@ -161,6 +161,7 @@ sub call {
 
     $pipeline = $matcher->detokenize_pipeline($pipeline);
 
+    #use Data::Dumper::Concise;
     #warn "pipe " . Dumper( $pipeline, \@STACK );
 
     my $m = Magpie::Machine->new( plack_request => $req, );

@@ -9,7 +9,7 @@ __PACKAGE__->register_events(
 );
 
 has simple_argument => (
-    is          => 'ro',
+    is          => 'rw',
     isa         => 'Str',
     required => 1,
 );

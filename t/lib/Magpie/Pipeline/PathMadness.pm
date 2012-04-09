@@ -9,11 +9,13 @@ __PACKAGE__->register_events(Magpie::Dispatcher::RequestMethod::events());
 sub GET {
 	my $self = shift;
 	my %params = $self->uri_template_params;
+	use Data::Printer;
+	warn "params" . p(%params);
     my $body = $self->response->body || '';
     $body = ref($body) eq 'ARRAY' ? join '', @$body : $body;
     my $vstring = '';
     foreach my $k (sort keys %params) {
-    	$vstring .= '_' . $k . '::' . $params{$k} . '_'; 
+    	$vstring .= '_' . $k . '::' . $params{$k} . '_';
     }
     $body .= 'pathmadness_' . $vstring;
     $self->response->body( $body );
