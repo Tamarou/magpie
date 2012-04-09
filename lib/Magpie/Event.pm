@@ -267,23 +267,19 @@ sub run_handler {
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
     #warn "run handler: $handler\n";
-use Data::Printer;
+
     if ( my $h = $self->fetch_handler( $handler ) ) {
         # class may be loaded but params may be different
         my @attributes = $h->meta->get_all_attributes;
         foreach my $param (keys( %{$handler_args})) {
             foreach my $attr (@attributes) {
-                next unless $param eq $attr->name;
-                #warn "param $param" . p($handler_args);
-                next unless ($attr->has_writer || $attr->has_accessor);
-#                     warn "Unable update component parameter '$param' because it has no writer or accessor method. Is that attribute read-only?\n";
-#                     next;
-#                 }
+                next unless $attr->has_writer || $attr->has_accessor;
                 my $method = $attr->get_write_method || $attr->accessor;
+                next unless $param eq $method;
                 $h->$method( $handler_args->{$param} );
             }
         }
-        #warn "Running handler $handler \n";
+        # "Running handler $handler \n";
         try {
             $h->run( $ctxt );
         }
