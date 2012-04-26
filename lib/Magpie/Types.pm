@@ -1,7 +1,8 @@
 package Magpie::Types;
 # ABSTRACT: Common Magpie Type Constraints
 use Moose::Role;
-use HTTP::Throwable::Factory;
+#use HTTP::Throwable::Factory;
+use Magpie::Error;
 use Moose::Util::TypeConstraints;
 
 my %http_lookup = (
@@ -42,11 +43,11 @@ subtype 'SmartHTTPError' => as 'Maybe[Object]';
 
 coerce 'SmartHTTPError'
     => from 'HashRef'
-        => via { HTTP::Throwable::Factory->new_exception($_) },
+        => via { Magpie::Error->new_exception($_) },
     => from 'Int'
         => via { my $name = code_lookup($_); return HTTP::Throwable::Factory->new_exception( $name => {}) },
     => from 'Str'
-        => via { HTTP::Throwable::Factory->new_exception($_ => {}) },
+        => via { Magpie::Error->new_exception($_ => {}) },
 ;
 
 sub code_lookup {
