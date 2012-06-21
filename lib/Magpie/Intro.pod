@@ -68,13 +68,17 @@ Way(tm) that unduly limits developers' freedom.
 
 =head2 The URL Is Not The Resource, The Resource Is Not The Thing
 
-When a client sends a request via HTTP to a given URL they are asking for a B<Representation> of a Resource, not the Resource itself. Unfortunately, the first generation of Web frameworks that tried to implement practical RESTful architectures often mixed things up and made it seem like the URL was the Resource and the Resource was the Thing. 
+When a client sends a request via HTTP to a given URL they are asking for a B<Representation> of a Resource, not the Resource itself. Unfortunately, the first generation of Web frameworks that tried to implement practical RESTful architectures often mixed things up and made it seem like the URL was the Resource and the Resource was the Thing.
 
 To illustrate the distinctions, let's suppose that you want to implement a CRUD (Create, Read, Update, Delete) interface to an C<orders> table in your database. After some discussion, you decide to use a RESTful API and so you reach for one of the popular tools that purports to make the process simple. The early stages of the project are promising-- set-up is nearly trivial and in a very short time you have unit tests demonstrating a working HTTP endpoint for your order data.
 
-But wait, a POST to the C</order> endpoint requires more than a one-to-one relationship with the database's C<order> table. You have to check product availability for each item in the order, you have to access the C<customers> and C<customer_addresses> tables to grab the client's address to calculate shipping, etc. Where does all that extra logic go? Do you cram it into the validation stage? Do you create different Controller methods to handle those tasks?  
+But wait, a POST to the C</order> endpoint requires more than a one-to-one relationship with the database's C<order> table. You have to check product availability for each item in the order, you have to access the C<customers> and C<customer_addresses> tables to grab the client's address to calculate shipping, etc. Where does all that extra logic go? Do you cram it into the validation stage? Do you create different Controller methods to handle those tasks?
 
-Soon, you find that the hands-off "connect the database table to the Web" application you thought you were building is turning into a series of hacks, work-arounds, and one-offs. The tool that was supposed to make things easier now actually ties your hands. You're wondering why this all seems so hard and you begin to suspect that REST is just another in a long line of overcomplicated bondage fads that look great on paper but fall to pieces under their own complexity when you try to do anything substantial. But the problem isn't REST-- that's just an architectural style-- the problem is that REST-on-MVC tool you've chosen treats the C<orders> table as the Resource. 
+Soon, you find that the hands-off "connect the database table to the Web" application you thought you were building is turning into a series of hacks, work-arounds, and one-offs. The tool that was supposed to make things easier now actually ties your hands. You're wondering why this all seems so hard and you begin to suspect that REST is just another in a long line of overcomplicated bondage fads that look great on paper but fall to pieces under their own complexity when you try to do anything substantial. But the problem isn't REST-- that's just an architectural style-- the problem is that REST-on-MVC treats the C<orders> table as the Resource and tightly couples the Web API to that physical asset.
+
+=head2 Dispatching
+
+
 
 =head2 Altered States
 
