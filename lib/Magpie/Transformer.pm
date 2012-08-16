@@ -19,10 +19,6 @@ has resource => (
     default     => sub { return $_[0]->resolve_internal_asset( service => 'default_resource') },
 );
 
-
-#lame
-#sub has_resource { defined shift->resource ? 1 : 0 }
-
 # SEEALSO: Magpie
 
 1;

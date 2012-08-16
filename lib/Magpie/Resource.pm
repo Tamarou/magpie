@@ -4,104 +4,112 @@ package Magpie::Resource;
 
 use Moose;
 extends 'Magpie::Component';
+with 'Magpie::Dispatcher::RequestMethod';
 use Magpie::Constants;
 
-__PACKAGE__->register_events( qw( GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT ) );
+__PACKAGE__->register_events(Magpie::Dispatcher::RequestMethod::events());
 
-# XXX: Move to a real Dispactcher
-sub load_queue {
-    my $self = shift;
-    my $ctxt = shift;
-    return $self->plack_request->method;
-}
-
-has '+_trait_namespace' => (
-    default => 'Magpie::Plugin::Resource'
-);
+has '+_trait_namespace' => ( default => 'Magpie::Plugin::Resource' );
 
 has produces => (
-    is          => 'ro',
-    isa         => 'Str',
-    required    => 1,
-    default     => 'text/plain',
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    default  => 'text/plain',
 );
 
 has consumes => (
-    is          => 'ro',
-    isa         => 'Str',
-    required    => 1,
-    default     => 'text/plain',
+    is       => 'ro',
+    isa      => 'Str',
+    required => 1,
+    default  => 'text/plain',
 );
 
 has data => (
-    is          => 'rw',
-    predicate   => 'has_data',
-    clearer     =>  'clear_data',
+    is        => 'rw',
+    predicate => 'has_data',
+    clearer   => 'clear_data',
 );
 
 has state => (
-    is          => 'rw',
-    isa         => 'Str',
-    default     => 'uninitialized',
-    required    => 1,
+    is       => 'rw',
+    isa      => 'Str',
+    default  => 'uninitialized',
+    required => 1,
 );
 
 has dependencies => (
-    traits    => ['Hash'],
-    is        => 'rw',
-    isa       => 'HashRef[HashRef]',
-    default   => sub { {} },
-    handles   => {
-        add_dependency      => 'set',
-        get_dependency      => 'get',
-        delete_dependency   => 'delete',
-        has_dependencies    => 'count',
+    traits  => ['Hash'],
+    is      => 'rw',
+    isa     => 'HashRef[HashRef]',
+    default => sub { {} },
+    handles => {
+        add_dependency    => 'set',
+        get_dependency    => 'get',
+        delete_dependency => 'delete',
+        has_dependencies  => 'count',
     },
 );
 
-sub GET {
-    shift->set_error('NotImplemented');
+sub methods_implemented {
+    my $self = shift;
+    my %implemented = ();
+    foreach my $class ( $self->meta->linearized_isa ) {
+        next if $class =~ /^(Magpie|Moose)::/;
+        foreach (HTTP_METHODS){
+            $implemented{$_}++ if $class->meta->has_method($_);
+        }
+    }
+    return ( keys( %implemented ));
+}
+
+sub method_not_allowed {
+    my $self = shift;
+    my $method = $self->plack_request->method || 'unknown';
+    my @allowed = $self->methods_implemented;
+    $self->set_error(
+        {   status_code        => 405,
+            reason             => "Method '$method' not allowed.",
+            additional_headers => [ Allow => \@allowed ],
+        }
+    );
     return DONE;
+}
+
+sub GET {
+    shift->method_not_allowed(@_);
 }
 
 sub POST {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub PUT {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub DELETE {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub HEAD {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub OPTIONS {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub TRACE {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub PATCH {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 sub CONNECT {
-    shift->set_error('NotImplemented');
-    return DONE;
+    shift->method_not_allowed(@_);
 }
 
 # convenience for container-based Resources

@@ -6,7 +6,7 @@ use Moose::Role;
 use Magpie::Constants;
 use Data::Dumper::Concise;
 
-requires qw(mtime _build_cache);
+requires qw(mtime);
 
 has cache => (
     is          => 'ro',

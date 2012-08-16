@@ -55,7 +55,7 @@ sub add_asset {
     my $assets = $self->get_sub_container('Assets');
 
     if ( blessed $thing ) {
-        if ( $thing->does('Bread::Board::Container') ) {
+        if ( $thing->isa('Bread::Board::Container') || $thing->isa('Bread::Board::Container::Parmeterized')) {
             $assets->add_sub_container( $thing );
         }
         elsif ( $thing->does('Bread::Board::Service') ) {

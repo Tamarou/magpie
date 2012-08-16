@@ -5,7 +5,6 @@ package Magpie::Resource::Abstract;
 use Moose;
 extends 'Magpie::Resource';
 use Magpie::Constants;
-use Data::Dumper::Concise;
 
 sub GET {
     my $self = shift;
@@ -22,11 +21,6 @@ sub POST {
     $self->data( $self->plack_response->body );
     return OK;
 }
-
-sub PUT     { return OK; }
-sub DELETE  { return OK; }
-sub HEAD    { return OK; }
-sub OPTIONS { return OK; }
 
 1;
 __END__

@@ -1,6 +1,16 @@
 package Magpie::Event::Symbol;
+
 # ABSTRACT: Role implementing the common symbol table interface.
 use Moose::Role;
+
+requires qw(default_symbol_table);
+
+has symbol_table => (
+    is      => 'rw',
+    isa     => 'Magpie::SymbolTable',
+    builder => 'default_symbol_table',
+    handles  => [qw(has_symbol reset_symbol reset_table add_symbol get_symbol)],
+);
 
 #-------------------------------------------------------------------------------
 # reset_symbol_handler( $symbol_name )
@@ -8,17 +18,18 @@ use Moose::Role;
 # symbol table.
 #-------------------------------------------------------------------------------
 sub reset_symbol_handler {
-    my $self    = shift;
-    my $symbol  = shift;
+    my $self   = shift;
+    my $symbol = shift;
 
     if ( defined $symbol
-         and length $symbol ) {
-        if ( $self->symbol_table->has_symbol($symbol) ) {
-            $self->symbol_table->reset_symbol($symbol);
+        and length $symbol )
+    {
+        if ( $self->has_symbol($symbol) ) {
+            $self->reset_symbol($symbol);
         }
     }
     else {
-        $self->symbol_table->reset_table;
+        $self->reset_table;
     }
 }
 
@@ -32,15 +43,18 @@ sub add_symbol_handler {
     my $symbol  = shift;
     my $handler = shift;
 
-    $symbol = $self->_qualify_symbol_name( $symbol );
+    $symbol = $self->_qualify_symbol_name($symbol);
 
-    unless ( defined $symbol and length $symbol and defined $handler and ref($handler) eq 'CODE' ) {
+    unless (defined $symbol
+        and length $symbol
+        and defined $handler
+        and ref($handler) eq 'CODE' )
+    {
         die 'add_symbol_handler( $symbol_name => $coderef )';
     }
 
-    return $self->symbol_table->add_symbol($symbol, $handler);
+    return $self->add_symbol( $symbol, $handler );
 }
-
 
 #-------------------------------------------------------------------------------
 # get_symbol_handler( $symbol_name )
@@ -49,15 +63,16 @@ sub add_symbol_handler {
 #-------------------------------------------------------------------------------
 
 sub get_symbol_handler {
-    my $self    = shift;
-    my $symbol  = shift;
+    my $self   = shift;
+    my $symbol = shift;
 
-    $symbol = $self->_qualify_symbol_name( $symbol );
+    $symbol = $self->_qualify_symbol_name($symbol);
 
     if ( defined $symbol
-         and length $symbol ) {
-        if ( $self->symbol_table->has_symbol($symbol) ) {
-            return @{$self->symbol_table->get_symbol($symbol)};
+        and length $symbol )
+    {
+        if ( $self->has_symbol($symbol) ) {
+            return @{ $self->get_symbol($symbol) };
         }
     }
 
@@ -66,7 +81,7 @@ sub get_symbol_handler {
 }
 
 sub _qualify_symbol_name {
-    my $self = shift;
+    my $self   = shift;
     my $symbol = shift;
     return $symbol if $symbol =~ /\./;
     my $pkg = $self->meta->name;

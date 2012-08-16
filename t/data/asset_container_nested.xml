@@ -1,0 +1,38 @@
+<?xml version="1.0"?>
+<application>
+	<assets>
+		<container name="Container::One">
+			<service name="sm" type="constructor">
+				<class>TestObject::SimpleMoose</class>
+				<dependencies>
+					<dependency type="literal" name="foo" value="baz"/>
+					<dependency name="favorite_holiday" service_path="../xmas"/>
+				</dependencies>
+			</service>
+			<container name="Container::Two">
+				<service name="sm" type="constructor">
+					<class>TestObject::SimpleMoose</class>
+					<dependencies>
+						<dependency type="literal" name="foo" value="RAAAaaam"/>
+						<dependency name="favorite_holiday" service_path="../../bunny"/>
+					</dependencies>
+				</service>
+			</container>			
+		</container>
+	    <service name="xmas">Christmas</service>
+	    <service name="bunny">Easter</service>
+	</assets>
+    <pipeline>
+    	<match type="regexp" rule="^/basic">
+			<add class="Magpie::Pipeline::Moe"/>
+			<add class="Magpie::Pipeline::Breadboard::ConfigAssets"/>
+			<add class="Magpie::Pipeline::CurlyArgs">
+				<parameters>
+					<simple_argument>RIGHT</simple_argument>
+				</parameters>
+			</add>
+			<add class="Magpie::Pipeline::Larry"/>
+        </match>
+    </pipeline>
+</application>
+

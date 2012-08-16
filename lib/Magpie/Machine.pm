@@ -3,6 +3,7 @@ use Moose;
 extends 'Magpie::Component';
 use Magpie::Constants;
 use Magpie::Resource::Abstract;
+use Magpie::Util;
 
 #ABSTRACT: Event Class For Creating Magpie Pipelines
 
@@ -23,7 +24,7 @@ has resource => (
 sub pipeline {
     my $self    = shift;
     my @args = @_;
-    my @handlers = $self->_make_tuples( @args );
+    my @handlers = Magpie::Util::make_tuples( @args );
     $self->handlers(\@handlers);
 }
 

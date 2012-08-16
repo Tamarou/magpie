@@ -1,0 +1,13 @@
+package Magpie::Manual::Config;
+
+# ABSTRACT Configuring your Magpie applications
+
+=pod
+
+=head1 Perl DSL
+
+=head1 XML Configuration
+
+=cut
+
+__END__

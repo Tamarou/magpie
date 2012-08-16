@@ -1,10 +1,12 @@
 package Magpie::Event;
 # ABSTRACT: Core Event Role Shared By All Magpie Classes
 use Moose::Role;
+
 with qw( Magpie::Event::Symbol Magpie::Types );
 
 use Magpie::Constants;
 use Magpie::SymbolTable;
+use Magpie::Util;
 use Plack::Request;
 use Plack::Response;
 use Try::Tiny;
@@ -32,13 +34,6 @@ has response_changed => (
     is          => 'rw',
     isa         => 'Bool',
     default     => 0,
-);
-
-has symbol_table => (
-    is          => 'rw',
-    isa         => 'Magpie::SymbolTable',
-    default     => sub { return $_[0]->resolve_internal_asset( service => 'symbol_table') },
-    required    => 1,
 );
 
 has parent_handler => (
@@ -124,13 +119,12 @@ sub register_events {
         $registered_events{$pkg} ||= [];
         push @{ $registered_events{$pkg} }, @_;
     }
-
     return $pkg->registered_events;
 }
 
 sub registered_events {
     my $thing = shift;
-    my $pkg = ref( $thing ) ? $thing->meta->name : $thing;
+    my $pkg = blessed( $thing ) ? $thing->meta->name : $thing;
     my $ref = $registered_events{$pkg} || [];
     return @{ $ref };
 }
@@ -192,7 +186,7 @@ sub load_handler {
     my $handler = $self->current_handler;
     my $handler_args = $self->current_handler_args || {};
     #warn "load: current handler: $handler " . $self->has_error ." \n";
-    
+
     unless ( defined $self->fetch_handler( $handler ) ) {
         # we only make it here if the app class was passed
         # to the pipeline as the *name* of a class, rather
@@ -216,7 +210,7 @@ sub load_handler {
 
 		if ( $handler->isa('Plack::Middleware') ) {
             Class::MOP::load_class( 'Magpie::Transformer::Middleware' );
-			my $munged_args = { 
+			my $munged_args = {
 				middleware_args => $handler_args,
 				middleware_class => $handler,
 			};
@@ -226,7 +220,6 @@ sub load_handler {
 			$self->current_handler_args($handler_args);
 		}
 
-		
         my $constructor = defined($handler_args->{traits}) ? 'new_with_traits' : 'new';
 
         try {
@@ -280,13 +273,13 @@ sub run_handler {
         my @attributes = $h->meta->get_all_attributes;
         foreach my $param (keys( %{$handler_args})) {
             foreach my $attr (@attributes) {
-                my $writer_name = $attr->get_write_method;
-                if ($writer_name and $writer_name eq $param) {
-                    $h->$param( $handler_args->{$param} );
-                }
+                next unless $attr->has_writer || $attr->has_accessor;
+                my $method = $attr->get_write_method || $attr->accessor;
+                next unless $param eq $method;
+                $h->$method( $handler_args->{$param} );
             }
         }
-        #warn "Running handler $handler \n";
+        # "Running handler $handler \n";
         try {
             $h->run( $ctxt );
         }
@@ -346,7 +339,7 @@ sub add_next_handler {
 sub add_handlers {
     my $self = shift;
     my @handlers = @_;
-    @handlers = $self->_make_tuples( @handlers );
+    @handlers = Magpie::Util::make_tuples( @handlers );
     $self->push_handlers(@handlers);
 }
 
@@ -359,25 +352,6 @@ sub reset_handlers {
     my @handlers = @_;
     $self->clear_handlers;
     return $self->add_handlers( @handlers );
-}
-
-#-------------------------------------------------------------------------------
-# internal convenience for regularizing potentially uneven lists of name/param
-# hash pairs
-#-------------------------------------------------------------------------------
-sub _make_tuples {
-    my $self = shift;
-    my @in = @_;
-    my @out = ();
-    for (my $i = 0; $i < scalar @in; $i++ ) {
-        next if ref( $in[$i] ) eq 'HASH';
-        my $args = {};
-        if ( ref( $in[$i + 1 ]) eq 'HASH' ) {
-            $args = $in[$i + 1 ];
-        }
-        push @out, [$in[$i], $args];
-    }
-    return @out;
 }
 
 sub end_application {
@@ -454,9 +428,6 @@ sub init_queue {
     my $pkg = $self->meta->name;
     my @event_names = ();
 
-#     if ( $self->has_dispatcher ) {
-#         # XXX: pluggable dispatcher here
-#     }
     if ( $self->can('load_queue') ) {
         @event_names = $self->load_queue($ctxt);
     }
@@ -479,7 +450,7 @@ sub add_to_queue      {
     #warn "add to queue $symbol";
     $symbol = $self->_qualify_symbol_name( $symbol );
 
-    unless ( $self->symbol_table->has_symbol($symbol) ) {
+    unless ( $self->has_symbol($symbol) ) {
         warn "Warning: '$symbol' could not be added to the queue. Are you sure you registered it via register_events?";
         #XXX: should we die or set_error here instead?
         return;
@@ -505,7 +476,7 @@ sub remove_from_queue {
 
     $symbol = $self->_qualify_symbol_name( $symbol );
 
-    unless ( $self->symbol_table->has_symbol($symbol) ) {
+    unless ( $self->has_symbol($symbol) ) {
         warn "Warning: Unregistered event '$symbol' could not be removed from the queue because it does not exist. Are you sure you registered it via register_events?";
         return;
     }

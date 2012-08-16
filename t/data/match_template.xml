@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<application>
+    <pipeline>
+        <match type="template" rule="/shop/{store_id}/item/{item_id}">
+            <add class="Magpie::Pipeline::PathMadness"/>
+        </match>
+        <match type="template" rule="/api/{long_path}$">
+            <add class="Magpie::Pipeline::PathMadness"/>
+        </match>
+        <match type="template" rule="/api/widget/{widget_id}/part/{part_id}">
+            <add class="Magpie::Pipeline::PathMadness"/>
+        </match>
+    </pipeline>
+</application>
+
