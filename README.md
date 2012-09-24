@@ -6,7 +6,7 @@ Obviously Magpie is a work in progress, as such there is very little documentati
 
 ## Getting Started
 
-Magpie is a Dist::Zilla based distribution and is not yet on CPAN. To install Magpie you can either checkout the repo and go through the standard dzil setup: `dzil authordeps | cpanm; dzil listdeps | cpanm;` or we have provided an early-look release to make playing with magpie easier. To install the early-look release just run `cpanm http://xrl.us/magpie120650` or if you don't have cpanm installed `curl -L http://cpanmin.us | perl - http://xrl.us/magpie120650`.
+Magpie is a Dist::Zilla based distribution and is not yet on CPAN. To install Magpie you can either checkout the repo and go through the standard dzil setup: `dzil authordeps | cpanm; dzil listdeps | cpanm;` or we have provided an early-look release to make playing with magpie easier. To install the early-look release just run `cpanm https://github.com/downloads/Tamarou/magpie/Magpie-1.122680.tar.gz` or if you don't have cpanm installed `curl -L http://cpanmin.us | perl - https://github.com/downloads/Tamarou/magpie/Magpie-1.122680.tar.gz`.
 
 We are currently working on an [demo application][2] that we hope will really show off some of the basic concepts in Magpie nice. We hope to release more examples and demo applications as time allows.
 
