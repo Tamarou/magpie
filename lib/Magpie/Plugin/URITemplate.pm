@@ -92,4 +92,5 @@ sub process_template {
 }
 
 no Moose::Role;
+
 1;

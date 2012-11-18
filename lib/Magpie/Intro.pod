@@ -6,7 +6,7 @@ package Magpie::Intro;
 
 =head1 Introduction to Magpie
 
-This document introduces Magpie, a dynamic pipelined application framework.
+This document introduces the underlying concepts that inform Magpie's design. For a more practical how-to, see ***link***.
 
 =head1 What is Magpie?
 
@@ -19,6 +19,10 @@ Implemented as a L<Plack::Middleware> component, Magpie provides a rapid applica
 Magpie's basic goals and design principles can be summed up as follows:
 
 =over
+
+=item *
+
+The most important entity in Web development the Resource. By convention and explicit design, Magpie should be Resource-oriented.
 
 =item *
 
@@ -77,8 +81,6 @@ But wait, a POST to the C</order> endpoint requires more than a one-to-one relat
 Soon, you find that the hands-off "connect the database table to the Web" application you thought you were building is turning into a series of hacks, work-arounds, and one-offs. The tool that was supposed to make things easier now actually ties your hands. You're wondering why this all seems so hard and you begin to suspect that REST is just another in a long line of overcomplicated bondage fads that look great on paper but fall to pieces under their own complexity when you try to do anything substantial. But the problem isn't REST-- that's just an architectural style-- the problem is that REST-on-MVC treats the C<orders> table as the Resource and tightly couples the Web API to that physical asset.
 
 =head2 Dispatching
-
-
 
 =head2 Altered States
 
