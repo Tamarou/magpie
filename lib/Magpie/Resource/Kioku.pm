@@ -7,7 +7,7 @@ extends 'Magpie::Resource';
 use Magpie::Constants;
 use Try::Tiny;
 use KiokuDB;
-use Data::Dumper::Concise;
+#use Data::Dumper::Concise;
 
 has data_source => (
     is         => 'ro',
@@ -112,11 +112,12 @@ sub _build_data_source {
 
 sub GET {
     my $self = shift;
+    my $ctxt = shift;
     $self->parent_handler->resource($self);
     my $req = $self->request;
 
     my $path = $req->path_info;
-    my $id = $self->get_entity_id;
+    my $id = $self->get_entity_id($ctxt);
 
     if ($path =~ /\/$/  && !$id ) {
         $self->state('prompt');
@@ -139,8 +140,6 @@ sub GET {
         $self->set_error({ status_code => 404, reason => 'Resource not found.'});
         return OK;
     }
-
-    #warn "got data " . Dumper($data);
 
     $self->data($data);
     return OK;
@@ -269,6 +268,76 @@ sub DELETE {
 
     return OK if $self->has_error;
     $self->state('deleted');
+    $self->response->status(204);
+    return OK;
+}
+
+sub PUT {
+    my $self = shift;
+    $self->parent_handler->resource($self);
+    my $req = $self->request;
+
+    my $to_store = undef;
+
+    my $wrapper_class = $self->wrapper_class;
+
+    # XXX should check for a content body first.
+    my %args = ();
+
+    if ( $self->has_data ) {
+        %args = %{ $self->data };
+        $self->clear_data;
+    }
+    else {
+        for ( $req->param ) {
+            $args{$_} = $req->param($_);
+        }
+    }
+
+    my $existing_id = $self->get_entity_id;
+
+    unless ($existing_id) {
+        $self->set_error({
+            status_code => 400,
+            reason => "Attempt to PUT without a definable entity ID."
+        });
+        return DONE;
+    }
+
+
+    my $existing = undef;
+    try {
+        ($existing) = $self->data_source->lookup($existing_id);
+    }
+    catch {
+        my $error = "Could not fetch data from Kioku data source for PUT editing if entity with ID $existing_id: $_\n";
+        $self->set_error( { status_code => 500, reason => $error } );
+    };
+
+    return OK if $self->has_error;
+
+    unless ($existing) {
+        $self->set_error(404);
+        return DONE;
+    }
+
+
+    foreach my $key (keys(%args)) {
+        $existing->$key( $args{$key} );
+    }
+
+    try {
+        $self->data_source->store($existing);
+    }
+    catch {
+        my $error = "Error updating data entity with ID $existing_id: $_\n";
+        $self->set_error( { status_code => 500, reason => $error } );
+    };
+
+    return OK if $self->has_error;
+
+    # finally, if it all went OK, say so.
+    $self->state('updated');
     $self->response->status(204);
     return OK;
 }
