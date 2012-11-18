@@ -1,13 +1,12 @@
-package Magpie::Resource::Kioku;
+package Magpie::Resource::DBIC;
 
-# ABSTRACT: INCOMPLETE - Resource implementation for KiokuDB datastores.
+# ABSTRACT: Resource implementation for DBIx::Class ResultSources.
 
 use Moose;
 extends 'Magpie::Resource';
+with 'Magpie::Plugin::DBI';
 use Magpie::Constants;
 use Try::Tiny;
-use KiokuDB;
-use Data::Dumper::Concise;
 
 has data_source => (
     is         => 'ro',

@@ -22,6 +22,17 @@ sub POST {
     return OK;
 }
 
+sub DELETE {
+    my $self = shift;
+    $self->parent_handler->resource($self);
+    return OK;
+};
+
+sub PUT {
+    my $self = shift;
+    $self->parent_handler->resource($self);
+    return OK;
+};
 1;
 __END__
 
