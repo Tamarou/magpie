@@ -162,7 +162,7 @@ sub call {
     $pipeline = $matcher->detokenize_pipeline($pipeline);
 
     #use Data::Dumper::Concise;
-    #warn "pipe " . Dumper( $pipeline, \@STACK );
+    #warn "pipe " . Dumper( $pipeline); #, \@STACK );
 
     my $m = Magpie::Machine->new( plack_request => $req, );
 
