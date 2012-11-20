@@ -13,7 +13,7 @@ use Magpie::Machine;
 use Magpie::Matcher;
 use Magpie::Util;
 use Magpie::Plugin::URITemplate;
-use Magpie::ConfigReader::XML;
+#use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
@@ -127,6 +127,14 @@ sub call {
             $self->accept_matrix( $cache->{accept_matrix} );
         }
         else {
+            try {
+                Plack::Util::load_class("Magpie::ConfigReader::XML");
+            }
+            catch {
+                my $error = "Error loading ConfigReader: $_";
+                warn $error . "\n";
+                HTTP::Throwable::Factory->throw({ status_code => 500, reason => $error } );
+            };
             my $reader = Magpie::ConfigReader::XML->new;
             $reader->process($conf_file);
 
