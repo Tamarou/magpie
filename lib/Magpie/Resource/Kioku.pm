@@ -7,7 +7,6 @@ extends 'Magpie::Resource';
 use Magpie::Constants;
 use Try::Tiny;
 use KiokuDB;
-#use Data::Dumper::Concise;
 
 has data_source => (
     is         => 'ro',

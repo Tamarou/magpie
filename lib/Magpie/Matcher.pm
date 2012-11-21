@@ -4,7 +4,6 @@ package Magpie::Matcher;
 use Moose;
 use Scalar::Util qw(reftype);
 use HTTP::Negotiate;
-use Data::Dumper::Concise;
 
 has plack_request => (
     is          => 'ro',
@@ -65,7 +64,7 @@ sub make_map {
                 last unless defined $env->{$k};
                 my $val = $rules->{$k};
                 my $val_type = reftype $val;
-                if ($val_type && 
+                if ($val_type &&
                  ( $val_type eq 'REGEXP' || ($val_type eq 'SCALAR' && re::is_regexp($val) == 1 ))
                 ) {
                     $matched++ if $env->{$k} =~ m/$val/;

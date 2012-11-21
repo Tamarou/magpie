@@ -8,7 +8,6 @@ use MooseX::Types::Path::Class;
 use XML::XSP;
 use XML::LibXML;
 use Try::Tiny;
-#use Data::Dumper::Concise;
 #BEGIN { $SIG{__DIE__} = sub { Carp::confess(@_) } }
 
 __PACKAGE__->register_events( qw( get_content transform));

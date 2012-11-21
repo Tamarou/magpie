@@ -4,7 +4,6 @@ package Magpie::Resource::File;
 use Moose;
 extends 'Magpie::Resource';
 use Magpie::Constants;
-use Data::Dumper::Concise;
 use Plack::App::File;
 
 has root => (

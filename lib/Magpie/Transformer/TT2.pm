@@ -7,7 +7,6 @@ use Magpie::Constants;
 use Template;
 use MooseX::Types::Path::Class;
 use Try::Tiny;
-#use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( qw( get_tt_conf get_tt_vars get_template get_transformer transform));
 

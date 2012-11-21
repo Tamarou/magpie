@@ -4,7 +4,6 @@ use Moose::Role;
 # ABSTRACT: A Role to add Caching to a Resource;
 #
 use Magpie::Constants;
-use Data::Dumper::Concise;
 
 requires qw(mtime);
 

@@ -6,7 +6,6 @@ extends 'Magpie::Component';
 use Magpie::Constants;
 
 # abstract base class for all transformer;
-use Data::Dumper::Concise;
 
 has '+_trait_namespace' => (
     default => 'Magpie::Plugin::Transformer'

@@ -17,7 +17,6 @@ use Magpie::Plugin::URITemplate;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
 use File::stat;
-#use Data::Dumper::Concise;
 my @STACK      = ();
 my $MTOKEN     = undef;
 my $_add_frame = sub {

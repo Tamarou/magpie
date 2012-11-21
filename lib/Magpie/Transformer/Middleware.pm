@@ -8,7 +8,6 @@ use Try::Tiny;
 use Plack::Response;
 use Plack::Request;
 
-use Data::Dumper::Concise;
 
 __PACKAGE__->register_events( (qw(call_middleware)));
 

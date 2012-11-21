@@ -12,7 +12,6 @@ use Scalar::Util qw(blessed);
 use Cwd ();
 use File::Spec ();
 use URI ();
-use Data::Dumper::Concise;
 use Carp qw(cluck);
 
 __PACKAGE__->register_events( qw(get_content transform));
