@@ -3,6 +3,12 @@ use File::Find;
 
 my @classes = ();
 
+my $skipped = 0;
+
+my @optional = (qw(
+    Magpie::ConfigReader::XML
+));
+
 my $root = -e 'blib/' ? 'blib/lib' : 'lib';
 
 File::Find::find(
@@ -18,10 +24,15 @@ File::Find::find(
     $root
 );
 
+
 ok( scalar( @classes ) > 0 );
 
 foreach my $class ( @classes ) {
+    if (grep { $_ eq $class } @optional) {
+        $skipped++;
+        next;
+    }
     use_ok( $class );
 }
 
-done_testing( scalar( @classes ) + 1 );
+done_testing( (scalar( @classes ) + 1) - $skipped );
