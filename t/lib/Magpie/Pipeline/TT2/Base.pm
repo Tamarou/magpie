@@ -2,7 +2,6 @@ package Magpie::Pipeline::TT2::Base;
 use Moose;
 use Magpie::Constants;
 extends 'Magpie::Component';
-#use Data::Dumper::Concise;
 
 __PACKAGE__->register_events(qw(default complete));
 

@@ -1,6 +1,5 @@
 package Magpie::Pipeline::Role::Appender;
 use Moose::Role;
-use Data::Dumper::Concise;
 
 has reversable => (
     is          => 'rw',
