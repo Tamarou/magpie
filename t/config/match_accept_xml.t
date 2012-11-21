@@ -4,6 +4,10 @@ use Test::More;
 use FindBin;
 use lib "$FindBin::Bin/../lib";
 
+use Test::Requires qw{
+    XML::LibXML
+};
+
 use Plack::Test;
 use Plack::Builder;
 use HTTP::Request::Common;
