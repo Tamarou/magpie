@@ -1,6 +1,6 @@
 # Magpie - A RESTful Web Framework for Perl5
 
-Magpie is a web framework for Perl5 that steals the shiny bits from many different web frameworks we at Tamarou have used over the last decade. It is based on the ideas expressed by the W3C TAG in [Architecture of the World Wide Web][1], namely that the web is comprised of Resources that response to certaint methods (GET, POST, PUT, DELETE etc). 
+Magpie is a web framework for Perl5 that steals the shiny bits from many different web frameworks we at Tamarou have used over the last decade. It is based on the ideas expressed by the W3C TAG in [Architecture of the World Wide Web][1], namely that the web is comprised of Resources that respond to certain methods (GET, POST, PUT, DELETE etc). 
 
 Obviously Magpie is a work in progress, as such there is very little documentation currently (patches welcome), and there may be bugs lurking in dark corners. However we have successfully been using it for paid work for over a year now so we're willing to bet our reputations on it.
 
