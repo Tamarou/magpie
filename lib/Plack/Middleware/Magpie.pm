@@ -8,7 +8,7 @@ use parent qw( Exporter Plack::Middleware);
 use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins);
 
 our @EXPORT = qw( machine match match_env match_accept match_template);
-use Scalar::Util qw(reftype);
+use Scalar::Util qw(reftype blessed);
 use Magpie::Machine;
 use Magpie::Matcher;
 use Magpie::Util;
@@ -187,7 +187,7 @@ sub call {
             push @resource_handlers, $resource;
         }
     }
-    elsif ( !grep { !ref($_) && $_->isa('Magpie::Resource') } @{$pipeline} ) {
+    elsif ( !grep { blessed($_) && $_->isa('Magpie::Resource') } @{$pipeline} ) {
 
         # If there is no Resource and nothing in the Pipeline then, really,
         # we haven't found any way to prcess the request. 404 is what most
