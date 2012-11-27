@@ -18,7 +18,6 @@ my $handler = builder {
     ];
 };
 
-use Data::Printer;
 test_psgi
     app    => $handler,
     client => sub {
