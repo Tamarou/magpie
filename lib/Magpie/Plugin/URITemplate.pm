@@ -43,16 +43,22 @@ sub uri_template_params {
 	my $extractor = $self->uri_template_regex;
     my $names = $self->uri_template_param_names;
 	my $path = $self->request->path_info;
-	my @vals = ( $path =~ $extractor );
-	unless (scalar @vals == scalar @{$names}) {
+	#my @vals = ( $path =~ $extractor );
+	my %params = ();
+	if ($path =~ $extractor) {
+		for (my $i = 0; $i < @{$names}; $i++) {
+			$params{$names->[$i]} = $+{$names->[$i]};
+		}
+	}
+	unless (scalar keys %params == scalar @{$names}) {
 		warn "URI template param extraction mismatch\n";
 	}
 
-	my %params = ();
 
-	for (my $i = 0; $i < @{$names}; $i++) {
-		$params{$names->[$i]} = $vals[$i];
-	}
+
+#	for (my $i = 0; $i < @{$names}; $i++) {
+#		$params{$names->[$i]} = $vals[$i];
+#	}
 
 	return wantarray ? %params : \%params;
 }
@@ -71,7 +77,7 @@ sub process_template {
 		}
 		elsif ($_ eq '}') {
 			push @names, $token;
-			$transformed .= '(.*)';
+			$transformed .= '(?<' . $token . '>\w*)';
 			$token = undef;
 			$intoken = 0;
 
