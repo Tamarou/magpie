@@ -5,12 +5,12 @@ use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
 
-use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins);
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins matcher_class);
 
 our @EXPORT = qw( machine match match_env match_accept match_template);
 use Scalar::Util qw(reftype blessed);
 use Magpie::Machine;
-use Magpie::Matcher;
+#use Magpie::Matcher;
 use Magpie::Util;
 use Magpie::Plugin::URITemplate;
 #use Magpie::ConfigReader::XML;
@@ -160,13 +160,24 @@ sub call {
         }
     }
 
-    my $matcher = Magpie::Matcher->new(
+    my $matcher_class = $self->matcher_class || 'Magpie::Matcher';
+    
+    try {
+        Plack::Util::load_class($matcher_class);
+    }
+    catch {
+        my $error = "Error loading Matcher Class '$matcher_class': $_";
+        warn $error . "\n";
+        HTTP::Throwable::Factory->throw({ status_code => 500, reason => $error } );
+    };
+
+    my $matcher = $matcher_class->new(
         plack_request    => $req,
         accept_matrix    => $self->accept_matrix || [],
         match_candidates => \@STACK,
     );
 
-    $pipeline = $matcher->detokenize_pipeline($pipeline);
+    $pipeline = $matcher->construct_pipeline($pipeline);
 
     #use Data::Dumper::Concise;
     #warn "pipe " . Dumper( $pipeline); #, \@STACK );

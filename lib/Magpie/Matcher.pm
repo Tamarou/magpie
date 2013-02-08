@@ -88,7 +88,7 @@ sub make_map {
     return $out;
 }
 
-sub detokenize_pipeline {
+sub construct_pipeline {
     my $self = shift;
     my $tokenized = shift;
 
