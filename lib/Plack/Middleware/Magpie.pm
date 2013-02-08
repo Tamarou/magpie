@@ -5,7 +5,7 @@ use strict;
 use warnings;
 use parent qw( Exporter Plack::Middleware);
 
-use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins matcher_class);
+use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins matcher_class debug);
 
 our @EXPORT = qw( machine match match_env match_accept match_template);
 use Scalar::Util qw(reftype blessed);
@@ -102,6 +102,7 @@ sub call {
     my @resource_handlers = ();
     my $req = try { Plack::Request->new($env); }
     catch {
+        warn "Error creating request object: '$_'\n";
         HTTP::Throwable::Factory->throw( 400, { message => $_ } );
     };
 
@@ -178,9 +179,13 @@ sub call {
     );
 
     $pipeline = $matcher->construct_pipeline($pipeline);
-
-    #use Data::Dumper::Concise;
-    #warn "pipe " . Dumper( $pipeline); #, \@STACK );
+    
+    if ($self->debug) {
+        Plack::Util::load_class('Data::Dumper::Concise');
+        my $message = 'PIPELINE: ' . Data::Dumper::Concise::Dumper($pipeline);
+        warn $message . "\n";
+        $req->logger({ level => 'debug', message => $message, });
+    }    
 
     my $m = Magpie::Machine->new( plack_request => $req, );
 

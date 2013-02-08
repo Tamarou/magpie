@@ -16,7 +16,9 @@ my $context = {
 };
 
 my $handler = builder {
-    enable "Magpie", context => $context, matcher_class => 'Core::StaticMatcher',
+    enable "SimpleLogger", level => 'debug';
+    enable "Magpie", context => $context, debug => 1, matcher_class => 'Core::StaticMatcher';
+
 };
 
 test_psgi
