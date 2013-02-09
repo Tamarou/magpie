@@ -27,7 +27,7 @@ test_psgi
         }
         {
             my $res = $cb->(GET "http://localhost/api/widget/aabbccdd/part/OU812");
-            like $res->content, qr|pathmadness__long_path::widget/aabbccdd/part/OU812_pathmadness__part_id::OU812__widget_id::aabbccdd_|;
+            like $res->content, qr|pathmadness__long_path::widget_pathmadness__part_id::OU812__widget_id::aabbccdd_|;
         }
 
     };
