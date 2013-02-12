@@ -19,8 +19,13 @@ use HTTP::Throwable::Factory;
 use File::stat;
 my @STACK      = ();
 my $MTOKEN     = undef;
+use Data::Dumper::Concise;
+
 my $_add_frame = sub {
-    push @STACK, shift;
+    my $frame = shift;
+    my @regularized = Magpie::Util::make_tuples(@{$frame->[2]});
+    warn "regular " . Dumper(@regularized);
+    push @STACK, $frame;
 };
 
 sub make_token {
