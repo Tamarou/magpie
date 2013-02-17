@@ -46,16 +46,35 @@ sub make_map {
         #warn "frame " . Dumper($frame);
         my $match_type = $frame->[0];
         my $token = $frame->[3] || '__default__';
-        $out->{$token} ||= [];
+        $out->{$token} ||= {
+            input => [],
+            resource => [],
+            output   => [],
+        };
+        
         if ($match_type eq 'STRING') {
-            push @{$out->{$token}}, @{$frame->[2]} if $frame->[1] eq $path;
+            next unless $frame->[1] eq $path;
+            push @{$out->{$token}->{input}}, @{$frame->[2]->{input}}; 
+            push @{$out->{$token}->{output}}, @{$frame->[2]->{output}};
+            push @{$out->{$token}->{resource}}, @{$frame->[2]->{resource}};
         }
         elsif ($match_type eq 'REGEXP' || ($match_type eq 'SCALAR' && re::is_regexp($frame->[0]) == 1 )) {
-            push @{$out->{$token}}, @{$frame->[2]} if  $path =~ /$frame->[1]/;
+            if ($path =~ /$frame->[1]/) {
+                push @{$out->{$token}->{input}}, @{$frame->[2]->{input}}; 
+                push @{$out->{$token}->{output}}, @{$frame->[2]->{output}};
+                push @{$out->{$token}->{resource}}, @{$frame->[2]->{resource}};
+            }
         }
         elsif ($match_type eq 'CODE') {
             my $temp = $frame->[1]->($env);
-            push @{$out->{$token}}, @{$temp};
+            if (reftype $temp eq 'HASH') {
+                push @{$out->{$token}->{input}}, @{$temp->{input}}; 
+                push @{$out->{$token}->{output}}, @{$temp->{output}};
+                push @{$out->{$token}->{resource}}, @{$temp->{resource}};            
+            }
+            else {
+                push @{$out->{$token}->{output}}, @{$temp};
+            }
         }
         elsif ($match_type eq 'HASH') {
             my $rules = $frame->[1];
@@ -73,13 +92,23 @@ sub make_map {
                     $matched++ if qq($env->{$k}) eq qq($val);
                 }
             }
-            push @{$out->{$token}}, @{$frame->[2]} if $matched == scalar keys %{$rules};
+            if ($matched == scalar keys %{$rules}) {
+                push @{$out->{$token}->{input}}, @{$frame->[2]->{input}}; 
+                push @{$out->{$token}->{output}}, @{$frame->[2]->{output}};
+                push @{$out->{$token}->{resource}}, @{$frame->[2]->{resource}};
+            }
         }
         elsif ($match_type eq 'AUTO') {
-            push @{$out->{$token}}, @{$frame->[2]};
+                push @{$out->{$token}->{input}}, @{$frame->[2]->{input}}; 
+                push @{$out->{$token}->{output}}, @{$frame->[2]->{output}};
+                push @{$out->{$token}->{resource}}, @{$frame->[2]->{resource}};
         }
         elsif ($match_type eq 'ACCEPT') {
-            push @{$out->{$token}}, @{$frame->[2]} if length $accept_variant && $frame->[1] eq $accept_variant;
+            if (length $accept_variant && $frame->[1] eq $accept_variant) {
+                push @{$out->{$token}->{input}}, @{$frame->[2]->{input}}; 
+                push @{$out->{$token}->{output}}, @{$frame->[2]->{output}};
+                push @{$out->{$token}->{resource}}, @{$frame->[2]->{resource}};
+            }
         }
         else {
             warn "I don't know how to match '$match_type', skipping.\n"
@@ -96,18 +125,27 @@ sub construct_pipeline {
         $tokenized = ['__default__'];
     }
 
-    my @new = ();
+    my @input = ();
+    my @output = ();
+    my @resource = ();
     my $map = $self->make_map;
     my @tokens      = keys( %{$map} );
 
     foreach my $step ( @{$tokenized} ) {
         if ( grep { $_ eq $step } @tokens ) {
-            push @new, @{$map->{$step}};
+                push @input, @{$map->{$step}->{input}}; 
+                push @output, @{$map->{$step}->{output}};
+                push @resource, @{$map->{$step}->{resource}};
         }
         else {
-            push @new, $step;
+            push @output, $step;
         }
     }
+    
+    if (scalar @resource == 0) {
+        push @resource, 'Magpie::Resource::Abstract';
+    }
+    my @new = (@input, @resource, @output);
     return \@new;
 }
 

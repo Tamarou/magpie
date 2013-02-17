@@ -16,7 +16,7 @@ my $context = {
 };
 
 my $handler = builder {
-    enable "Magpie", context => $context, pipeline => [
+    enable "Magpie", debug => 1, context => $context, pipeline => [
         'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' },
         'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'WRONG' },
     ]

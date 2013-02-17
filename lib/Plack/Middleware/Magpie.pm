@@ -23,8 +23,30 @@ use Data::Dumper::Concise;
 
 my $_add_frame = sub {
     my $frame = shift;
-    my @regularized = Magpie::Util::make_tuples(@{$frame->[2]});
-    warn "regular " . Dumper(@regularized);
+    my $handlers = $frame->[2];
+    my $input_type = reftype $handlers;
+    if ( $input_type eq 'HASH' ) {
+        foreach (qw(input resource output)) {
+            if (defined($handlers->{$_})) {
+                my @regularized = Magpie::Util::make_tuples($handlers->{$_});
+                $handlers->{$_} = \@regularized;
+            }
+            else {
+                $handlers->{$_} = [];
+            }
+        }
+    }
+    else {
+        my $output = $handlers;
+        $handlers = {
+            input    => [],
+            resource => [],
+            output   => $output,
+        }
+    }
+    $frame->[2] = $handlers;
+    #my @regularized = Magpie::Util::make_tuples(@{$frame->[2]});
+    warn "regular " . Dumper($frame);
     push @STACK, $frame;
 };
 

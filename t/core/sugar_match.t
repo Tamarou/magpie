@@ -10,7 +10,7 @@ use HTTP::Request::Common;
 use Plack::Middleware::Magpie;
 
 my $handler = builder {
-    enable "Magpie", context => {}, pipeline => [
+    enable "Magpie", context => {}, debug => 1, pipeline => [
         machine {
             match '/myapp' => ['Core::Basic::Base', 'Core::Basic::Output'];
         },
