@@ -1,30 +1,37 @@
 package Magpie::Constants;
+
 # ABSTRACT: Common Handler Control Constants;
 
-use Moose;
+use constant {
+    OK            => 100,
+    DECLINED      => 199,
+    DONE          => 299,
+    OUTPUT        => 300,
+    SERVER_ERROR  => 500,
+    HANDLER_ERROR => 501,
+    QUEUE_ERROR   => 502,
+};
 
-sub import {
-    my $pkg = caller();
-    return if $pkg eq 'main';
+use Sub::Exporter -setup => {
+    exports => [
+        qw(OK DECLINED DONE OUTPUT SERVER_ERROR HANDLER_ERROR QUEUE_ERROR),
+        HTTP_METHODS => sub {
+            my ( $class, $name, $arg, $col ) = @_;
 
-    ( $pkg->can('meta') )
-      || confess "This package can only be used in Moose based classes";
-
-    my %exports = (
-        OK            => sub () { 100 },
-        DECLINED      => sub () { 199 },
-        DONE          => sub () { 299 },
-        OUTPUT        => sub () { 300 },
-        SERVER_ERROR  => sub () { 500 },
-        HANDLER_ERROR => sub () { 501 },
-        QUEUE_ERROR   => sub () { 502 },
-        HTTP_METHODS  => sub () { (qw(GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT)) },
-    );
-
-    for my $symbol ( keys %exports ) {
-        $pkg->meta->add_method( $symbol => $exports{$symbol} );
-    }
-}
+            sub () {
+                qw(GET POST PUT DELETE HEAD OPTIONS TRACE PATCH CONNECT),
+                    @{ $arg{extra_http_methods} // [] },
+                    @{ $col{extra_http_methods} // [] };
+            };
+        },
+    ],
+    groups => [
+        default => [
+            qw(OK DECLINED DONE OUTPUT SERVER_ERROR HANDLER_ERROR QUEUE_ERROR HTTP_METHODS)
+        ],
+    ],
+    collectors => [qw(extra_http_methods)]
+};
 
 # SEEALSO: Magpie, Magpie::Component, Magpie::Event
 
