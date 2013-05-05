@@ -162,7 +162,7 @@ sub call {
     }
 
     my $matcher_class = $self->matcher_class || 'Magpie::Matcher';
-    
+
     try {
         Plack::Util::load_class($matcher_class);
     }
@@ -179,13 +179,14 @@ sub call {
     );
 
     $pipeline = $matcher->construct_pipeline($pipeline);
-    
+
     if ($self->debug) {
         Plack::Util::load_class('Data::Dumper::Concise');
         my $message = 'PIPELINE: ' . Data::Dumper::Concise::Dumper($pipeline);
+        #warn 'STACK ' . Data::Dumper::Concise::Dumper(\@STACK);
         warn $message . "\n";
         $req->logger({ level => 'debug', message => $message, });
-    }    
+    }
 
     my $m = Magpie::Machine->new( plack_request => $req, );
 

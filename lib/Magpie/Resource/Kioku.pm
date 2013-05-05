@@ -242,6 +242,7 @@ sub POST {
 
 sub DELETE {
     my $self = shift;
+    my $ctxt = shift;
     $self->parent_handler->resource( $self );
     my $req = $self->request;
 
@@ -252,9 +253,7 @@ sub DELETE {
         return OK;
     }
 
-    my @steps = split '/', $path;
-
-    my $id = $req->param('id') || pop @steps;
+    my $id = $self->get_entity_id($ctxt);
 
     # should we do a separate lookup to make sure the data is there?
     try {
@@ -270,6 +269,7 @@ sub DELETE {
     $self->response->status(204);
     return OK;
 }
+
 
 sub PUT {
     my $self = shift;
@@ -320,19 +320,23 @@ sub PUT {
         return DONE;
     }
 
-
     foreach my $key (keys(%args)) {
         $existing->$key( $args{$key} );
     }
 
+
     try {
-        $self->data_source->store($existing);
+        $self->data_source->txn_do(sub {
+            my $scope = $self->data_source->new_scope;
+            $self->data_source->store($existing);
+        });
     }
     catch {
         my $error = "Error updating data entity with ID $existing_id: $_\n";
         $self->set_error( { status_code => 500, reason => $error } );
     };
 
+    warn "should be stored";
     return OK if $self->has_error;
 
     # finally, if it all went OK, say so.
