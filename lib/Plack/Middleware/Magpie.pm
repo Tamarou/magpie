@@ -181,9 +181,8 @@ sub call {
     $pipeline = $matcher->construct_pipeline($pipeline);
 
     if ($self->debug) {
-        Plack::Util::load_class('Data::Dumper::Concise');
-        my $message = 'PIPELINE: ' . Data::Dumper::Concise::Dumper($pipeline);
-        #warn 'STACK ' . Data::Dumper::Concise::Dumper(\@STACK);
+        Plack::Util::load_class('Data::Printer');
+        my $message = 'PIPELINE: ' . Data::Printer::p($pipeline);
         warn $message . "\n";
         $req->logger({ level => 'debug', message => $message, });
     }
