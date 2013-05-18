@@ -7,6 +7,7 @@ use lib "$FindBin::Bin/../lib";
 
 use Test::Requires qw{
     KiokuDB
+    DBD::SQLite
 };
 
 use Plack::Test;

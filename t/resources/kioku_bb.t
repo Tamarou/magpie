@@ -3,6 +3,7 @@ use warnings;
 use Test::More;
 use Test::Requires qw{
     KiokuX::Model
+    DBD::SQLite
 };
 
 use FindBin;
