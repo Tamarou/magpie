@@ -4,6 +4,7 @@ use Moose::Role;
 #use HTTP::Throwable::Factory;
 use Magpie::Error;
 use Moose::Util::TypeConstraints;
+use Class::Load;
 
 my %http_lookup = (
     300 => 'MultipleChoices',
@@ -62,13 +63,13 @@ coerce 'MagpieResourceObject'
         => via {
             my $args = $_;
             my $class = delete $args->{class};
-            Class::MOP::load_class( $class );
+            Class::Load::load_class( $class );
             $class->new( $args );
         },
     => from 'Str'
         => via {
             my $class = shift;
-            Class::MOP::load_class( $class );
+            Class::Load::load_class( $class );
             $class->new;
         },
 ;

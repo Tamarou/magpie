@@ -7,6 +7,7 @@ extends 'Magpie::Resource';
 use Magpie::Constants;
 use Try::Tiny;
 use KiokuDB;
+use Class::Load;
 
 has data_source => (
     is         => 'ro',
@@ -206,7 +207,7 @@ sub POST {
 
     # if we make it here there is no existing record, so make a new one.
     try {
-        Class::MOP::load_class($wrapper_class);
+        Class::Load::load_class($wrapper_class);
         $to_store = $wrapper_class->new(%args);
     }
     catch {

@@ -5,6 +5,7 @@ use Moose;
 use XML::LibXML;
 use Magpie::Util;
 use Magpie::Plugin::URITemplate;
+use Class::Load;
 
 #use Data::Printer;
 
@@ -243,7 +244,7 @@ sub process_accept_matrix {
 }
 
 sub process_assets {
-    Class::MOP::load_class('Bread::Board');
+    Class::Load::load_class('Bread::Board');
     my $self = shift;
     my $node = shift;
     foreach my $container ($node->findnodes('./container')) {
