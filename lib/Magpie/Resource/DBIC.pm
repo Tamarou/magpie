@@ -5,6 +5,7 @@ package Magpie::Resource::DBIC;
 use Moose;
 extends 'Magpie::Resource';
 with 'Magpie::Plugin::DBI';
+use Class::Load;
 use Magpie::Constants;
 use Try::Tiny;
 
@@ -205,7 +206,7 @@ sub POST {
 
     # if we make it here there is no existing record, so make a new one.
     try {
-        Class::MOP::load_class($wrapper_class);
+        Class::Load::load_class($wrapper_class);
         $to_store = $wrapper_class->new(%args);
     }
     catch {
