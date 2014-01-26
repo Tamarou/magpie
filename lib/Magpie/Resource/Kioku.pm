@@ -328,9 +328,18 @@ sub PUT {
     }
 
     foreach my $key (keys(%args)) {
-        $existing->$key( $args{$key} );
+        try {
+            $existing->$key( $args{$key} );
+        }
+        catch {
+            my $error = "Error updating property '$key' of Resource ID $existing_id: $_\n";
+            $self->set_error( { status_code => 500, reason => $error } );
+            last;
+        };
     }
 
+
+    return OK if $self->has_error;
 
     try {
         $self->data_source->txn_do(sub {
