@@ -60,6 +60,7 @@ sub get_transformer {
     return OK;
 }
 
+use Encode;
 sub transform {
     my ($self, $ctxt) = @_;
     my $tt = $self->transformer;
@@ -81,7 +82,7 @@ sub transform {
 
     return OK if $self->has_error;
 
-    $self->resource->data( $output );
+    $self->resource->data( encode('UTF-8', $output) );
 
     return OK;
 }
