@@ -240,12 +240,16 @@ sub call {
         return $subref->();
     }
 
+    use Encode;
     # XXX: Real Accept-* based serialization will go here eventually.
     #if ($m->resource->has_data) {
     if ( my $data = $m->resource->data ) {
 
         #my $data = $m->resource->data;
         #warn "got data $data\n";
+        #if (!utf8::is_utf8($data)) {
+        #    $data = decode('UTF-8', $data);
+        #}
         my $content_length = length $data || 0;
         if ($content_length) {
             $m->response->content_length($content_length);
