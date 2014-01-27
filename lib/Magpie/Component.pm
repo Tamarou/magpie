@@ -13,6 +13,7 @@ has breadboard => (
     is      => 'rw',
     isa     => 'Magpie::Breadboard',
     default => sub { Magpie::Breadboard->new(); },
+    lazy    => 1,
     handles => [
         qw( add_asset assets resolve_asset internal_assets resolve_internal_asset)
     ],
