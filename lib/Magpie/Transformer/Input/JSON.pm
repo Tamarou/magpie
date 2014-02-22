@@ -16,7 +16,7 @@ sub transform {
         return OK;
     }
     catch {
-        $self->set_error({status_code => 400, reason $_ });
+        $self->set_error({status_code => 400, reason => $_ });
         return DECLINED
     };
 }
