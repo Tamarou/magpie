@@ -88,10 +88,12 @@ sub absolute_path {
 
 our $WTF = 0;
 
+use Data::Printer;
+
 sub get_content {
     my $self = shift;
     my $ctxt = shift;
-
+    warn "getting content '" . $self->response->status . "'";
     my $dom = undef;
 
     my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );
@@ -146,6 +148,7 @@ sub get_content {
     $xml_parser->input_callbacks($icb);
 
     my $upstream = $resource->data;
+    warn "upstream " . p($upstream);
     if ($upstream) {
         if (ref $upstream) {
             if (blessed($upstream)) {
@@ -178,6 +181,8 @@ sub get_content {
         warn "Nothing UPSTREAM\n";
         $dom = XML::LibXML::Document->new();
     }
+
+    return DECLINED if $self->has_error;
 
     $self->content_dom( $dom );
     $WTF++;
