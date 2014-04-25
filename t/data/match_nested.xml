@@ -1,0 +1,97 @@
+<?xml version="1.0"?>
+<application>
+    <accept_matrix>
+        <variant name="text_de" type="text/plain" language="de"/>
+        <variant>
+            <name>text_en</name>
+            <type>text/plain</type>
+            <language>en</language>
+        </variant>
+    </accept_matrix>
+    <pipeline>
+        <match type="regexp" rule="^/myapp">
+            <add class="Magpie::Pipeline::Moe"/>
+            <match type="regexp" rule="right">
+                <add class="Magpie::Pipeline::CurlyArgs">
+                    <parameters>
+                        <simple_argument>RIGHT</simple_argument>
+                    </parameters>
+                </add>
+            </match>
+            <match type="regexp" rule="wrong">
+                <add class="Magpie::Pipeline::CurlyArgs">
+                    <parameters>
+                        <simple_argument>WRONG</simple_argument>
+                    </parameters>
+                </add>
+                <match type="regexp" rule="pernicious">
+                    <add class="Magpie::Pipeline::CurlyArgs">
+                        <parameters>
+                            <simple_argument>TERRIBLE</simple_argument>
+                        </parameters>
+                    </add>
+                </match>
+            </match>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+        <match type="regexp" rule="^/store">
+            <match type="template" rule="^/store/{store_id}">
+                <add class="Magpie::Pipeline::PathMadness" />
+                <match type="template" rule="^/store/{store_id}/{product_id}$">
+                    <add class="Magpie::Pipeline::PathMadness" />
+                </match>
+            </match>
+        </match>
+        <match type="regexp" rule="^/env">
+           <match type="env">
+                <rules>
+                    <rule>
+                        <key>SERVER_NAME</key>
+                        <value type="regexp">^localhost$</value>
+                    </rule>
+                </rules>
+                <add class="Magpie::Pipeline::Moe"/>
+               <match type="env">
+                    <rules>
+                        <rule key="HTTP_ACCEPT" value="text/plain" />
+                    </rules>
+                    <add class="Magpie::Pipeline::CurlyArgs">
+                        <parameters>
+                            <simple_argument>PLAIN</simple_argument>
+                        </parameters>
+                    </add>
+                </match>
+               <match type="env">
+                    <rules>
+                        <rule key="HTTP_ACCEPT" value="text/xml" />
+                    </rules>
+                    <add class="Magpie::Pipeline::CurlyArgs">
+                        <parameters>
+                            <simple_argument>XML</simple_argument>
+                        </parameters>
+                    </add>
+                </match>
+            </match>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+        <match type="regexp" rule="^/accept">
+            <add class="Magpie::Pipeline::Moe"/>
+            <match type="accept" variant_name="text_de">
+                <add class="Magpie::Pipeline::CurlyArgs">
+                    <parameters>
+                        <simple_argument>DANKE</simple_argument>
+                    </parameters>
+                </add>
+            </match>
+            <match type="accept" variant_name="text_en">
+                <add class="Magpie::Pipeline::CurlyArgs">
+                    <parameters>
+                        <simple_argument>THANKS</simple_argument>
+                    </parameters>
+                </add>
+            </match>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+    </pipeline>
+</application>
+

@@ -148,7 +148,7 @@ sub get_content {
     $xml_parser->input_callbacks($icb);
 
     my $upstream = $resource->data;
-    warn "upstream " . p($upstream);
+    #warn "upstream " . p($upstream);
     if ($upstream) {
         if (ref $upstream) {
             if (blessed($upstream)) {
@@ -178,7 +178,6 @@ sub get_content {
         }
     }
     else {
-        warn "Nothing UPSTREAM\n";
         $dom = XML::LibXML::Document->new();
     }
 

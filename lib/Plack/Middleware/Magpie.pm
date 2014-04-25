@@ -16,52 +16,68 @@ use Magpie::Plugin::URITemplate;
 #use Magpie::ConfigReader::XML;
 use Try::Tiny;
 use HTTP::Throwable::Factory;
+use Data::Printer;
 use File::stat;
 my @STACK      = ();
 my $MTOKEN     = undef;
+my $IDX = 0;
 my $_add_frame = sub {
-    push @STACK, shift;
+    my $frame = shift;
+    push @$frame, ++$IDX;
+    push @STACK, $frame;
 };
 
-sub make_token {
+sub make_machine_token {
     return '__MTOKEN__' . int( rand(100000) );
+}
+
+sub make_match_token {
+    return '__MATCH__' . int( rand(100000) );
 }
 
 sub machine (&) {
     my $block = shift;
-    $MTOKEN = make_token();
+    $MTOKEN = make_machine_token();
     $block->();
     return $MTOKEN;
 }
 
-sub match {
+sub match ($$) {
     my $to_match   = shift;
     my $input      = shift;
+    my $match_token = make_match_token;
     my $match_type = reftype $to_match || 'STRING';
     if ( $match_type eq 'SCALAR' && re::is_regexp($to_match) == 1 ) {
         $match_type = 'REGEXP';
     }
-    my $frame = [ $match_type, $to_match, $input, $MTOKEN ];
+    my $frame = [ $match_type, $to_match, $input, $MTOKEN, $match_token];
     $_add_frame->($frame);
+    return $match_token;
 }
 
 sub match_env {
     my $to_match   = shift;
     my $input      = shift;
     my $match_type = reftype $to_match || 'STRING';
+    my $match_token = make_match_token;
     if ( $match_type eq 'SCALAR' && re::is_regexp($to_match) == 1 ) {
         $match_type = 'REGEXP';
     }
-    my $frame = [ $match_type, $to_match, $input, $MTOKEN ];
+    my $frame = [ $match_type, $to_match, $input, $MTOKEN, $match_token ];
     $_add_frame->($frame);
+    return $match_token;
 }
 
 sub match_accept {
     my $to_match = shift;
     my $input    = shift;
-    my $frame    = [ 'ACCEPT', $to_match, $input, $MTOKEN ];
+    my $match_token = make_match_token;
+    my $frame    = [ 'ACCEPT', $to_match, $input, $MTOKEN, $match_token ];
     $_add_frame->($frame);
+    return $match_token;
 }
+
+
 
 # NOTE: We do this here (and the config file processor(s)) instead
 # of in Matcher.pm so we don't have to reparse the template on every request.
@@ -70,6 +86,7 @@ sub match_template {
     my $to_match = shift;
     my $input    = shift;
     #warn "IN " . Dumper($input);
+    my $match_token = make_match_token;
     my ($re, $names) = Magpie::Plugin::URITemplate::process_template($to_match);
     my @tuples = Magpie::Util::make_tuples(@{$input});
     my @new_input = ();
@@ -84,9 +101,10 @@ sub match_template {
         $pair->[1]->{uri_template} = $to_match;
         push @new_input, @{$pair};
     }
-    my $frame    = [ 'REGEXP', $re, \@new_input, $MTOKEN ];
+    my $frame    = [ 'REGEXP', $re, \@new_input, $MTOKEN, $match_token ];
     #warn "NEW FRAME" . Dumper($frame);
     $_add_frame->($frame);
+    return $match_token;
 }
 
 sub has_config_cache {
