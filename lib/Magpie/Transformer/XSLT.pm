@@ -93,7 +93,6 @@ use Data::Printer;
 sub get_content {
     my $self = shift;
     my $ctxt = shift;
-    warn "getting content '" . $self->response->status . "'";
     my $dom = undef;
 
     my $xml_parser = XML::LibXML->new( expand_xinclude => 1, huge => 1, debug => 1, recover => 1, no_xinclude_nodes => 1, no_basefix => 1 );

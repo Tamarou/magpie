@@ -20,17 +20,17 @@ my $context = {
 };
 
 my $handler = builder {
-    enable "Magpie", context => $context, debug => 1, conf => 't/data/match.xml'
+    enable "Magpie", context => $context, conf => 't/data/match.xml'
 };
 
 test_psgi
     app    => $handler,
     client => sub {
         my $cb = shift;
-#         {
-#             my $res = $cb->(GET "http://localhost/stooges");
-#             like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
-#         }
+        {
+            my $res = $cb->(GET "http://localhost/stooges");
+            like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT_actually__is__is_frequently__larryfoo__larrybar_/;
+        }
         {
             my $res = $cb->(GET "http://localhost/");
             like $res->content, qr/_moebaz__moebar__curlyfoo_RIGHT\b/;

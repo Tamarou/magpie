@@ -15,7 +15,7 @@ my $accept = [
 ];
 
 my $handler = builder {
-    enable "Magpie", context => {}, accept_matrix => $accept, debug => 1, pipeline => [
+    enable "Magpie", context => {}, accept_matrix => $accept, pipeline => [
         machine {
             match( qr|^/myapp| => [
                 'Magpie::Pipeline::Moe',

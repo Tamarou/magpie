@@ -17,7 +17,7 @@ my $context = {
 
 my $handler = builder {
     enable "SimpleLogger", level => 'debug';
-    enable "Magpie", context => $context, debug => 1, matcher_class => 'Core::StaticMatcher';
+    enable "Magpie", context => $context, matcher_class => 'Core::StaticMatcher';
 
 };
 

@@ -48,7 +48,6 @@ has accept_matrix => (
 );
 
 sub process {
-    #warn "process config";
     my $self = shift;
     my $xml_file = shift;
 
@@ -88,11 +87,6 @@ sub process {
 
 }
 
-sub process_nested {
-
-}
-
-use Data::Dumper::Concise;
 sub process_match {
     my $self = shift;
     my $node = shift;
@@ -108,25 +102,15 @@ sub process_match {
             push @input, process_add($child);
         }
         elsif ($name eq 'match') {
-            warn "NESTED!!";
             push @input, $self->process_match($child);
-            warn "NESTED DONE" . Dumper(\@input);
         }
     }
 
     if ( $match_type eq 'REGEXP' ) {
         $to_match = qr|$to_match|;
-
-        #foreach my $add ($node->findnodes('./add')) {
-        #    push @{$input}, process_add( $add );
-        #}
     }
     elsif ($match_type eq 'LITERAL') {
         $match_type = 'STRING';
-
-        #foreach my $add ($node->findnodes('./add')) {
-        #    push @{$input}, process_add( $add );
-        #}
     }
     elsif ($match_type eq 'ENV') {
         $match_type = 'HASH';
@@ -141,59 +125,18 @@ sub process_match {
             next unless $key && $val;
             $to_match->{$key} = $val;
         }
-
-        #foreach my $add ($node->findnodes('./add')) {
-        #    push @{$input}, process_add( $add );
-        #}
-
     }
     elsif ($match_type eq 'ACCEPT') {
         $to_match = $node->findvalue('@variant_name|./variant_name/text()');
-
-        #foreach my $add ($node->findnodes('./add')) {
-        #    push @{$input}, process_add( $add );
-        #}
     }
     # NOTE: See comment in Plack::Middleware::Magpie re: this munging.
     elsif ($match_type eq 'TEMPLATE') {
-#         my @old_input = ();
-#         foreach my $add ($node->findnodes('./add')) {
-#             push @old_input, process_add( $add );
-#         }
-#
-#         my @tuples = Magpie::Util::make_tuples(@old_input);
-#
-#         foreach my $pair (@tuples) {
-#             if (defined $pair->[1]->{traits}) {
-#                 if (ref $pair->[1]->{traits} eq 'ARRAY') {
-#                     push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';
-#                 }
-#                 else {
-#                     my $existing = delete $pair->[1]->{traits};
-#                     $pair->[1]->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
-#                 }
-#             }
-#             else {
-#                 $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
-#             }
-#             $pair->[1]->{uri_template} = $uri_template;
-#             push @{$input}, @{$pair};
-#         }
-    }
-
-#     foreach my $add ($node->findnodes('./add')) {
-#         push @{$input}, process_add( $add );
-#     }
-
-
-    if ($match_type eq 'TEMPLATE') {
-        warn "it's a TEMPLATE";
         $match_type = 'REGEXP';
         my $uri_template = $to_match;
+
         # to_match becomes the compiled regexp here
         my ($match_re, $names) = Magpie::Plugin::URITemplate::process_template($to_match);
         $to_match = $match_re;
-        warn "OY VEY" . Dumper(\@input);
         my @parameterized = ();
         for (my $i = 0; $i < scalar @input; $i++ ) {
             next if ref( $input[$i] ) eq 'HASH';
@@ -201,137 +144,36 @@ sub process_match {
                 push @parameterized, $input[$i];
                 next;
             }
+
             my $args = {};
             if ( ref( $input[$i + 1 ]) eq 'HASH' ) {
                 $args = $input[$i + 1 ];
             }
 
-###
-             if (defined $args->{traits}) {
-                 if (ref $args->{traits} eq 'ARRAY') {
-                     push @{$args->{traits}}, '+Magpie::Plugin::URITemplate';
-                 }
-                 else {
-                     my $existing = delete $args->{traits};
-                     $args->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
-                 }
-             }
-             else {
-                 $args->{traits} = ['+Magpie::Plugin::URITemplate'];
-             }
-             $args->{uri_template} = $uri_template;
-###
+            if (defined $args->{traits}) {
+                if (ref $args->{traits} eq 'ARRAY') {
+                    push @{$args->{traits}}, '+Magpie::Plugin::URITemplate';
+                }
+                else {
+                    my $existing = delete $args->{traits};
+                    $args->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
+                }
+            }
+            else {
+                $args->{traits} = ['+Magpie::Plugin::URITemplate'];
+            }
+
+            $args->{uri_template} = $uri_template;
             push @parameterized, ($input[$i], $args);
         }
         @input = @parameterized;
-#         my @tuples = Magpie::Util::make_tuples(@input);
-#         #warn "TUPLES " . p(@input) . p(@tuples);
-#          foreach my $pair (@tuples) {
-#              if (defined $pair->[1]->{traits}) {
-#                  if (ref $pair->[1]->{traits} eq 'ARRAY') {
-#                      push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';
-#                  }
-#                  else {
-#                      my $existing = delete $pair->[1]->{traits};
-#                      $pair->[1]->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
-#                  }
-#              }
-#              else {
-#                  $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
-#              }
-#              $pair->[1]->{uri_template} = $uri_template;
-#              push @input, @{$pair};
-#          }
     }
 
     my $match_token = make_match_token;
-    #warn "PUSHING INPUT " . p(\@input);
     $self->push_stack( [$match_type, $to_match, \@input, make_token, $match_token] );
     return $match_token;
 }
 
-use Data::Printer;
-
-sub old_process_match {
-    my $node = shift;
-    my $input = [];
-    my $match_type = $node->findvalue('@type|./type/text()');
-    $match_type = uc $match_type;
-    my $to_match = $node->findvalue('@rule|./rule/text()');
-    if ( $match_type eq 'REGEXP' ) {
-        $to_match = qr|$to_match|;
-        foreach my $add ($node->findnodes('./add')) {
-            push @{$input}, process_add( $add );
-        }
-    }
-    elsif ($match_type eq 'LITERAL') {
-        $match_type = 'STRING';
-
-        foreach my $add ($node->findnodes('./add')) {
-            push @{$input}, process_add( $add );
-        }
-    }
-    elsif ($match_type eq 'ENV') {
-        $match_type = 'HASH';
-        $to_match = {};
-        foreach my $rule ($node->findnodes('./rules/rule')) {
-            my $key  = $rule->findvalue('@key|./key/text()');
-            my $val  = $rule->findvalue('@value|./value/text()');
-            my $type = $rule->findvalue('@type|./value/@type|./value/type/text()');
-            if ( $type && $type eq 'regexp' ) {
-                $val = qr|$val|;
-            }
-            next unless $key && $val;
-            $to_match->{$key} = $val;
-        }
-
-        foreach my $add ($node->findnodes('./add')) {
-            push @{$input}, process_add( $add );
-        }
-
-    }
-    elsif ($match_type eq 'ACCEPT') {
-        $to_match = $node->findvalue('@variant_name|./variant_name/text()');
-
-        foreach my $add ($node->findnodes('./add')) {
-            push @{$input}, process_add( $add );
-        }
-    }
-    # NOTE: See comment in Plack::Middleware::Magpie re: this munging.
-    elsif ($match_type eq 'TEMPLATE') {
-        $match_type = 'REGEXP';
-        my $uri_template = $to_match;
-
-        # to_match becomes the compiled regexp here
-        my ($match_re, $names) = Magpie::Plugin::URITemplate::process_template($to_match);
-        $to_match = $match_re;
-        my @old_input = ();
-        foreach my $add ($node->findnodes('./add')) {
-            push @old_input, process_add( $add );
-        }
-
-        my @tuples = Magpie::Util::make_tuples(@old_input);
-
-        foreach my $pair (@tuples) {
-            if (defined $pair->[1]->{traits}) {
-                if (ref $pair->[1]->{traits} eq 'ARRAY') {
-                    push @{$pair->[1]->{traits}}, '+Magpie::Plugin::URITemplate';
-                }
-                else {
-                    my $existing = delete $pair->[1]->{traits};
-                    $pair->[1]->{traits} = [$existing, '+Magpie::Plugin::URITemplate'];
-                }
-            }
-            else {
-                $pair->[1]->{traits} = ['+Magpie::Plugin::URITemplate'];
-            }
-            $pair->[1]->{uri_template} = $uri_template;
-            push @{$input}, @{$pair};
-        }
-    }
-
-    return ($match_type, $to_match, $input);
-}
 sub process_add {
     my $node = shift;
     my $class_name = $node->findvalue('@class|./class/text()');
@@ -419,12 +261,10 @@ sub process_assets {
     my $self = shift;
     my $node = shift;
     foreach my $container ($node->findnodes('./container')) {
-        #warn "Container";
         $self->process_asset_container($container);
     }
 
     foreach my $service ($node->findnodes('./service')) {
-        #warn "Service";
         $self->process_asset_service($service);
     }
 
