@@ -7,7 +7,7 @@ use parent qw( Exporter Plack::Middleware);
 
 use Plack::Util::Accessor qw(pipeline resource assets context conf accept_matrix config_cache config_assets plugins matcher_class debug);
 
-our @EXPORT = qw( machine match match_env match_accept match_template);
+our @EXPORT = qw( machine match match_env match_accept match_template reset_pipeline);
 use Scalar::Util qw(reftype blessed);
 use Magpie::Machine;
 #use Magpie::Matcher;
@@ -77,6 +77,9 @@ sub match_accept {
     return $match_token;
 }
 
+sub reset_pipeline {
+    return '__RESET__';
+}
 
 
 # NOTE: We do this here (and the config file processor(s)) instead

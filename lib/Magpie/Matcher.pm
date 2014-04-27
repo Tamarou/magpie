@@ -23,7 +23,7 @@ has match_candidates => (
     },
 );
 
-has wtf_mapper => (
+has evaluation_map => (
     traits  => ['Hash'],
     is      => 'rw',
     isa     => 'HashRef[ArrayRef]',
@@ -34,7 +34,7 @@ has wtf_mapper => (
     lazy_build => 1,
 );
 
-sub _build_wtf_mapper {
+sub _build_evaluation_map {
     my $self = shift;
     my $candidates = $self->match_candidates;
     my $evaled = {};
@@ -66,49 +66,20 @@ sub _build_wtf_mapper {
         foreach my $slot (@{$evaled->{$machine}}) {
             next if scalar grep { $_ eq $slot->[0] } (@submatches, @to_skip);
             my $components = resolve($evaled->{$machine}, $slot->[1]);
-            push @{$out->{$machine}}, @{$components};
-#             foreach my $component (@{$components}) {
-#                 ##warn"checking component '$component'";
-#                 if ($component =~ /__MATCH__/) {
-#                     my $resolved = $evaled->{$machine}->{$component};
-#                     push @{$out->{$machine}}, @{$resolved} if $resolved;
-#                 }
-#                 else {
-#                     push @{$out->{$machine}}, $component;
-#                 }
-#             }
+            foreach my $component (@{$components}) {
+                if ($component eq '__RESET__') {
+                    $out->{$machine} = [];
+                    next;
+                }
+                push @{$out->{$machine}}, $component;
+            }
+            #push @{$out->{$machine}}, @{$components};
         }
     }
-    ##warn"MAAAAAAAP " . p($out);
     return $out;
 }
 
-sub resolve {
-    my $machine = shift;
-    my $component_list = shift;
-    my $stack = shift || [];
-    if (scalar grep{/__MATCH__/} @{$component_list}) {
-        foreach my $component (@{$component_list}) {
-            if ($component =~ /__MATCH__/) {
-                my @new_list = ();
-                foreach my $thing (@{$machine}) {
-                    if ($thing->[0] eq $component) {
-                        push @new_list, @{$thing->[1]};
-                    }
-                }
-                my $resolved = resolve($machine, \@new_list);
-                push @{$stack}, @{$resolved} if $resolved;
-            }
-            else {
-                push @{$stack}, $component;
-            }
-        }
-    }
-    else {
-        push @{$stack}, @{$component_list};
-    }
-    return $stack;
-}
+
 
 has accept_matrix => (
     traits  => ['Array'],
@@ -144,63 +115,26 @@ sub _build_accept_variant {
     return $ret;
 }
 
-sub make_map {
-    my $self = shift;
-
-    my $candidates = $self->match_candidates;
-
-    my $req = $self->plack_request;
-
-    my $env = $req->env;
-    my $path = $req->path_info;
-    my $out = {};
-
-    # this is expensive, so only do it once
-    my $accept_variant = HTTP::Negotiate::choose($self->accept_matrix, $req->headers);
-
-    foreach my $frame (@{ $candidates }) {
-        my $match_type = $frame->[0];
-        my $token = $frame->[3] || '__default__';
-        $out->{$token} ||= [];
-        if ($match_type eq 'STRING') {
-            push @{$out->{$token}}, @{$frame->[2]} if $frame->[1] eq $path;
-        }
-        elsif ($match_type eq 'REGEXP' || ($match_type eq 'SCALAR' && re::is_regexp($frame->[0]) == 1 )) {
-            push @{$out->{$token}}, @{$frame->[2]} if  $path =~ /$frame->[1]/;
-        }
-        elsif ($match_type eq 'CODE') {
-            my $temp = $frame->[1]->($env);
-            push @{$out->{$token}}, @{$temp};
-        }
-        elsif ($match_type eq 'HASH') {
-            my $rules = $frame->[1];
-            my $matched = 0;
-            foreach my $k (keys %{$rules} ) {
-                last unless defined $env->{$k};
-                my $val = $rules->{$k};
-                my $val_type = reftype $val;
-                if ($val_type &&
-                 ( $val_type eq 'REGEXP' || ($val_type eq 'SCALAR' && re::is_regexp($val) == 1 ))
-                ) {
-                    $matched++ if $env->{$k} =~ m/$val/;
-                }
-                else {
-                    $matched++ if qq($env->{$k}) eq qq($val);
+sub resolve {
+    my $machine = shift;
+    my $component_list = shift;
+    my $stack = shift || [];
+    foreach my $component (@{$component_list}) {
+        if ($component =~ /__MATCH__/) {
+            my @new_list = ();
+            foreach my $thing (@{$machine}) {
+                if ($thing->[0] eq $component) {
+                    push @new_list, @{$thing->[1]};
                 }
             }
-            push @{$out->{$token}}, @{$frame->[2]} if $matched == scalar keys %{$rules};
-        }
-        elsif ($match_type eq 'AUTO') {
-            push @{$out->{$token}}, @{$frame->[2]};
-        }
-        elsif ($match_type eq 'ACCEPT') {
-            push @{$out->{$token}}, @{$frame->[2]} if length $accept_variant && $frame->[1] eq $accept_variant;
+            my $resolved = resolve($machine, \@new_list);
+            push @{$stack}, @{$resolved} if $resolved;
         }
         else {
-            warn"I don't know how to match '$match_type', skipping.\n"
+            push @{$stack}, $component;
         }
     }
-    return $out;
+    return $stack;
 }
 
 sub eval_match {
@@ -247,6 +181,9 @@ sub eval_match {
     elsif ($match_type eq 'ACCEPT') {
         push @out, @{$frame->[2]} if length $accept_variant && $frame->[1] eq $accept_variant;
     }
+    elsif ($match_type eq 'RESET') {
+        push @out, '__RESET__';
+    }
     else {
         warn"I don't know how to match '$match_type', skipping.\n"
     }
@@ -285,7 +222,7 @@ sub construct_pipeline {
     }
 
     my @new = ();
-    my $map = $self->wtf_mapper;
+    my $map = $self->evaluation_map;
     my @tokens = keys( %{$map} );
     foreach my $step ( @{$tokenized} ) {
         if ( grep { $_ eq $step } @tokens ) {

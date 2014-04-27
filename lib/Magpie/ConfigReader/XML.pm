@@ -104,6 +104,9 @@ sub process_match {
         elsif ($name eq 'match') {
             push @input, $self->process_match($child);
         }
+        elsif ($name eq 'reset') {
+            push @input, '__RESET__';
+        }
     }
 
     if ( $match_type eq 'REGEXP' ) {

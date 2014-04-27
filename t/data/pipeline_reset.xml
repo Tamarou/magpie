@@ -1,0 +1,46 @@
+<?xml version="1.0"?>
+<application>
+<!--
+    enable "Magpie", context => $context, debug => 1, pipeline => [
+        machine {
+            match qr|^/| => ['Magpie::Pipeline::CurlyArgs' => { simple_argument => 'FRIST' }];
+            match( qr|^/myapp| => [
+                'Magpie::Pipeline::Moe',
+                'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'RIGHT' },
+                match( qr|/special| => [
+                    reset_pipeline,
+                    'Magpie::Pipeline::CurlyArgs' => { simple_argument => 'SPECIAL' },
+                ]),
+                'Magpie::Pipeline::Larry'
+            ]);
+        }
+    ]
+-->
+    <pipeline>
+        <match type="regexp" rule="^/">
+            <add class="Magpie::Pipeline::CurlyArgs">
+                <parameters>
+                    <simple_argument>FRIST</simple_argument>
+                </parameters>
+            </add>
+        </match>
+        <match type="regexp" rule="^/myapp">
+            <add class="Magpie::Pipeline::Moe"/>
+            <add class="Magpie::Pipeline::CurlyArgs">
+                <parameters>
+                    <simple_argument>RIGHT</simple_argument>
+                </parameters>
+            </add>
+            <match type="regexp" rule="/special">
+                <reset/>
+                <add class="Magpie::Pipeline::CurlyArgs">
+                    <parameters>
+                        <simple_argument>SPECIAL</simple_argument>
+                    </parameters>
+                </add>
+            </match>
+            <add class="Magpie::Pipeline::Larry"/>
+        </match>
+    </pipeline>
+</application>
+
