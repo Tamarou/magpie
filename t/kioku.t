@@ -40,7 +40,8 @@ my $handler = builder {
             match qr|/users| => [
                 'Magpie::Resource::Kioku' => {
                     wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User'
-                }
+                },
+                'Magpie::Transformer::JSON',
             ];
         }
         ];
@@ -51,17 +52,23 @@ test_psgi
     client => sub {
     my $cb  = shift;
     my $url = "http://localhost/users";
+    my $created_url = undef;
     {
         my $res = $cb->( POST $url => \%user );
 
         is $res->code, 201, "correct response code";
-        my $linky = $res->header('Location');
-        ok defined $linky;
-        $url = $linky if defined $linky;
+        $created_url = $res->header('Location');
+        ok defined $created_url;
     }
     {
-        my $res = $cb->( GET $url);
-        diag $res->dump;
+        if ($created_url) {
+            my $res = $cb->( GET $created_url);
+            is $res->code, 200, "correct GET response.";
+            like $res->content, qr|ubu|, 'JSON serialized';
+        }
+        else {
+         fail "GET to follow-on URL failed."
+        }
     }
     };
 
