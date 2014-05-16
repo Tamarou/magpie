@@ -14,7 +14,6 @@ use Plack::Middleware::Magpie;
 use HTTP::Request::Common;
 use Bread::Board;
 
-my $style_path = 't/htdocs/stylesheets';
 
 my $handler = builder {
     enable "Magpie", pipeline => [
@@ -22,7 +21,8 @@ my $handler = builder {
             match qr|/orders/| => [
                 'Magpie::Resource::Kioku' => {
                     dsn        => "dbi:SQLite::memory:",
-                    extra_args => { create => 1 }
+                    extra_args => { create => 1 },
+                    wrapper_class => 'Magpie::Pipeline::Resource::Kioku::User',
                 },
             ];
         }
@@ -35,12 +35,8 @@ test_psgi
     my $cb = shift;
     {
         my $res = $cb->( GET "http://localhost/orders/655321" );
-        #             like $res->content, qr/Hello Shopper!/;
-        #             like $res->content, qr/wooo/;
-        #             like $res->content, qr/Header/;
-        #             like $res->content, qr/Footer/;
+        is $res->code, 404;
     }
     };
 
-ok(1);
 done_testing;
