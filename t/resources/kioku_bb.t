@@ -3,7 +3,7 @@ use warnings;
 use Test::More;
 use Test::Requires qw{
     KiokuDB
-    Kioku::Backend::DBI
+    KiokuDB::Backend::DBI
     KiokuX::Model
     DBD::SQLite
 };
