@@ -2,6 +2,8 @@ use strict;
 use warnings;
 use Test::More;
 use Test::Requires qw{
+    KiokuDB
+    Kioku::Backend::DBI
     KiokuX::Model
     DBD::SQLite
 };
