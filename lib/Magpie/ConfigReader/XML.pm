@@ -97,7 +97,7 @@ sub process_match {
 
     foreach my $child ($node->childNodes) {
         my $name = $child->localname;
-        next unless length $name;
+        next unless $name && length $name;
         if ($name eq 'add') {
             push @input, process_add($child);
         }

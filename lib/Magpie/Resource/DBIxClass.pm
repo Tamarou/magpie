@@ -6,8 +6,7 @@ use Moose;
 extends 'Magpie::Resource';
 use Magpie::Constants;
 use Try::Tiny;
-use KiokuDB;
-use Class::Load;
+
 
 has data_source => (
     is         => 'ro',
@@ -112,12 +111,11 @@ sub _build_data_source {
 
 sub GET {
     my $self = shift;
-    my $ctxt = shift;
     $self->parent_handler->resource($self);
     my $req = $self->request;
 
     my $path = $req->path_info;
-    my $id = $self->get_entity_id($ctxt);
+    my $id = $self->get_entity_id;
 
     if ($path =~ /\/$/  && !$id ) {
         $self->state('prompt');
@@ -130,11 +128,7 @@ sub GET {
         ($data) = $self->data_source->lookup($id);
     }
     catch {
-        my $trace = $_;
-        if (ref($trace)) {
-            $trace = $trace->as_string;
-        }
-        my $error = "Could not GET data from Kioku data source: $trace\n";
+        my $error = "Could not GET data from Kioku data source: $_\n";
         $self->set_error( { status_code => 500, reason => $error } );
     };
 
@@ -144,6 +138,8 @@ sub GET {
         $self->set_error({ status_code => 404, reason => 'Resource not found.'});
         return OK;
     }
+
+    #warn "got data " . Dumper($data);
 
     $self->data($data);
     return OK;
@@ -191,9 +187,7 @@ sub POST {
             }
 
             try {
-                $self->data_source->txn_do( sub {
-                    $self->data_source->store($existing);
-                });
+                $self->data_source->store($existing);
             }
             catch {
                 my $error = "Error updating data entity with ID $existing_id: $_\n";
@@ -211,7 +205,7 @@ sub POST {
 
     # if we make it here there is no existing record, so make a new one.
     try {
-        Class::Load::load_class($wrapper_class);
+        Class::MOP::load_class($wrapper_class);
         $to_store = $wrapper_class->new(%args);
     }
     catch {
@@ -226,9 +220,7 @@ sub POST {
     my $id = undef;
 
     try {
-        $self->data_source->txn_do( sub {
-            $id = $self->data_source->store($to_store);
-        });
+        $id = $self->data_source->store($to_store);
     }
     catch {
         my $error = "Could not store POST data in Kioku data source: $_\n";
@@ -251,7 +243,6 @@ sub POST {
 
 sub DELETE {
     my $self = shift;
-    my $ctxt = shift;
     $self->parent_handler->resource( $self );
     my $req = $self->request;
 
@@ -262,13 +253,13 @@ sub DELETE {
         return OK;
     }
 
-    my $id = $self->get_entity_id($ctxt);
+    my @steps = split '/', $path;
+
+    my $id = $req->param('id') || pop @steps;
 
     # should we do a separate lookup to make sure the data is there?
     try {
-        $self->data_source->txn_do( sub {
-            $self->data_source->delete( $id );
-        });
+        $self->data_source->delete( $id );
     }
     catch {
         my $error = "Could not delete data from Kioku data source: $_\n";
@@ -277,89 +268,6 @@ sub DELETE {
 
     return OK if $self->has_error;
     $self->state('deleted');
-    $self->response->status(204);
-    return OK;
-}
-
-
-sub PUT {
-    my $self = shift;
-    $self->parent_handler->resource($self);
-    my $req = $self->request;
-
-    my $to_store = undef;
-
-    my $wrapper_class = $self->wrapper_class;
-
-    # XXX should check for a content body first.
-    my %args = ();
-
-    if ( $self->has_data ) {
-        %args = %{ $self->data };
-        $self->clear_data;
-    }
-    else {
-        for ( $req->param ) {
-            $args{$_} = $req->param($_);
-        }
-    }
-
-    my $existing_id = $self->get_entity_id;
-
-    unless ($existing_id) {
-        $self->set_error({
-            status_code => 400,
-            reason => "Attempt to PUT without a definable entity ID."
-        });
-        return DONE;
-    }
-
-
-    my $existing = undef;
-    try {
-        ($existing) = $self->data_source->lookup($existing_id);
-    }
-    catch {
-        my $error = "Could not fetch data from Kioku data source for PUT editing if entity with ID $existing_id: $_\n";
-        $self->set_error( { status_code => 500, reason => $error } );
-    };
-
-    return OK if $self->has_error;
-
-    unless ($existing) {
-        $self->set_error(404);
-        return DONE;
-    }
-
-    foreach my $key (keys(%args)) {
-        try {
-            $existing->$key( $args{$key} );
-        }
-        catch {
-            my $error = "Error updating property '$key' of Resource ID $existing_id: $_\n";
-            $self->set_error( { status_code => 500, reason => $error } );
-            last;
-        };
-    }
-
-
-    return OK if $self->has_error;
-
-    try {
-        $self->data_source->txn_do(sub {
-            my $scope = $self->data_source->new_scope;
-            $self->data_source->store($existing);
-        });
-    }
-    catch {
-        my $error = "Error updating data entity with ID $existing_id: $_\n";
-        $self->set_error( { status_code => 500, reason => $error } );
-    };
-
-    return OK if $self->has_error;
-
-    # finally, if it all went OK, say so.
-    $self->state('updated');
     $self->response->status(204);
     return OK;
 }

@@ -4,6 +4,7 @@ use Moose::Role;
 #use HTTP::Throwable::Factory;
 use Magpie::Error;
 use Moose::Util::TypeConstraints;
+use Scalar::Util qw(blessed);
 use Class::Load;
 
 my %http_lookup = (
@@ -44,7 +45,21 @@ subtype 'SmartHTTPError' => as 'Maybe[Object]';
 
 coerce 'SmartHTTPError'
     => from 'HashRef'
-        => via { Magpie::Error->new_exception($_) },
+        => via {
+            my $hash = $_;
+            if (blessed $hash->{reason}) {
+                if ($hash->{reason}->isa('Moose::Exception')) {
+                    $hash->{reason} = "$hash->{reason}";
+                }
+                elsif ($hash->{reason}->can('as_string')) {
+                    $hash->{reason} = $hash->{reason}->as_string;
+                }
+                else {
+                    warn "Trouble coercing error. Reason expected to be a string but we got '" . $hash->{reason} . "' instead.";
+                }
+
+            }
+            Magpie::Error->new_exception($hash) },
     => from 'Int'
         => via { my $name = code_lookup($_); return HTTP::Throwable::Factory->new_exception( $name => {}) },
     => from 'Str'
