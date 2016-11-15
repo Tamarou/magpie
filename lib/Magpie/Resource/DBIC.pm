@@ -49,7 +49,7 @@ sub _build_data_source {
         }
         catch {
             my $error = "Could not connect to DBIC data source: $_\n";
-            warn "DOUBLE NOPE " . $error;
+            warn $error;
             $self->set_error( { status_code => 500, reason => $error } );
         };
     };
@@ -88,8 +88,7 @@ sub GET {
         return OK;
     }
 
-    #use Data::Dumper;
-    warn "got data " . p($data);
+    #warn "got data " . p($data);
 
     $self->data($data);
     return OK;
@@ -108,7 +107,7 @@ sub POST {
 
     if ( $self->has_data ) {
         $args = $self->data;
-        warn "HAS DATA " . p($args);
+        #warn "HAS DATA " . p($args);
         $self->clear_data;
     }
     else {

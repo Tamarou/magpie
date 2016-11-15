@@ -58,7 +58,7 @@ test_psgi
     my $created_url = undef;
     {
         my $res = $cb->( POST $url => \%user );
-        warn "RES: " . $res->content;
+        #warn "RES: " . $res->content;
 
         is $res->code, 201, "correct response code";
         $created_url = $res->header('Location');
@@ -84,7 +84,7 @@ test_psgi
             my $res2 = $cb->( GET $created_url);
             is $res2->code, 200, "correct GET response.";
             like $res2->content, qr|roy|, 'Updated JSON serialized';
-            warn $res2->content;
+            #warn $res2->content;
         }
         else {
          fail "GET to follow-on URL failed."
@@ -97,7 +97,7 @@ test_psgi
 
             my $res2 = $cb->( GET $created_url);
             is $res2->code, 404, "correct GET response for deleted entity.";
-            warn $res2->content;
+            #warn $res2->content;
 
         }
 
