@@ -8,30 +8,23 @@ with 'Magpie::Plugin::DBI';
 use Class::Load;
 use Magpie::Constants;
 use Try::Tiny;
+use Data::Printer;
 
 has data_source => (
     is         => 'ro',
-    isa        => 'KiokuDB',
+    isa        => 'DBIx::Class::Schema',
     lazy_build => 1,
 );
 
-has wrapper_class => (
+has result_class => (
     isa      => "Str",
     is       => "ro",
-    required => 1,
-    default  => 'MagpieGenericWrapper',
+    #required => 1,
 );
 
-has dsn => (
-    isa       => "Str",
-    is        => "ro",
-    predicate => "has_dsn",
-);
-
-has extra_args => (
-    isa       => "HashRef|ArrayRef",
-    is        => "ro",
-    predicate => "has_extra_args",
+has schema_class => (
+    isa      => "Str",
+    is       => "ro",
 );
 
 has typemap => (
@@ -40,73 +33,28 @@ has typemap => (
     predicate => "has_typemap",
 );
 
-has _kioku_scope => (
-    is  => 'rw',
-    isa => 'KiokuDB::LiveObjects::Scope',
-);
-
-has username => (
-    is        => 'ro',
-    isa       => 'Maybe[Str]',
-    predicate => 'has_username',
-);
-
-has password => (
-    is        => 'ro',
-    isa       => 'Maybe[Str]',
-    predicate => 'has_password',
-);
-
-sub _connect_args {
-    my $self = shift;
-    my @args = ( $self->dsn || die "dsn is required" );
-
-    if ( $self->has_username ) {
-        push @args, user => $self->username;
-    }
-
-    if ( $self->has_password ) {
-        push @args, password => $self->password;
-    }
-
-    if ( $self->has_typemap ) {
-        push @args, typemap => $self->typemap;
-    }
-
-    if ( $self->has_extra_args ) {
-        my $extra = $self->extra_args;
-
-        if ( ref($extra) eq 'ARRAY' ) {
-            push @args, @$extra;
-        }
-        else {
-            push @args, %$extra;
-        }
-    }
-
-    \@args;
-}
 
 sub _build_data_source {
     my $self = shift;
     my $k    = undef;
 
     try {
-        $k = $self->resolve_asset( service => 'kioku_dir' );
+        $k = $self->resolve_asset( service => 'dbic_schema' );
     }
     catch {
+        warn "NOPE " . $_;
         try {
-            $k = KiokuDB->connect( @{ $self->_connect_args } );
+            my $schema_class = $self->schema_class;
+            $k = $schema_class->connect( @{ $self->_connect_args } );
         }
         catch {
-            my $error = "Could not connect to Kioku data source: $_\n";
-            warn $error;
+            my $error = "Could not connect to DBIC data source: $_\n";
+            warn "DOUBLE NOPE " . $error;
             $self->set_error( { status_code => 500, reason => $error } );
         };
     };
 
     return undef if $self->has_error;
-    $self->_kioku_scope( $k->new_scope );
     return $k;
 }
 
@@ -126,10 +74,10 @@ sub GET {
     my $data = undef;
 
     try {
-        ($data) = $self->data_source->lookup($id);
+        ($data) = $self->data_source->resultset($self->result_class)->find($id);
     }
     catch {
-        my $error = "Could not GET data from Kioku data source: $_\n";
+        my $error = "Could not GET data from DBIC data source: $_\n";
         $self->set_error( { status_code => 500, reason => $error } );
     };
 
@@ -140,7 +88,8 @@ sub GET {
         return OK;
     }
 
-    #warn "got data " . Dumper($data);
+    #use Data::Dumper;
+    warn "got data " . p($data);
 
     $self->data($data);
     return OK;
@@ -148,23 +97,23 @@ sub GET {
 
 sub POST {
     my $self = shift;
-    $self->parent_handler->resource($self);
     my $req = $self->request;
 
     my $to_store = undef;
 
-    my $wrapper_class = $self->wrapper_class;
+    my $result_class = $self->result_class;
 
     # XXX should check for a content body first.
-    my %args = ();
+    my $args = {};
 
     if ( $self->has_data ) {
-        %args = %{ $self->data };
+        $args = $self->data;
+        warn "HAS DATA " . p($args);
         $self->clear_data;
     }
     else {
         for ( $req->param ) {
-            $args{$_} = $req->param($_);
+            $args->{$_} = $req->param($_);
         }
     }
 
@@ -173,22 +122,22 @@ sub POST {
     if (my $existing_id = $self->get_entity_id) {
         my $existing = undef;
         try {
-            ($existing) = $self->data_source->lookup($existing_id);
+            ($existing) = $self->data_source->resultset($result_class)->find($existing_id);
         }
         catch {
-            my $error = "Could not fetch data from Kioku data source for POST editing if entity with ID $existing_id: $_\n";
+            my $error = "Could not fetch data from DBIC data source for POST editing with entity with ID '$existing_id': $_\n";
             $self->set_error( { status_code => 500, reason => $error } );
         };
 
         return OK if $self->has_error;
 
         if ($existing) {
-            foreach my $key (keys(%args)) {
-                $existing->$key( $args{$key} );
+            foreach my $key (keys(%{$args})) {
+                $existing->$key( $args->{$key} );
             }
 
             try {
-                $self->data_source->store($existing);
+               $existing->update;
             }
             catch {
                 my $error = "Error updating data entity with ID $existing_id: $_\n";
@@ -205,26 +154,14 @@ sub POST {
     }
 
     # if we make it here there is no existing record, so make a new one.
-    try {
-        Class::Load::load_class($wrapper_class);
-        $to_store = $wrapper_class->new(%args);
-    }
-    catch {
-        my $error
-            = "Could not create instance of wrapper class '$wrapper_class': $_\n";
-        warn $error;
-        $self->set_error( { status_code => 500, reason => $error } );
-    };
-
-    return DECLINED if $self->has_error;
-
     my $id = undef;
 
     try {
-        $id = $self->data_source->store($to_store);
+        $to_store = $self->data_source->resultset($result_class)->create($args);
+        $id = $to_store->id;
     }
     catch {
-        my $error = "Could not store POST data in Kioku data source: $_\n";
+        my $error = "Could not store POST data in DBIC data source: $_\n";
         warn $error;
         $self->set_error( { status_code => 500, reason => $error } );
     };
@@ -247,23 +184,30 @@ sub DELETE {
     $self->parent_handler->resource( $self );
     my $req = $self->request;
 
-    my $path = $req->path_info;
+    my $ds = $self->data_source;
+    my $id = $self->get_entity_id;
+    my $existing = undef;
 
-    if ( $path =~ /\/$/ ) {
-        $self->state('prompt');
-        return OK;
+    unless ($id) {
+        my $error = "DELETE request requires and entity ID.\n";
+        $self->set_error({ status_code => 500, reason => $error });
     }
 
-    my @steps = split '/', $path;
-
-    my $id = $req->param('id') || pop @steps;
-
-    # should we do a separate lookup to make sure the data is there?
     try {
-        $self->data_source->delete( $id );
+        ($existing) = $ds->resultset($self->result_class)->find($id);
+    };
+
+    unless ($existing) {
+        my $error = "Resource not found for ID '$id'.\n";
+        $self->set_error({ status_code => 404, reason => $error });
+    }
+
+
+    try {
+        $existing->delete;
     }
     catch {
-        my $error = "Could not delete data from Kioku data source: $_\n";
+        my $error = "Could not delete data from DBIC data source: $_\n";
         $self->set_error({ status_code => 500, reason => $error });
     };
 
@@ -273,14 +217,101 @@ sub DELETE {
     return OK;
 }
 
+before [HTTP_METHODS] => sub {
+	my $self = shift;
+	$self->parent_handler->resource($self);
+};
 
-package MagpieGenericWrapper;
+sub PUT {
+    my $self = shift;
+    my $req = $self->request;
+    my $schema = $self->data_source;
+    my $to_store = undef;
 
-sub new {
-    my $proto = shift;
-    my %args  = @_;
-    return bless \%args, $proto;
+    my $wrapper_class = $self->wrapper_class;
+
+    # XXX should check for a content body first.
+    my %args = ();
+
+    if ( $self->has_data ) {
+        %args = %{ $self->data };
+        $self->clear_data;
+    }
+    else {
+        for ( $req->param ) {
+            $args{$_} = $req->param($_);
+        }
+    }
+
+    my $existing_id = $self->get_entity_id;
+
+    unless ($existing_id) {
+        $self->set_error({
+            status_code => 400,
+            reason => "Attempt to PUT without a definable entity ID."
+        });
+        return DONE;
+    }
+
+
+    my $existing = undef;
+    try {
+        $existing = $schema->resultset($self->result_class)->find($existing_id);
+    }
+    catch {
+        my $error = "Could not fetch data from DBIC data source for PUT editing if entity with ID $existing_id: $_\n";
+        $self->set_error( { status_code => 500, reason => $error } );
+    };
+
+    return OK if $self->has_error;
+
+    unless ($existing) {
+        $self->set_error(404);
+        return DONE;
+    }
+
+    my $existing_obj = $existing->as_obj;
+    foreach my $key (keys(%args)) {
+        try {
+            $existing_obj->$key( $args{$key} );
+        }
+        catch {
+            my $error = "Error updating property '$key' of Resource ID $existing_id: $_\n";
+            $self->set_error( { status_code => 500, reason => $error } );
+            last;
+        };
+    }
+
+
+    return OK if $self->has_error;
+
+    try {
+        $self->data_source->txn_do(sub {
+            $existing->update($existing_obj->to_storage);
+        });
+    }
+    catch {
+        my $error = "Error updating data entity with ID $existing_id: $_\n";
+        $self->set_error( { status_code => 500, reason => $error } );
+    };
+
+    return OK if $self->has_error;
+
+    # finally, if it all went OK, say so.
+    $self->state('updated');
+    $self->response->status(204);
+    return OK;
 }
+
+1;
+
+# package MagpieGenericWrapper;
+#
+# sub new {
+#     my $proto = shift;
+#     my %args  = @_;
+#     return bless \%args, $proto;
+# }
 
 1;
 
