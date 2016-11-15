@@ -4,6 +4,8 @@ package Magpie::Resource::Kioku;
 
 use Moose;
 extends 'Magpie::Resource';
+with 'Magpie::Plugin::DBI';
+
 use Magpie::Constants;
 use Try::Tiny;
 use KiokuDB;
@@ -22,18 +24,6 @@ has wrapper_class => (
     default  => 'MagpieGenericWrapper',
 );
 
-has dsn => (
-    isa       => "Str",
-    is        => "ro",
-    predicate => "has_dsn",
-);
-
-has extra_args => (
-    isa       => "HashRef|ArrayRef",
-    is        => "ro",
-    predicate => "has_extra_args",
-);
-
 has typemap => (
     isa       => "KiokuDB::TypeMap",
     is        => "ro",
@@ -44,48 +34,6 @@ has _kioku_scope => (
     is  => 'rw',
     isa => 'KiokuDB::LiveObjects::Scope',
 );
-
-has username => (
-    is        => 'ro',
-    isa       => 'Maybe[Str]',
-    predicate => 'has_username',
-);
-
-has password => (
-    is        => 'ro',
-    isa       => 'Maybe[Str]',
-    predicate => 'has_password',
-);
-
-sub _connect_args {
-    my $self = shift;
-    my @args = ( $self->dsn || die "dsn is required" );
-
-    if ( $self->has_username ) {
-        push @args, user => $self->username;
-    }
-
-    if ( $self->has_password ) {
-        push @args, password => $self->password;
-    }
-
-    if ( $self->has_typemap ) {
-        push @args, typemap => $self->typemap;
-    }
-
-    if ( $self->has_extra_args ) {
-        my $extra = $self->extra_args;
-
-        if ( ref($extra) eq 'ARRAY' ) {
-            push @args, @$extra;
-        }
-        else {
-            push @args, %$extra;
-        }
-    }
-
-    \@args;
-}
 
 sub _build_data_source {
     my $self = shift;

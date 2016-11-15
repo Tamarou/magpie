@@ -55,28 +55,5 @@ sub _connect_args {
     \@args;
 }
 
-sub _build_data_source {
-    my $self = shift;
-    my $k    = undef;
-
-    try {
-        $k = $self->resolve_asset( service => 'kioku_dir' );
-    }
-    catch {
-        try {
-            $k = KiokuDB->connect( @{ $self->_connect_args } );
-        }
-        catch {
-            my $error = "Could not connect to Kioku data source: $_\n";
-            warn $error;
-            $self->set_error( { status_code => 500, reason => $error } );
-        };
-    };
-
-    return undef if $self->has_error;
-    $self->_kioku_scope( $k->new_scope );
-    return $k;
-}
-
 
 1;
